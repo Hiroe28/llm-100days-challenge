@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="おえかき花火アプリ" />
+    <meta property="og:description" content="画面をタッチするだけでカラフルな花火や星、ハートなど5種類のエフェクトを描けるお絵かきアプリです。音も鳴って楽しい！" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day009-fireworks/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day009-fireworks/index.html" />
+    <meta name="twitter:card" content="summary_large_image" />  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>お絵かき花火アプリ</title>
     <style>
         body {
@@ -124,6 +131,30 @@
             background-color: rgba(255, 255, 255, 0.4);
         }
         
+        /* ランダム配置ボタン */
+        .random-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .random-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .random-btn.active {
+            background-color: rgba(255, 100, 100, 0.6);
+            box-shadow: 0 0 10px rgba(255, 100, 100, 0.8);
+        }
+        
         /* 回転アニメーション */
         @keyframes rotate {
             0% { transform: rotate(0deg); }
@@ -141,6 +172,7 @@
         <div class="canvas-container">
             <canvas id="canvas"></canvas>
             <button id="clear-btn" class="clear-btn">🗑️ ぜんぶけす</button>
+            <button id="random-btn" class="random-btn">🎲 自動花火ショー</button>
             <div class="controls">
                 <div id="fireworks-btn" class="effect-btn fireworks active">🎆</div>
                 <div id="stars-btn" class="effect-btn stars">⭐</div>
@@ -158,6 +190,7 @@
         
         // UI要素の参照
         const clearBtn = document.getElementById('clear-btn');
+        const randomBtn = document.getElementById('random-btn');
         const fireworksBtn = document.getElementById('fireworks-btn');
         const starsBtn = document.getElementById('stars-btn');
         const bubblesBtn = document.getElementById('bubbles-btn');
@@ -166,6 +199,10 @@
         
         // エフェクトタイプ
         let currentEffect = 'fireworks';
+        
+        // ランダム配置モード
+        let randomMode = false;
+        let randomInterval = null;
         
         // パーティクルの配列
         let particles = [];
@@ -267,8 +304,89 @@
             heartsBtn.addEventListener('click', () => setEffect('hearts'));
             musicBtn.addEventListener('click', () => setEffect('music'));
             
+            // ランダムボタン
+            randomBtn.addEventListener('click', toggleRandomMode);
+            
             // クリアボタン
             clearBtn.addEventListener('click', clearCanvas);
+        }
+        
+        // ランダムモードの切り替え
+        function toggleRandomMode() {
+            randomMode = !randomMode;
+            randomBtn.classList.toggle('active', randomMode);
+            
+            if (randomMode) {
+                startRandomEffects();
+            } else {
+                stopRandomEffects();
+            }
+        }
+        
+        // 使用可能なすべてのエフェクトタイプ
+        const allEffectTypes = ['fireworks', 'stars', 'bubbles', 'hearts', 'music'];
+        
+        // ランダムなエフェクトタイプを選択
+        function getRandomEffectType() {
+            const randomIndex = Math.floor(Math.random() * allEffectTypes.length);
+            return allEffectTypes[randomIndex];
+        }
+        
+        // ランダムエフェクトの開始
+        function startRandomEffects() {
+            if (randomInterval) {
+                clearInterval(randomInterval);
+            }
+            
+            // メインのランダム効果間隔（0.5〜2秒ごとに大きなエフェクト）
+            randomInterval = setInterval(() => {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                
+                // ランダムにエフェクトタイプを選択
+                const randomEffect = getRandomEffectType();
+                
+                // 一時的に選択エフェクトを変更（UIの更新もする）
+                const originalEffect = currentEffect;
+                setEffect(randomEffect);
+                
+                // ランダムなエフェクトを作成
+                createParticlesAt(x, y, 15 + Math.floor(Math.random() * 15));
+                
+                // 音を鳴らす
+                if (sounds[randomEffect]) {
+                    sounds[randomEffect]();
+                }
+                
+                // 小さなエフェクトをランダムな時間差で追加（小さなエフェクトはメインと同じタイプを使用）
+                const miniBurstCount = Math.floor(Math.random() * 5) + 1;
+                
+                for (let i = 0; i < miniBurstCount; i++) {
+                    setTimeout(() => {
+                        if (randomMode) {  // ランダムモードが終了していたら実行しない
+                            const miniBurstX = x + (Math.random() - 0.5) * 100;
+                            const miniBurstY = y + (Math.random() - 0.5) * 100;
+                            
+                            // メインエフェクトと同じエフェクトタイプを使用
+                            createParticlesAt(miniBurstX, miniBurstY, 5 + Math.floor(Math.random() * 10));
+                            
+                            // たまに音を鳴らす
+                            if (Math.random() > 0.5 && sounds[currentEffect]) {
+                                sounds[currentEffect]();
+                            }
+                        }
+                    }, Math.random() * 1000);  // 0〜1秒のランダムな時間差
+                }
+                
+            }, 500 + Math.random() * 1500);  // 0.5〜2秒間隔でメインエフェクト発生
+        }
+        
+        // ランダムエフェクトの停止
+        function stopRandomEffects() {
+            if (randomInterval) {
+                clearInterval(randomInterval);
+                randomInterval = null;
+            }
         }
         
         // エフェクト選択
