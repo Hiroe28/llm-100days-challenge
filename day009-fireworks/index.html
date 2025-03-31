@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お絵かき花火アプリ</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: "Arial Rounded MT Bold", "ヒラギノ丸ゴ ProN", sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #222;
+            touch-action: none;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(45deg, #ff5252, #ff4081, #7c4dff, #448aff, #64ffda, #b2ff59, #ffff00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+            font-size: 28px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 10px;
+            gap: 10px;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-color: #000;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        
+        .effect-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid white;
+            margin: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.2s;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .effect-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .effect-btn.active {
+            box-shadow: 0 0 10px 3px white;
+        }
+        
+        .fireworks {
+            background: radial-gradient(circle, #ff5252, #7c4dff);
+        }
+        
+        .stars {
+            background: radial-gradient(circle, #ffff00, #ff4081);
+        }
+        
+        .bubbles {
+            background: radial-gradient(circle, #64ffda, #448aff);
+        }
+        
+        .hearts {
+            background: radial-gradient(circle, #ff4081, #ff5252);
+        }
+        
+        .music-note {
+            background: radial-gradient(circle, #b2ff59, #ffff00);
+        }
+        
+        .clear-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .clear-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* 回転アニメーション */
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spin {
+            animation: rotate 10s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <h1>✨ おえかき花火 ✨</h1>
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+            <button id="clear-btn" class="clear-btn">🗑️ ぜんぶけす</button>
+            <div class="controls">
+                <div id="fireworks-btn" class="effect-btn fireworks active">🎆</div>
+                <div id="stars-btn" class="effect-btn stars">⭐</div>
+                <div id="bubbles-btn" class="effect-btn bubbles">🫧</div>
+                <div id="hearts-btn" class="effect-btn hearts">❤️</div>
+                <div id="music-btn" class="effect-btn music-note">🎵</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // キャンバス要素と2Dコンテキストの取得
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // UI要素の参照
+        const clearBtn = document.getElementById('clear-btn');
+        const fireworksBtn = document.getElementById('fireworks-btn');
+        const starsBtn = document.getElementById('stars-btn');
+        const bubblesBtn = document.getElementById('bubbles-btn');
+        const heartsBtn = document.getElementById('hearts-btn');
+        const musicBtn = document.getElementById('music-btn');
+        
+        // エフェクトタイプ
+        let currentEffect = 'fireworks';
+        
+        // パーティクルの配列
+        let particles = [];
+        let stars = [];
+        
+        // キャンバスサイズの設定
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        // 初期化
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            setupEventListeners();
+            createStars();
+            requestAnimationFrame(update);
+            
+            // 音声の設定
+            setupAudio();
+        }
+        
+        // 音声オブジェクトの初期化
+        let audioContext;
+        let sounds = {};
+        
+        function setupAudio() {
+            try {
+                // オーディオコンテキストの初期化
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 各エフェクト音の設定
+                sounds = {
+                    fireworks: createSound([523.25, 659.25, 783.99], 0.1),  // ド、ミ、ソ
+                    stars: createSound([783.99, 987.77, 1318.51], 0.1),    // ソ、シ、高いミ
+                    bubbles: createSound([261.63, 392.00, 523.25], 0.15),  // ド、ソ、高いド
+                    hearts: createSound([392.00, 440.00, 523.25], 0.12),   // ソ、ラ、高いド
+                    music: createSound([523.25, 587.33, 659.25, 783.99], 0.08)  // ド、レ、ミ、ソ
+                };
+            } catch (e) {
+                console.log('Web Audio API is not supported in this browser');
+            }
+        }
+        
+        // 簡単な音作成関数
+        function createSound(frequencies, duration) {
+            return function() {
+                try {
+                    // ユーザーインタラクションがないとエラーになる場合がある
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    
+                    // ランダムに周波数を選択
+                    const freq = frequencies[Math.floor(Math.random() * frequencies.length)];
+                    
+                    // オシレーターを作成
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    // 接続
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // 設定
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = freq;
+                    gainNode.gain.value = 0.1;
+                    
+                    // フェードアウト
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+                    
+                    // 開始と停止
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + duration);
+                } catch (e) {
+                    console.log('Error playing sound:', e);
+                }
+            };
+        }
+        
+        // イベントリスナーの設定
+        function setupEventListeners() {
+            // キャンバスのイベント
+            canvas.addEventListener('mousedown', handlePointerStart);
+            canvas.addEventListener('mousemove', handlePointerMove);
+            canvas.addEventListener('mouseup', handlePointerEnd);
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handleTouchEnd);
+            
+            // エフェクト選択ボタン
+            fireworksBtn.addEventListener('click', () => setEffect('fireworks'));
+            starsBtn.addEventListener('click', () => setEffect('stars'));
+            bubblesBtn.addEventListener('click', () => setEffect('bubbles'));
+            heartsBtn.addEventListener('click', () => setEffect('hearts'));
+            musicBtn.addEventListener('click', () => setEffect('music'));
+            
+            // クリアボタン
+            clearBtn.addEventListener('click', clearCanvas);
+        }
+        
+        // エフェクト選択
+        function setEffect(effect) {
+            currentEffect = effect;
+            
+            // ボタンのアクティブ状態を更新
+            fireworksBtn.classList.toggle('active', effect === 'fireworks');
+            starsBtn.classList.toggle('active', effect === 'stars');
+            bubblesBtn.classList.toggle('active', effect === 'bubbles');
+            heartsBtn.classList.toggle('active', effect === 'hearts');
+            musicBtn.classList.toggle('active', effect === 'music');
+        }
+        
+        // タッチイベント処理（iOSなど）
+        function handleTouchStart(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            handlePointerStart(touch);
+        }
+        
+        function handleTouchMove(event) {
+            event.preventDefault();
+            const touch = event.touches[0];
+            handlePointerMove(touch);
+        }
+        
+        function handleTouchEnd(event) {
+            event.preventDefault();
+            handlePointerEnd();
+        }
+        
+        // ポインタ状態
+        let isPointerDown = false;
+        let lastX, lastY;
+        let pointerMoveCount = 0;
+        
+        // ポインタイベント処理
+        function handlePointerStart(event) {
+            isPointerDown = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = event.clientX - rect.left;
+            lastY = event.clientY - rect.top;
+            createParticlesAt(lastX, lastY, 20);
+            
+            // 音を鳴らす
+            if (sounds[currentEffect]) {
+                sounds[currentEffect]();
+            }
+        }
+        
+        function handlePointerMove(event) {
+            if (!isPointerDown) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            // 移動がない場合はスキップ
+            if (x === lastX && y === lastY) return;
+            
+            // カウンターを使って間引きする（パフォーマンス向上）
+            pointerMoveCount++;
+            if (pointerMoveCount % 2 === 0) {
+                createParticlesAt(x, y, 5);
+                
+                // 動いた時に音を鳴らす（間引き）
+                if (pointerMoveCount % 6 === 0 && sounds[currentEffect]) {
+                    sounds[currentEffect]();
+                }
+            }
+            
+            lastX = x;
+            lastY = y;
+        }
+        
+        function handlePointerEnd() {
+            isPointerDown = false;
+            pointerMoveCount = 0;
+        }
+        
+        // パーティクル生成
+        function createParticlesAt(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                let particle;
+                
+                switch (currentEffect) {
+                    case 'fireworks':
+                        particle = createFirework(x, y);
+                        break;
+                    case 'stars':
+                        particle = createStar(x, y);
+                        break;
+                    case 'bubbles':
+                        particle = createBubble(x, y);
+                        break;
+                    case 'hearts':
+                        particle = createHeart(x, y);
+                        break;
+                    case 'music':
+                        particle = createMusicNote(x, y);
+                        break;
+                }
+                
+                particles.push(particle);
+            }
+        }
+        
+        // 花火パーティクル
+        function createFirework(x, y) {
+            const hue = Math.floor(Math.random() * 360);
+            const size = 3 + Math.random() * 5;
+            
+            return {
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 8,
+                vy: (Math.random() - 0.5) * 8,
+                size: size,
+                color: `hsl(${hue}, 100%, 60%)`,
+                sparkColor: `hsl(${hue}, 100%, 80%)`,
+                type: 'firework',
+                opacity: 1,
+                gravity: 0.05,
+                decay: 0.01 + Math.random() * 0.02,
+                sparkles: Math.random() > 0.5
+            };
+        }
+        
+        // 星パーティクル
+        function createStar(x, y) {
+            const hue = 50 + Math.random() * 60; // 黄色系
+            const size = 10 + Math.random() * 10;
+            
+            return {
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 3,
+                vy: (Math.random() - 0.5) * 3,
+                size: size,
+                spikes: 5,
+                innerRadius: size * 0.4,
+                outerRadius: size,
+                color: `hsl(${hue}, 100%, 70%)`,
+                type: 'star',
+                opacity: 1,
+                gravity: 0.03,
+                decay: 0.005 + Math.random() * 0.01,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.1
+            };
+        }
+        
+        // バブルパーティクル
+        function createBubble(x, y) {
+            const hue = 180 + Math.random() * 60; // 青〜水色系
+            const size = 5 + Math.random() * 20;
+            
+            return {
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 2,
+                vy: -1 - Math.random() * 2, // 上に浮かぶ
+                size: size,
+                color: `hsla(${hue}, 100%, 80%, 0.7)`,
+                strokeColor: `hsla(${hue}, 100%, 90%, 0.9)`,
+                type: 'bubble',
+                opacity: 1,
+                gravity: -0.02, // マイナスの重力で上に浮かぶ
+                decay: 0.003 + Math.random() * 0.007,
+                wobble: Math.random() * 0.1,
+                wobbleSpeed: 0.1 + Math.random() * 0.2
+            };
+        }
+        
+        // ハートパーティクル
+        function createHeart(x, y) {
+            const hue = 330 + Math.random() * 30; // ピンク〜赤系
+            const size = 5 + Math.random() * 10;
+            
+            return {
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 3,
+                vy: -1 - Math.random() * 3,
+                size: size,
+                color: `hsl(${hue}, 100%, 60%)`,
+                type: 'heart',
+                opacity: 1,
+                gravity: 0.05,
+                decay: 0.005 + Math.random() * 0.01,
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.1,
+                pulse: 0,
+                pulseSpeed: 0.05 + Math.random() * 0.05
+            };
+        }
+        
+        // 音符パーティクル
+        function createMusicNote(x, y) {
+            const hues = [120, 240, 60, 300, 0]; // 様々な色
+            const hue = hues[Math.floor(Math.random() * hues.length)];
+            const size = 10 + Math.random() * 15;
+            const noteTypes = ['♪', '♫', '♩', '♬', '♭', '♮'];
+            const noteType = noteTypes[Math.floor(Math.random() * noteTypes.length)];
+            
+            return {
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -2 - Math.random() * 3,
+                size: size,
+                color: `hsl(${hue}, 100%, 60%)`,
+                type: 'music',
+                text: noteType,
+                opacity: 1,
+                gravity: 0.04,
+                decay: 0.005 + Math.random() * 0.01,
+                rotation: (Math.random() - 0.5) * Math.PI / 4,
+                rotationSpeed: (Math.random() - 0.5) * 0.05
+            };
+        }
+        
+        // 背景の星を作成
+        function createStars() {
+            const count = Math.floor(canvas.width * canvas.height / 5000);
+            
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: 0.5 + Math.random() * 2,
+                    opacity: 0.2 + Math.random() * 0.8,
+                    twinkleSpeed: 0.003 + Math.random() * 0.03,
+                    twinklePhase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        
+        // キャンバスをクリア
+        function clearCanvas() {
+            particles = [];
+        }
+        
+        // メインアップデートループ
+        function update() {
+            // キャンバスのクリア（背景色は残す）
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 背景の星を描画
+            updateStars();
+            
+            // パーティクルの更新と描画
+            updateParticles();
+            
+            requestAnimationFrame(update);
+        }
+        
+        // 背景の星を更新
+        function updateStars() {
+            for (const star of stars) {
+                // 明滅効果
+                star.twinklePhase += star.twinkleSpeed;
+                const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase);
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * twinkle})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        // パーティクルの更新と描画
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                
+                // 重力の適用
+                p.vy += p.gravity;
+                
+                // 位置の更新
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // 透明度の減衰
+                p.opacity -= p.decay;
+                
+                // 寿命が尽きたパーティクルの削除
+                if (p.opacity <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                
+                // パーティクルタイプに応じた描画
+                switch (p.type) {
+                    case 'firework':
+                        drawFirework(p);
+                        break;
+                    case 'star':
+                        drawStar(p);
+                        break;
+                    case 'bubble':
+                        drawBubble(p);
+                        break;
+                    case 'heart':
+                        drawHeart(p);
+                        break;
+                    case 'music':
+                        drawMusicNote(p);
+                        break;
+                }
+            }
+        }
+        
+        // 花火の描画
+        function drawFirework(p) {
+            ctx.globalAlpha = p.opacity;
+            
+            // メインの粒子
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 火花効果
+            if (p.sparkles && p.opacity > 0.4) {
+                ctx.strokeStyle = p.sparkColor;
+                ctx.lineWidth = 1;
+                
+                for (let i = 0; i < 3; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const length = p.size * 2 + Math.random() * p.size * 3;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(
+                        p.x + Math.cos(angle) * length,
+                        p.y + Math.sin(angle) * length
+                    );
+                    ctx.stroke();
+                }
+            }
+            
+            ctx.globalAlpha = 1.0;
+        }
+        
+        // 星の描画
+        function drawStar(p) {
+            ctx.globalAlpha = p.opacity;
+            ctx.fillStyle = p.color;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            p.rotation += p.rotationSpeed;
+            
+            // 星の形を描画
+            ctx.beginPath();
+            for (let i = 0; i < p.spikes * 2; i++) {
+                const radius = i % 2 === 0 ? p.outerRadius : p.innerRadius;
+                const angle = Math.PI * i / p.spikes;
+                ctx.lineTo(
+                    Math.cos(angle) * radius,
+                    Math.sin(angle) * radius
+                );
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+            ctx.globalAlpha = 1.0;
+        }
+        
+        // バブルの描画
+        function drawBubble(p) {
+            ctx.globalAlpha = p.opacity;
+            
+            // 揺らぎ効果
+            p.wobble += p.wobbleSpeed;
+            const wobbleX = Math.sin(p.wobble) * 2;
+            
+            // バブルの描画
+            ctx.fillStyle = p.color;
+            ctx.strokeStyle = p.strokeColor;
+            ctx.lineWidth = 1.5;
+            
+            ctx.beginPath();
+            ctx.arc(p.x + wobbleX, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // ハイライト効果
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.beginPath();
+            ctx.arc(
+                p.x + wobbleX - p.size * 0.3,
+                p.y - p.size * 0.3,
+                p.size * 0.2,
+                0, Math.PI * 2
+            );
+            ctx.fill();
+            
+            ctx.globalAlpha = 1.0;
+        }
+        
+        // ハートの描画
+        function drawHeart(p) {
+            ctx.globalAlpha = p.opacity;
+            ctx.fillStyle = p.color;
+            
+            // 脈動効果
+            p.pulse += p.pulseSpeed;
+            const scale = 1 + Math.sin(p.pulse) * 0.1;
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            ctx.scale(scale, scale);
+            p.rotation += p.rotationSpeed;
+            
+            // ハートの形を描画
+            ctx.beginPath();
+            ctx.moveTo(0, -p.size / 2);
+            ctx.bezierCurveTo(
+                p.size / 2, -p.size,
+                p.size, -p.size / 4,
+                0, p.size / 2
+            );
+            ctx.bezierCurveTo(
+                -p.size, -p.size / 4,
+                -p.size / 2, -p.size,
+                0, -p.size / 2
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+            ctx.globalAlpha = 1.0;
+        }
+        
+        // 音符の描画
+        function drawMusicNote(p) {
+            ctx.globalAlpha = p.opacity;
+            ctx.fillStyle = p.color;
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            p.rotation += p.rotationSpeed;
+            
+            // 音符テキストを描画
+            ctx.font = `bold ${p.size * 2}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(p.text, 0, 0);
+            
+            ctx.restore();
+            ctx.globalAlpha = 1.0;
+        }
+        
+        // 初期化を実行
+        init();
+    </script>
+</body>
+</html>

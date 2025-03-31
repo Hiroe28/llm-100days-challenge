@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>キラキラ水族館</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: "Arial Rounded MT Bold", "ヒラギノ丸ゴ ProN", sans-serif;
+    }
+    
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 10px 15px;
+      border-radius: 30px;
+      z-index: 100;
+    }
+    
+    button {
+      background-color: rgba(255, 255, 255, 0.3);
+      border: 2px solid white;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    button:hover {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .home-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+    }
+    
+    .info {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button id="add-fish-btn">🐟 魚を増やす</button>
+    <button id="remove-fish-btn">➖ 魚を減らす</button>
+    <button id="feed-btn">🦐 エサをあげる</button>
+  </div>
+  
+  <!-- <button class="home-btn" onclick="goHome()">🏠 ホームに戻る</button> -->
+  
+  <div class="info">
+    <div id="fish-count">魚の数: 50匹</div>
+    <div id="fps">FPS: 0</div>
+  </div>
+  
+  <script>
+    // グローバル変数
+    let fishes = [];
+    let foods = [];
+    let initialFishCount = 50;
+    let sparkleImages = [];
+    
+    // p5.js インスタンスモード
+    const sketch = (p) => {
+      
+      // 魚のクラス
+      class Fish {
+        constructor() {
+          this.position = p.createVector(p.random(p.width), p.random(p.height));
+          this.velocity = p5.Vector.random2D();
+          this.velocity.setMag(p.random(2, 4));
+          this.acceleration = p.createVector();
+          this.maxForce = 0.2;
+          this.maxSpeed = 4;
+          this.size = p.random(5, 9);
+          
+          // キラキラした色
+          const hue = p.random(170, 230); // 青～水色の範囲
+          this.color = p.color(hue, p.random(80, 100), p.random(80, 100), 0.8);
+          this.shimmerColor = p.color(hue, 80, 100, 0.6);
+          
+          this.perception = 100;
+          this.tailAngle = 0;
+          
+          // キラキラエフェクト
+          this.sparkles = [];
+          this.sparkleTimer = 0;
+          this.nextSparkleTime = p.random(20, 60);
+          
+          // エサを探す
+          this.hungry = p.random() < 0.7; // 70%の確率でお腹が空いている
+          this.targetFood = null;
+        }
+
+        // エッジ回避（水槽の壁）
+        avoidEdges() {
+          const margin = 50;
+          let desire = null;
+          
+          if (this.position.x < margin) {
+            desire = p.createVector(this.maxSpeed, this.velocity.y);
+          } else if (this.position.x > p.width - margin) {
+            desire = p.createVector(-this.maxSpeed, this.velocity.y);
+          }
+          
+          if (this.position.y < margin) {
+            desire = desire || p.createVector(this.velocity.x, this.maxSpeed);
+          } else if (this.position.y > p.height - margin) {
+            desire = desire || p.createVector(this.velocity.x, -this.maxSpeed);
+          }
+          
+          if (desire) {
+            desire.normalize();
+            desire.mult(this.maxSpeed);
+            const steer = p5.Vector.sub(desire, this.velocity);
+            steer.limit(this.maxForce * 2);
+            return steer;
+          }
+          return p.createVector(0, 0);
+        }
+
+        // 分離（他の魚との衝突を避ける）
+        separate(fishes) {
+          let steer = p.createVector();
+          let count = 0;
+          
+          for (let other of fishes) {
+            let d = p5.Vector.dist(this.position, other.position);
+            if (d > 0 && d < this.perception / 2) {
+              let diff = p5.Vector.sub(this.position, other.position);
+              diff.normalize();
+              diff.div(d);
+              steer.add(diff);
+              count++;
+            }
+          }
+          
+          if (count > 0) {
+            steer.div(count);
+            steer.normalize();
+            steer.mult(this.maxSpeed);
+            steer.sub(this.velocity);
+            steer.limit(this.maxForce);
+          }
+          
+          return steer;
+        }
+
+        // 整列（近くの魚と同じ方向に泳ぐ）
+        align(fishes) {
+          let steer = p.createVector();
+          let count = 0;
+          
+          for (let other of fishes) {
+            let d = p5.Vector.dist(this.position, other.position);
+            if (d > 0 && d < this.perception) {
+              steer.add(other.velocity);
+              count++;
+            }
+          }
+          
+          if (count > 0) {
+            steer.div(count);
+            steer.normalize();
+            steer.mult(this.maxSpeed);
+            steer.sub(this.velocity);
+            steer.limit(this.maxForce);
+          }
+          
+          return steer;
+        }
+
+        // 結合（群れの中心に向かう）
+        cohesion(fishes) {
+          let target = p.createVector();
+          let count = 0;
+          
+          for (let other of fishes) {
+            let d = p5.Vector.dist(this.position, other.position);
+            if (d > 0 && d < this.perception) {
+              target.add(other.position);
+              count++;
+            }
+          }
+          
+          if (count > 0) {
+            target.div(count);
+            let desire = p5.Vector.sub(target, this.position);
+            desire.normalize();
+            desire.mult(this.maxSpeed);
+            let steer = p5.Vector.sub(desire, this.velocity);
+            steer.limit(this.maxForce);
+            return steer;
+          }
+          
+          return p.createVector();
+        }
+        
+        // エサを探して追いかける
+        seekFood(foods) {
+          if (!this.hungry || foods.length === 0) {
+            return p.createVector();
+          }
+          
+          // エサのターゲットを決める
+          if (!this.targetFood || this.targetFood.eaten) {
+            let closestFood = null;
+            let closestDist = this.perception * 2; // 視界の2倍まで
+            
+            for (let food of foods) {
+              if (!food.eaten) {
+                const d = p5.Vector.dist(this.position, food.position);
+                if (d < closestDist) {
+                  closestDist = d;
+                  closestFood = food;
+                }
+              }
+            }
+            
+            this.targetFood = closestFood;
+          }
+          
+          // ターゲットが見つかったら追いかける
+          if (this.targetFood) {
+            const distance = p5.Vector.dist(this.position, this.targetFood.position);
+            
+            // エサに到達した
+            if (distance < this.size) {
+              this.targetFood.eaten = true;
+              this.hungry = false;
+              this.targetFood = null;
+              
+              // キラキラエフェクト発生
+              for (let i = 0; i < 5; i++) {
+                this.createSparkle();
+              }
+              
+              return p.createVector();
+            }
+            
+            // エサに向かう
+            const desired = p5.Vector.sub(this.targetFood.position, this.position);
+            desired.normalize();
+            desired.mult(this.maxSpeed);
+            
+            const steer = p5.Vector.sub(desired, this.velocity);
+            steer.limit(this.maxForce * 1.5); // 食べ物に対しては強い力で向かう
+            
+            return steer;
+          }
+          
+          return p.createVector();
+        }
+
+        // 魚の行動を更新
+        update() {
+          // 尾びれをアニメーション
+          this.tailAngle = p.sin(p.frameCount * 0.2) * 0.3;
+          
+          // キラキラエフェクトの更新
+          this.updateSparkles();
+          
+          // 新しいキラキラを生成
+          this.sparkleTimer++;
+          if (this.sparkleTimer > this.nextSparkleTime) {
+            this.createSparkle();
+            this.sparkleTimer = 0;
+            this.nextSparkleTime = p.random(60, 120);
+          }
+          
+          // たまにお腹が空く
+          if (!this.hungry && p.random() < 0.001) {
+            this.hungry = true;
+          }
+          
+          // 位置と速度の更新
+          this.position.add(this.velocity);
+          this.velocity.add(this.acceleration);
+          this.velocity.limit(this.maxSpeed);
+          this.acceleration.mult(0);
+        }
+        
+        // キラキラエフェクトを生成
+        createSparkle() {
+          const offset = p5.Vector.random2D().mult(this.size * 0.7);
+          
+          this.sparkles.push({
+            position: p.createVector(
+              this.position.x + offset.x, 
+              this.position.y + offset.y
+            ),
+            size: p.random(3, 8),
+            alpha: p.random(200, 255),
+            imageIndex: Math.floor(p.random(sparkleImages.length))
+          });
+        }
+        
+        // キラキラエフェクトを更新
+        updateSparkles() {
+          for (let i = this.sparkles.length - 1; i >= 0; i--) {
+            const sparkle = this.sparkles[i];
+            sparkle.alpha -= 5;
+            
+            if (sparkle.alpha <= 0) {
+              this.sparkles.splice(i, 1);
+            }
+          }
+        }
+
+        // 力を適用
+        applyForce(force) {
+          this.acceleration.add(force);
+        }
+
+        // 魚を描画
+        draw() {
+          // キラキラエフェクトを描画
+          for (const sparkle of this.sparkles) {
+            p.push();
+            p.translate(sparkle.position.x, sparkle.position.y);
+            p.tint(255, sparkle.alpha);
+            p.imageMode(p.CENTER);
+            p.image(
+              sparkleImages[sparkle.imageIndex], 
+              0, 0, 
+              sparkle.size, sparkle.size
+            );
+            p.pop();
+          }
+          
+          p.push();
+          p.translate(this.position.x, this.position.y);
+          p.rotate(this.velocity.heading() + p.PI/2);
+          
+          // 体全体をHSBで描画するために準備
+          p.colorMode(p.HSB, 360, 100, 100, 1);
+          
+          // 尾びれ
+          p.push();
+          p.rotate(this.tailAngle);
+          p.fill(p.hue(this.color), p.saturation(this.color), p.brightness(this.color), 0.8);
+          p.noStroke();
+          p.beginShape();
+          p.vertex(-this.size * 0.7, this.size * 0.5);
+          p.vertex(0, this.size * 2.5);
+          p.vertex(this.size * 0.7, this.size * 0.5);
+          p.endShape(p.CLOSE);
+          p.pop();
+          
+          // 魚の体
+          p.fill(p.hue(this.color), p.saturation(this.color), p.brightness(this.color), 0.9);
+          p.noStroke();
+          
+          // 体の輪郭
+          p.beginShape();
+          p.vertex(0, -this.size * 1.5);
+          p.bezierVertex(
+            this.size, -this.size, 
+            this.size, this.size, 
+            0, this.size
+          );
+          p.bezierVertex(
+            -this.size, this.size, 
+            -this.size, -this.size, 
+            0, -this.size * 1.5
+          );
+          p.endShape(p.CLOSE);
+          
+          // キラリと光る目
+          p.fill(255, 255, 255, 0.9);
+          p.ellipse(this.size * 0.3, -this.size * 0.3, this.size * 0.3, this.size * 0.3);
+          p.fill(0, 0, 0, 0.9);
+          p.ellipse(this.size * 0.3, -this.size * 0.3, this.size * 0.15, this.size * 0.15);
+          
+          // お腹が空いているときの表示
+          if (this.hungry && this.targetFood) {
+            p.push();
+            p.rotate(-this.velocity.heading() - p.PI/2); // 画面に対して固定
+            
+            p.fill(360, 0, 100, 0.8);
+            p.noStroke();
+            p.ellipse(0, -this.size * 2, this.size * 1.2, this.size * 0.8);
+            
+            p.fill(0, 0, 0);
+            p.textSize(this.size * 0.7);
+            p.textAlign(p.CENTER, p.CENTER);
+            p.text("🍽️", 0, -this.size * 2);
+            p.pop();
+          }
+          
+          p.colorMode(p.RGB, 255, 255, 255, 1);
+          p.pop();
+        }
+
+        // 群れの行動を計算
+        flock(fishes, foods) {
+          let separation = this.separate(fishes);
+          let alignment = this.align(fishes);
+          let cohesion = this.cohesion(fishes);
+          let edgeAvoidance = this.avoidEdges();
+          let foodSeeking = this.seekFood(foods);
+
+          // 各行動に重みを付ける
+          separation.mult(1.5);
+          alignment.mult(1.0);
+          cohesion.mult(1.0);
+          edgeAvoidance.mult(2.0);
+          foodSeeking.mult(3.0); // エサ追いかけを優先
+
+          // 力を適用
+          this.applyForce(separation);
+          this.applyForce(alignment);
+          this.applyForce(cohesion);
+          this.applyForce(edgeAvoidance);
+          this.applyForce(foodSeeking);
+        }
+      }
+      
+      // エサのクラス
+      class Food {
+        constructor(x, y) {
+          this.position = p.createVector(x, y);
+          this.velocity = p.createVector(0, 0.5 + p.random(0.5));
+          this.size = p.random(8, 12);
+          this.eaten = false;
+          this.alpha = 255;
+          
+          const foodTypes = ['🦐', '🦀', '🦑'];
+          this.type = foodTypes[Math.floor(p.random(foodTypes.length))];
+          
+          this.rotation = p.random(p.TWO_PI);
+          this.rotationSpeed = p.random(-0.05, 0.05);
+        }
+        
+        update() {
+          if (!this.eaten) {
+            this.position.add(this.velocity);
+            this.rotation += this.rotationSpeed;
+          } else {
+            this.alpha -= 15;
+          }
+        }
+        
+        draw() {
+          p.push();
+          p.translate(this.position.x, this.position.y);
+          p.rotate(this.rotation);
+          
+          p.textAlign(p.CENTER, p.CENTER);
+          p.textSize(this.size);
+          p.text(this.type, 0, 0);
+          
+          p.pop();
+        }
+        
+        isOffScreen() {
+          return this.position.y > p.height + this.size;
+        }
+        
+        isFinished() {
+          return this.eaten && this.alpha <= 0;
+        }
+      }
+      
+      // キラキラ画像を生成
+      function createSparkleImage() {
+        const img = p.createGraphics(20, 20);
+        img.background(0, 0);
+        img.noStroke();
+        
+        // 中心の光る部分
+        img.fill(255, 255, 255, 200);
+        img.ellipse(10, 10, 4, 4);
+        
+        // 放射線
+        img.stroke(255, 255, 255, 150);
+        img.strokeWeight(1);
+        
+        // 水平と垂直の線
+        img.line(10, 0, 10, 20);
+        img.line(0, 10, 20, 10);
+        
+        // 斜めの線
+        img.line(3, 3, 17, 17);
+        img.line(3, 17, 17, 3);
+        
+        return img;
+      }
+      
+      // 星型のキラキラ画像を生成
+      function createStarSparkle() {
+        const img = p.createGraphics(20, 20);
+        img.background(0, 0);
+        img.noStroke();
+        
+        // 星形
+        img.fill(255, 255, 255, 200);
+        img.beginShape();
+        for (let i = 0; i < 10; i++) {
+          const radius = i % 2 === 0 ? 9 : 4;
+          const angle = p.TWO_PI * i / 10 - p.PI / 2;
+          const x = 10 + radius * p.cos(angle);
+          const y = 10 + radius * p.sin(angle);
+          img.vertex(x, y);
+        }
+        img.endShape(p.CLOSE);
+        
+        return img;
+      }
+      
+      // ダイヤ型のキラキラ画像を生成
+      function createDiamondSparkle() {
+        const img = p.createGraphics(20, 20);
+        img.background(0, 0);
+        img.noStroke();
+        
+        // ダイヤ形
+        img.fill(255, 255, 255, 200);
+        img.beginShape();
+        img.vertex(10, 0);
+        img.vertex(20, 10);
+        img.vertex(10, 20);
+        img.vertex(0, 10);
+        img.endShape(p.CLOSE);
+        
+        return img;
+      }
+      
+      p.setup = function() {
+        p.createCanvas(p.windowWidth, p.windowHeight);
+        p.colorMode(p.HSB, 360, 100, 100, 1);
+        
+        // キラキラエフェクトの画像を生成
+        sparkleImages.push(createSparkleImage());
+        sparkleImages.push(createStarSparkle());
+        sparkleImages.push(createDiamondSparkle());
+        
+        // 魚を初期生成
+        for (let i = 0; i < initialFishCount; i++) {
+          fishes.push(new Fish());
+        }
+        
+        // ボタンイベント
+        document.getElementById('add-fish-btn').addEventListener('click', function() {
+          for (let i = 0; i < 10; i++) {
+            fishes.push(new Fish());
+          }
+          updateFishCountDisplay();
+        });
+        
+        document.getElementById('remove-fish-btn').addEventListener('click', function() {
+          for (let i = 0; i < 10; i++) {
+            if (fishes.length > 0) {
+              fishes.pop();
+            }
+          }
+          updateFishCountDisplay();
+        });
+        
+        document.getElementById('feed-btn').addEventListener('click', function() {
+          addFood(20);
+        });
+        
+        // 魚の数の表示
+        updateFishCountDisplay();
+        
+        // キャンバスクリックでエサを追加
+        p.canvas.addEventListener('click', function(event) {
+          const rect = p.canvas.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+          
+          // クリック位置にエサを追加
+          for (let i = 0; i < 5; i++) {
+            foods.push(new Food(
+              x + p.random(-20, 20), 
+              y + p.random(-20, 20)
+            ));
+          }
+        });
+      };
+      
+      p.draw = function() {
+        // 深い青色の海
+        p.background(210, 80, 30);
+        
+        // 波紋エフェクト
+        drawWaterEffects();
+        
+        // エサの更新と描画
+        updateAndDrawFood();
+        
+        // 魚の更新と描画
+        for (let fish of fishes) {
+          fish.flock(fishes, foods);
+          fish.update();
+          fish.draw();
+        }
+        
+        // FPS表示の更新
+        if (p.frameCount % 10 === 0) {
+          document.getElementById('fps').textContent = `FPS: ${Math.floor(p.frameRate())}`;
+        }
+      };
+      
+      // 波紋などの水中エフェクト
+      function drawWaterEffects() {
+        // 光の筋
+        p.noFill();
+        for (let i = 0; i < 5; i++) {
+          const x = p.width * (0.2 + i * 0.15);
+          const alpha = 0.05 + p.sin(p.frameCount * 0.01 + i) * 0.03;
+          
+          p.stroke(200, 30, 100, alpha);
+          p.strokeWeight(50 + p.sin(p.frameCount * 0.02 + i * 0.5) * 20);
+          
+          p.beginShape();
+          for (let y = 0; y < p.height; y += 20) {
+            const xOffset = p.sin(y * 0.01 + p.frameCount * 0.01) * 50;
+            p.vertex(x + xOffset, y);
+          }
+          p.endShape();
+        }
+        
+        // 泡
+        p.noStroke();
+        p.fill(210, 10, 100, 0.4);
+        
+        if (p.random() < 0.3) {
+          const bubble = {
+            x: p.random(p.width),
+            y: p.height + 10,
+            size: p.random(3, 8),
+            speed: p.random(1, 3)
+          };
+          bubbles.push(bubble);
+        }
+        
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+          const b = bubbles[i];
+          b.y -= b.speed;
+          b.x += p.sin(b.y * 0.01 + p.frameCount * 0.1) * 0.5;
+          
+          p.ellipse(b.x, b.y, b.size, b.size);
+          
+          if (b.y < -10) {
+            bubbles.splice(i, 1);
+          }
+        }
+      }
+      
+      // エサの更新と描画
+      function updateAndDrawFood() {
+        for (let i = foods.length - 1; i >= 0; i--) {
+          const food = foods[i];
+          food.update();
+          food.draw();
+          
+          if (food.isOffScreen() || food.isFinished()) {
+            foods.splice(i, 1);
+          }
+        }
+      }
+      
+      // ランダムな位置にエサを追加
+      function addFood(count) {
+        for (let i = 0; i < count; i++) {
+          foods.push(new Food(
+            p.random(p.width), 
+            -p.random(20)
+          ));
+        }
+      }
+      
+      // 魚の数の表示を更新
+      function updateFishCountDisplay() {
+        document.getElementById('fish-count').textContent = `魚の数: ${fishes.length}匹`;
+      }
+      
+      p.windowResized = function() {
+        p.resizeCanvas(p.windowWidth, p.windowHeight);
+      };
+    };
+    
+    // 泡の配列
+    let bubbles = [];
+    
+    // ホームに戻る
+    function goHome() {
+      window.location.href = 'index.html';
+    }
+    
+    // p5.jsをインスタンス化
+    new p5(sketch);
+  </script>
+</body>
+</html>

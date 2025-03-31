@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta property="og:title" content="ドーナツデコレーター" />
+  <meta property="og:description" content="リングドーナツやジャムドーナツに様々なトッピングやカラフルなデコレーションを施して、オリジナルのドーナツを作成できます。" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/Hiroe28/005_donuts/main/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/005_donuts/" />
+  <meta name="twitter:card" content="summary_large_image" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ドーナツデコレーター</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- デスクトップ用レイアウト -->
+  <h1 class="desktop-only">🍩 ドーナツデコレーター 🍩</h1>
+  <div id="app-container">
+    <div id="canvas-container"></div>
+    <div id="ui-container">
+      <div class="control-panels">
+        <div class="control-panel">
+          <div class="panel-title">ドーナツの形</div>
+          <div class="tool-buttons">
+            <button id="btn-ring" class="button active">リング</button>
+            <button id="btn-jam" class="button">ジャム</button>
+          </div>
+        </div>
+        
+        <div class="control-panel">
+          <div class="panel-title">ドーナツの色</div>
+          <div class="color-palette" id="base-colors">
+            <!-- 色はJavaScriptで動的に追加 -->
+          </div>
+        </div>
+        
+        <div class="control-panel">
+          <div class="panel-title">アイシングの色</div>
+          <div class="color-palette" id="icing-colors">
+            <!-- 色はJavaScriptで動的に追加 -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="decoration-container">
+        <div class="decoration-panel">
+          <div class="panel-title">デコレーションツール</div>
+          <div class="tool-buttons">
+            <button id="btn-spray" class="button active">スプレー</button>
+            <button id="btn-sprinkles" class="button">スプリンクル</button>
+            <button id="btn-choco" class="button">チョコチップ</button>
+            <button id="btn-heart" class="button">ハート</button>
+            <button id="btn-star" class="button">星</button>
+          </div>
+          
+          <div id="spray-settings" class="tool-settings">
+            <div class="slider-container">
+              <label for="tool-size">スプレーのサイズ: <span id="tool-size-value">10</span></label>
+              <input type="range" id="tool-size" min="5" max="20" value="10">
+            </div>
+            <div class="color-palette" id="spray-colors">
+              <!-- 色はJavaScriptで動的に追加 -->
+            </div>
+          </div>
+          
+          <div id="topping-settings" class="tool-settings" style="display: none;">
+            <div class="slider-container">
+              <label for="topping-size">トッピングのサイズ: <span id="topping-size-value">10</span></label>
+              <input type="range" id="topping-size" min="5" max="20" value="10">
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="random-placement" checked>
+              <label for="random-placement">ランダム配置</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="control-panel">
+        <div class="panel-title">アクション</div>
+        <div class="action-buttons">
+          <button id="btn-undo" class="button button-undo" disabled>１つ戻る</button>
+          <button id="btn-random" class="button">おまかせ</button>
+          <button id="btn-reset" class="button">リセット</button>
+          <button id="btn-save" class="button">保存する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- モバイル用分割レイアウト -->
+  <div id="mobile-ui">
+    <!-- ヘッダー部分 -->
+    <div id="mobile-header">
+      <h1 class="mobile-title">🍩 ドーナツデコレーター 🍩</h1>
+    </div>
+    
+    <!-- ドーナツキャンバス表示部分 -->
+    <div id="mobile-canvas-area">
+      <div id="mobile-canvas-container">
+        <!-- p5.jsキャンバスがここに配置されます -->
+      </div>
+    </div>
+    
+    <!-- 操作部分 -->
+    <div id="mobile-control-area">
+      <div id="mobile-tabs">
+        <div class="mobile-tab active" data-tab="basic">基本設定</div>
+        <div class="mobile-tab" data-tab="decor">デコレーション</div>
+        <div class="mobile-tab" data-tab="action">アクション</div>
+      </div>
+      
+      <div id="mobile-tab-content-container">
+        <!-- 基本設定タブ -->
+        <div id="mobile-tab-basic" class="mobile-tab-content active">
+          <div class="mobile-panel">
+            <div class="panel-title">ドーナツの形</div>
+            <div class="tool-buttons">
+              <button id="mobile-btn-ring" class="button active">リング</button>
+              <button id="mobile-btn-jam" class="button">ジャム</button>
+            </div>
+          </div>
+          
+          <div class="mobile-panel">
+            <div class="panel-title">ドーナツの色</div>
+            <div class="color-palette" id="mobile-base-colors">
+              <!-- 色はJavaScriptで動的に追加 -->
+            </div>
+          </div>
+          
+          <div class="mobile-panel">
+            <div class="panel-title">アイシングの色</div>
+            <div class="color-palette" id="mobile-icing-colors">
+              <!-- 色はJavaScriptで動的に追加 -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- デコレーションタブ -->
+        <div id="mobile-tab-decor" class="mobile-tab-content">
+          <div class="mobile-panel">
+            <div class="panel-title">デコレーションツール</div>
+            <div class="tool-buttons">
+              <button id="mobile-btn-spray" class="button active">スプレー</button>
+              <button id="mobile-btn-sprinkles" class="button">スプリンクル</button>
+              <button id="mobile-btn-choco" class="button">チョコチップ</button>
+              <button id="mobile-btn-heart" class="button">ハート</button>
+              <button id="mobile-btn-star" class="button">星</button>
+            </div>
+          </div>
+          
+          <div id="mobile-spray-settings" class="mobile-panel">
+            <div class="panel-title">スプレー設定</div>
+            <div class="slider-container">
+              <label for="mobile-tool-size">スプレーのサイズ: <span id="mobile-tool-size-value">10</span></label>
+              <input type="range" id="mobile-tool-size" min="5" max="20" value="10">
+            </div>
+            <div class="color-palette" id="mobile-spray-colors">
+              <!-- 色はJavaScriptで動的に追加 -->
+            </div>
+          </div>
+          
+          <div id="mobile-topping-settings" class="mobile-panel" style="display: none;">
+            <div class="panel-title">トッピング設定</div>
+            <div class="slider-container">
+              <label for="mobile-topping-size">トッピングのサイズ: <span id="mobile-topping-size-value">10</span></label>
+              <input type="range" id="mobile-topping-size" min="5" max="20" value="10">
+            </div>
+            <div class="checkbox-container">
+              <input type="checkbox" id="mobile-random-placement" checked>
+              <label for="mobile-random-placement">ランダム配置</label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- アクションタブ -->
+        <div id="mobile-tab-action" class="mobile-tab-content">
+          <div class="mobile-panel">
+            <div class="panel-title">アクション</div>
+            <div class="action-buttons">
+              <button id="mobile-btn-undo" class="button button-undo" disabled>１つ戻る</button>
+              <button id="mobile-btn-random" class="button">おまかせ</button>
+              <button id="mobile-btn-reset" class="button">リセット</button>
+              <button id="mobile-btn-save" class="button">保存する</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScriptファイルの読み込み -->
+  <script src="toppings.js"></script>
+  <script src="donut.js"></script>
+  <script src="ui.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+
+  <meta property="og:title" content="おんがくクイズ />
+  <meta property="og:description" content="音符の聴き分けや楽譜の読み方を遊びながら学習できます。" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/Hiroe28/006_music_quiz/main/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/006_music_quiz/" />
+  <meta name="twitter:card" content="summary_large_image" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>音楽クイズ</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- ホーム画面 -->
+    <div id="home-screen" class="screen active">
+      <div class="title">
+        <i class="fas fa-music"></i>おんがくクイズ
+      </div>
+      
+      <div class="character">🐧</div>
+      
+      <div class="subtitle">音楽を楽しく学ぼう！</div>
+      
+      <div class="button-grid">
+        <button id="btn-pitch-quiz" class="btn btn-ear">
+          <div><i class="fas fa-ear-listen"></i>音当てクイズ</div>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <button id="btn-note-quiz" class="btn btn-note">
+          <div><i class="fas fa-music"></i>楽譜クイズ</div>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <button id="btn-progress" class="btn btn-progress">
+          <div><i class="fas fa-award"></i>きろく</div>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 音当てクイズ画面 -->
+    <div id="pitch-quiz-screen" class="screen">
+      <div class="title">
+        <i class="fas fa-ear-listen"></i>音当てクイズ
+      </div>
+      
+      <div class="quiz-container">
+        <div class="quiz-title">この音は何でしょう？</div>
+        
+        <button id="play-note" class="btn btn-sound">
+          <i class="fas fa-volume-high"></i>音を聴く
+        </button>
+        
+        <!-- ここは動的に生成されるようになりました -->
+        <div class="answer-grid">
+          <!-- JavaScriptで動的に生成されます -->
+        </div>
+      </div>
+      
+      <div id="pitch-feedback" class="feedback"></div>
+      
+      <div class="controls">
+        <button class="btn btn-back go-home">もどる</button>
+        <div id="pitch-score" class="score-display">スコア: 0</div>
+      </div>
+    </div>
+        
+    <!-- 楽譜クイズ画面 -->
+    <div id="note-quiz-screen" class="screen">
+      <div class="title">
+        <i class="fas fa-music"></i>楽譜クイズ
+      </div>
+      
+      <div class="quiz-container">
+        <div class="quiz-title">この楽譜はどの音？</div>
+        
+        <div id="sheet-music-container" class="sheet-music">
+          <!-- VexFlowで楽譜を表示する場所 -->
+        </div>
+        
+        <div class="answer-grid" style="grid-template-columns: repeat(2, 1fr);">
+          <button class="btn btn-answer" data-note="C4">ド (C)</button>
+          <button class="btn btn-answer" data-note="D4">レ (D)</button>
+          <button class="btn btn-answer" data-note="E4">ミ (E)</button>
+          <button class="btn btn-answer" data-note="F4">ファ (F)</button>
+        </div>
+      </div>
+      
+      <div id="note-feedback" class="feedback"></div>
+      
+      <div class="controls">
+        <button class="btn btn-back go-home">もどる</button>
+        <div id="note-score" class="score-display">スコア: 0</div>
+      </div>
+    </div>
+    
+    <!-- 進捗画面 -->
+    <div id="progress-screen" class="screen">
+      <div class="title">
+        <i class="fas fa-award"></i>きろくのページ
+      </div>
+      
+      <div class="quiz-container">
+        <div class="progress-item">
+          <div>レベル:</div>
+          <div id="level-display" class="progress-value">1</div>
+        </div>
+        
+        <div class="progress-item">
+          <div>総スコア:</div>
+          <div id="total-score-display" class="progress-value">0</div>
+        </div>
+        
+        <div>
+          <div style="text-align: left; margin-bottom: 5px;">次のレベルまで:</div>
+          <div class="progress-bar">
+            <div id="level-progress" class="progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+        
+        <div class="badge-grid">
+          <div class="badge" id="badge-1">⭐</div>
+          <div class="badge" id="badge-2">⭐</div>
+          <div class="badge" id="badge-3">⭐</div>
+          <div class="badge" id="badge-4">⭐</div>
+          <div class="badge" id="badge-5">⭐</div>
+          <div class="badge" id="badge-6">⭐</div>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <button class="btn btn-back go-home">もどる</button>
+        <button id="btn-reset-scores" class="btn btn-reset">スコアをリセット</button>
+      </div>
+    </div>
+    
+    <!-- フィードバックオーバーレイを追加 -->
+    <div class="feedback-overlay"></div>
+
+    <!-- オーディオ初期化オーバーレイ -->
+    <div id="audio-overlay" class="audio-overlay">
+      <button id="init-audio" class="audio-btn">
+        タップして音を有効にする
+      </button>
+    </div>
+  </div>
+
+  <!-- ライブラリの読み込み -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+  
+  <!-- 自作スクリプトの読み込み -->
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/sheet.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

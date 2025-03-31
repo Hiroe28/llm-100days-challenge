@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>子供向けじゃんけんゲーム</title>
+  <style>
+    body {
+      font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+      background-color: #fff5e6;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #ff6b6b;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      font-size: 1.2em;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    
+    .hand-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    
+    .hand-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.3s;
+      position: relative;
+    }
+    
+    .hand-button:hover {
+      transform: translateY(-10px);
+    }
+    
+    .hand-button:active {
+      transform: translateY(0px);
+    }
+    
+    .hand-button img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+    }
+    
+    .hand-label {
+      position: absolute;
+      bottom: -25px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .result-area {
+      margin-top: 60px;
+      min-height: 300px;
+    }
+    
+    .vs-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+    
+    .player-container, .computer-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .player-hand, .computer-hand {
+      width: 150px;
+      height: 150px;
+      background-color: #f0f0f0;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: pulse 2s infinite;
+      margin-bottom: 10px;
+    }
+    
+    .player-hand img, .computer-hand img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+    }
+    
+    .hand-name {
+      font-size: 1.2em;
+      font-weight: bold;
+      padding: 5px 15px;
+      border-radius: 20px;
+      margin-top: 5px;
+    }
+    
+    .player-name {
+      background-color: #ffedcc;
+      color: #ff8c00;
+    }
+    
+    .computer-name {
+      background-color: #e0f7fa;
+      color: #0097a7;
+    }
+    
+    .vs-text {
+      font-size: 2em;
+      font-weight: bold;
+      color: #ff9e7d;
+    }
+    
+    .result-message {
+      font-size: 2em;
+      font-weight: bold;
+      margin: 20px 0;
+      min-height: 60px;
+    }
+    
+    .win {
+      color: #4caf50;
+    }
+    
+    .lose {
+      color: #f44336;
+    }
+    
+    .draw {
+      color: #2196f3;
+    }
+    
+    .score {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      margin-top: 30px;
+      font-size: 1.2em;
+    }
+    
+    .score-item {
+      background-color: #f5f5f5;
+      padding: 10px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+      }
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .result-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(255,255,255,0.8);
+      z-index: 100;
+      animation: fadeOut 2s forwards;
+      pointer-events: none;
+    }
+    
+    .result-animation span {
+      font-size: 5em;
+      font-weight: bold;
+    }
+    
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    
+    .reset-button {
+      background-color: #ff9e7d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 1.2em;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s;
+    }
+    
+    .reset-button:hover {
+      background-color: #ff6b6b;
+    }
+    
+    /* 効果音の設定エリア */
+    .sound-settings {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .sound-label {
+      margin-right: 10px;
+      font-size: 0.9em;
+    }
+    
+    /* シャッフルアニメーション用 */
+    .shuffle-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+      flex-direction: column;
+    }
+    
+    .shuffle-container {
+      width: 200px;
+      height: 200px;
+      background-color: #f0f0f0;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+      box-shadow: 0 0 15px rgba(255, 107, 107, 0.6);
+    }
+    
+    .shuffle-container img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+    }
+    
+    .shuffle-text {
+      font-size: 2.5em;
+      font-weight: bold;
+      color: #ff6b6b;
+    }
+    
+    /* レスポンシブ対応 */
+    @media (max-width: 600px) {
+      .hand-button img {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .vs-container {
+        gap: 20px;
+      }
+      
+      .player-hand, .computer-hand {
+        width: 100px;
+        height: 100px;
+      }
+      
+      .result-message {
+        font-size: 1.5em;
+      }
+      
+      .hand-name {
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>じゃんけんゲーム</h1>
+    <div class="subtitle">下から好きな手を選んでね！</div>
+    
+    <div class="hand-buttons">
+      <button class="hand-button" data-hand="rock">
+        <img src="rock.png" alt="グー">
+        <div class="hand-label">グー</div>
+      </button>
+      <button class="hand-button" data-hand="scissors">
+        <img src="scissors.png" alt="チョキ">
+        <div class="hand-label">チョキ</div>
+      </button>
+      <button class="hand-button" data-hand="paper">
+        <img src="paper.png" alt="パー">
+        <div class="hand-label">パー</div>
+      </button>    
+    </div>
+    
+    <div class="result-area">
+      <div class="vs-container hidden">
+        <div class="player-container">
+          <div class="player-hand"></div>
+          <div class="hand-name player-name">あなた</div>
+        </div>
+        <div class="vs-text">VS</div>
+        <div class="computer-container">
+          <div class="computer-hand"></div>
+          <div class="hand-name computer-name">コンピュータ</div>
+        </div>
+      </div>
+      <div class="result-message"></div>
+      <div class="score">
+        <div class="score-item">勝ち: <span id="win-count">0</span></div>
+        <div class="score-item">引き分け: <span id="draw-count">0</span></div>
+        <div class="score-item">負け: <span id="lose-count">0</span></div>
+      </div>
+      <button class="reset-button hidden">もう一回あそぶ！</button>
+    </div>
+    
+    <div class="sound-settings">
+      <span class="sound-label">音:</span>
+      <input type="checkbox" id="sound-toggle" checked>
+    </div>
+  </div>
+
+  <script>
+    // DOMが読み込まれたあとに実行する
+    document.addEventListener('DOMContentLoaded', function() {
+      // じゃんけんの手の画像
+      const handImages = {
+        rock: "rock.png",
+        scissors: "scissors.png",
+        paper: "paper.png"
+      };
+      
+      // じゃんけんの手の日本語名
+      const handNames = {
+        rock: "グー",
+        scissors: "チョキ",
+        paper: "パー"
+      };
+
+      // DOM要素の取得
+      const handButtons = document.querySelectorAll('.hand-button');
+      const resultMessage = document.querySelector('.result-message');
+      const vsContainer = document.querySelector('.vs-container');
+      const playerHand = document.querySelector('.player-hand');
+      const computerHand = document.querySelector('.computer-hand');
+      const playerName = document.querySelector('.player-name');
+      const computerName = document.querySelector('.computer-name');
+      const resetButton = document.querySelector('.reset-button');
+      const soundToggle = document.getElementById('sound-toggle');
+
+      // スコアカウント
+      let winCount = 0;
+      let drawCount = 0;
+      let loseCount = 0;
+      
+      // ゲーム進行中フラグ
+      let isGameInProgress = false;
+
+      // じゃんけん開始音
+      const jankenSound = new Audio('janken.mp3');
+      
+      // 効果音
+      const winSound = new Audio('katta.mp3');
+      const loseSound = new Audio('maketa.mp3');
+      const drawSound = new Audio('aiko.mp3');
+
+      // じゃんけんの結果判定
+      function getResult(playerChoice, computerChoice) {
+        if (playerChoice === computerChoice) {
+          return 'draw';
+        } else if (
+          (playerChoice === 'rock' && computerChoice === 'scissors') ||
+          (playerChoice === 'scissors' && computerChoice === 'paper') ||
+          (playerChoice === 'paper' && computerChoice === 'rock')
+        ) {
+          return 'win';
+        } else {
+          return 'lose';
+        }
+      }
+
+      // コンピュータの手をランダムに選ぶ
+      function getComputerHand() {
+        const hands = ['rock', 'scissors', 'paper'];
+        const randomIndex = Math.floor(Math.random() * 3);
+        return hands[randomIndex];
+      }
+
+      // 結果メッセージを取得
+      function getResultMessage(result) {
+        switch (result) {
+          case 'win':
+            return 'かったね！おめでとう！';
+          case 'lose':
+            return 'まけちゃった。もう一回！';
+          case 'draw':
+            return 'あいこだね。もう一度！';
+          default:
+            return '';
+        }
+      }
+      
+      // シャッフル表示エリアを作成・表示する関数
+      function createShuffleArea() {
+        const shuffleArea = document.createElement('div');
+        shuffleArea.className = 'shuffle-area';
+        
+        const shuffleContainer = document.createElement('div');
+        shuffleContainer.className = 'shuffle-container';
+        
+        const shuffleImage = document.createElement('img');
+        shuffleImage.src = handImages.rock; // 初期画像
+        
+        const shuffleText = document.createElement('div');
+        shuffleText.className = 'shuffle-text';
+        shuffleText.textContent = 'じゃんけん...';
+        
+        shuffleContainer.appendChild(shuffleImage);
+        shuffleArea.appendChild(shuffleContainer);
+        shuffleArea.appendChild(shuffleText);
+        
+        document.body.appendChild(shuffleArea);
+        
+        return {
+          area: shuffleArea,
+          container: shuffleContainer,
+          image: shuffleImage,
+          text: shuffleText
+        };
+      }
+      
+      function startShuffleAnimation(playerChoice, computerChoice) {
+        const shuffle = createShuffleArea();
+        const hands = ['rock', 'scissors', 'paper'];
+        let currentIndex = 0;
+        let ponShown = false;
+        
+        // 画像をシャッフルするインターバル
+        const imageInterval = setInterval(() => {
+          currentIndex = (currentIndex + 1) % 3;
+          shuffle.image.src = handImages[hands[currentIndex]];
+        }, 120); // 少し早めのシャッフル
+        
+        // 「ぽん！」表示のタイマー（タイミングを固定）
+        setTimeout(() => {
+          shuffle.text.textContent = 'ぽん！';
+          ponShown = true;
+          
+          // シャッフルを停止して、コンピュータの選択を確実に表示
+          clearInterval(imageInterval);
+          shuffle.image.src = handImages[computerChoice];
+        }, 800); // 0.8秒後に「ぽん！」を表示
+        
+        // 音声終了時の処理
+        jankenSound.onended = function() {
+          // 「ぽん！」がまだ表示されていなければ表示
+          if (!ponShown) {
+            shuffle.text.textContent = 'ぽん！';
+            clearInterval(imageInterval);
+            shuffle.image.src = handImages[computerChoice];
+          }
+          
+          // 結果の表示（音声終了から0.7秒後）
+          setTimeout(() => {
+            document.body.removeChild(shuffle.area);
+            showResult(playerChoice, computerChoice);
+          }, 700);
+        };
+      }
+
+      // 結果の表示
+      function showResult(playerChoice, computerChoice) {
+        const result = getResult(playerChoice, computerChoice);
+        
+        // 手の表示
+        playerHand.innerHTML = `<img src="${handImages[playerChoice]}" alt="${handNames[playerChoice]}">`;
+        computerHand.innerHTML = `<img src="${handImages[computerChoice]}" alt="${handNames[computerChoice]}">`;
+        
+        // 手の名前を表示に追加
+        playerName.textContent = `あなた: ${handNames[playerChoice]}`;
+        computerName.textContent = `コンピュータ: ${handNames[computerChoice]}`;
+        
+        vsContainer.classList.remove('hidden');
+        
+        // 結果メッセージ
+        resultMessage.textContent = getResultMessage(result);
+        resultMessage.className = 'result-message ' + result;
+        
+        // 効果音再生
+        if (soundToggle.checked) {
+          switch (result) {
+            case 'win':
+              winSound.play();
+              break;
+            case 'lose':
+              loseSound.play();
+              break;
+            case 'draw':
+              drawSound.play();
+              break;
+          }
+        }
+        
+        // スコア更新
+        updateScore(result);
+        
+        // 結果のアニメーション
+        showResultAnimation(result);
+        
+        // リセットボタン表示
+        resetButton.classList.remove('hidden');
+        
+        // ゲーム進行中フラグを解除
+        isGameInProgress = false;
+        
+        // ボタンを有効に戻す（次のゲームのために）
+        handButtons.forEach(btn => {
+          btn.disabled = false;
+          btn.style.opacity = 1;
+        });
+      }
+
+      // スコア更新
+      function updateScore(result) {
+        switch (result) {
+          case 'win':
+            winCount++;
+            document.getElementById('win-count').textContent = winCount;
+            break;
+          case 'lose':
+            loseCount++;
+            document.getElementById('lose-count').textContent = loseCount;
+            break;
+          case 'draw':
+            drawCount++;
+            document.getElementById('draw-count').textContent = drawCount;
+            break;
+        }
+      }
+
+      // 結果アニメーション
+      function showResultAnimation(result) {
+        const animation = document.createElement('div');
+        animation.className = 'result-animation';
+        
+        let message = '';
+        let color = '';
+        
+        switch (result) {
+          case 'win':
+            message = 'かったー！';
+            color = '#4caf50';
+            break;
+          case 'lose':
+            message = 'まけた...';
+            color = '#f44336';
+            break;
+          case 'draw':
+            message = 'あいこ！';
+            color = '#2196f3';
+            break;
+        }
+        
+        animation.innerHTML = `<span style="color: ${color}">${message}</span>`;
+        document.body.appendChild(animation);
+        
+        setTimeout(() => {
+          animation.remove();
+        }, 2000);
+      }
+      
+      // ゲームリセット関数
+      function resetGame() {
+        vsContainer.classList.add('hidden');
+        resultMessage.textContent = '';
+        resultMessage.className = 'result-message';
+        resetButton.classList.add('hidden');
+      }
+
+      // 手のボタンのイベント設定
+      handButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          // ゲーム進行中なら何もしない
+          if (isGameInProgress) return;
+          
+          // 前のゲーム結果をリセット（すでにゲームが行われていた場合）
+          if (!vsContainer.classList.contains('hidden')) {
+            resetGame();
+          }
+          
+          // ゲーム進行中フラグをセット
+          isGameInProgress = true;
+          
+          // ボタンを一時的に無効にする
+          handButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = 0.5;
+          });
+          
+          const playerChoice = this.dataset.hand;
+          const computerChoice = getComputerHand();
+          
+          // じゃんけん開始音を再生
+          if (soundToggle.checked) {
+            // 再生中の場合はリセットして最初から再生
+            jankenSound.pause();
+            jankenSound.currentTime = 0; 
+            jankenSound.play();
+          }
+          
+          // シャッフルアニメーションを開始
+          startShuffleAnimation(playerChoice, computerChoice);
+        });
+      });
+
+      // リセットボタンのイベント設定
+      resetButton.addEventListener('click', function() {
+        resetGame();
+        
+        // ボタンを有効に戻す
+        handButtons.forEach(btn => {
+          btn.disabled = false;
+          btn.style.opacity = 1;
+        });
+      });
+    });
+  </script>
+</body>
+</html>

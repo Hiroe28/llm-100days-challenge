@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>楽しいタイダイ風カラージェネレーター</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
+    .controls {
+      margin: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 95%;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+      transition: all 0.3s;
+      background-color: #fff;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 8px rgba(0,0,0,0.2);
+    }
+    button.active {
+      background-color: #ffdc73;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transform: translateY(1px);
+    }
+    #resetBtn {
+      background-color: #ff9aa2;
+      color: white;
+    }
+    #saveBtn {
+      background-color: #b5e8d5;
+      color: #333;
+    }
+    #randomBtn {
+      background-color: #ffdac1;
+      color: #333;
+    }
+    .option-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+      margin: 0 10px;
+    }
+    select {
+      padding: 8px;
+      border-radius: 15px;
+      border: 1px solid #ddd;
+    }
+    h1 {
+      color: #5e5e5e;
+      margin-bottom: 5px;
+    }
+    h2 {
+      color: #888;
+      font-size: 16px;
+      margin-top: 0;
+      font-weight: normal;
+    }
+    .shape-btn {
+      width: 40px;
+      height: 40px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 20px;
+      background-color: #e6f7ff;
+    }
+    .shape-btn:hover {
+      background-color: #c0e6ff;
+    }
+    .shape-btn.active {
+      background-color: #80ccff;
+    }
+  </style>
+</head>
+<body>
+  <h1>楽しいタイダイ風カラージェネレーター</h1>
+  <h2>クリック＆ドラッグして模様を描いてみよう！</h2>
+  <div class="controls">
+    <button id="resetBtn">リセット</button>
+    <button id="saveBtn">保存する</button>
+    <button id="randomBtn">おまかせ生成</button>
+    
+    <div class="option-group">
+      <label for="themeSelect">カラー：</label>
+      <select id="themeSelect">
+        <option value="random">ランダム</option>
+        <option value="pastel">パステル</option>
+        <option value="vivid">ビビッド</option>
+        <option value="mono">モノクロ</option>
+        <option value="rainbow">虹色</option>
+      </select>
+    </div>
+    
+    <div class="option-group">
+      <label for="symmetrySelect">対称：</label>
+      <select id="symmetrySelect">
+        <option value="1">なし</option>
+        <option value="2">2分割</option>
+        <option value="4">4分割</option>
+        <option value="8">8分割</option>
+      </select>
+      <div id="symmetryHelp" style="position: relative; display: inline-block; margin-left: 5px;">
+        <button style="background: none; box-shadow: none; padding: 2px; width: 20px; height: 20px;">?</button>
+        <div id="symmetryPopup" style="display: none; position: absolute; width: 220px; background: white; border: 1px solid #ddd; border-radius: 10px; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 100; left: -110px; top: 25px;">
+          <p style="margin: 0; text-align: center; font-weight: bold;">対称モードの使い方</p>
+          <p style="margin: 5px 0;"><b>なし</b>：通常の描画です。描いた場所にだけ模様が表示されます。</p>
+          <p style="margin: 5px 0;"><b>2分割</b>：左右対称になります。鏡に映ったように反対側にも同じ模様が描かれます。</p>
+          <p style="margin: 5px 0;"><b>4分割</b>：十字型に4方向に同時に模様が現れます。</p>
+          <p style="margin: 5px 0;"><b>8分割</b>：8方向に同時に模様が広がる万華鏡のような効果が楽しめます。</p>
+          <div style="text-align: center; margin-top: 5px;">
+            <img src="/api/placeholder/200/100" alt="対称モード例" style="border-radius: 5px; width: 180px;"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="option-group">
+      <label>形：</label>
+      <button class="shape-btn active" id="circleShape" title="まる">●</button>
+      <button class="shape-btn" id="starShape" title="ほし">★</button>
+      <button class="shape-btn" id="heartShape" title="ハート">♥</button>
+      <button class="shape-btn" id="flowerShape" title="はな">✿</button>
+    </div>
+  </div>
+  <div id="canvasContainer"></div>
+
+  <script>
+    let canvas;
+    let colorTheme = "random";
+    let currentShape = "circle";
+    let symmetry = 1;
+    let lastMouseX, lastMouseY;
+    let lastMouseTime = 0;
+    let mouseSpeed = 0;
+    let colorIndex = 0;
+    let rainbowColors = [
+      [255, 0, 0],    // 赤
+      [255, 165, 0],  // オレンジ
+      [255, 255, 0],  // 黄色
+      [0, 255, 0],    // 緑
+      [0, 0, 255],    // 青
+      [75, 0, 130],   // インディゴ
+      [238, 130, 238] // 紫
+    ];
+    
+    function setup() {
+      // ウィンドウサイズに合わせたキャンバスを作成
+      canvas = createCanvas(windowWidth * 0.95, windowHeight * 0.7);
+      canvas.parent('canvasContainer');
+      
+      // 背景を白に設定
+      background(255);
+      
+      // イベントリスナーを設定
+      document.getElementById('resetBtn').addEventListener('click', resetCanvas);
+      document.getElementById('saveBtn').addEventListener('click', saveImage);
+      document.getElementById('randomBtn').addEventListener('click', generateRandom);
+      document.getElementById('themeSelect').addEventListener('change', changeTheme);
+      document.getElementById('symmetrySelect').addEventListener('change', changeSymmetry);
+      
+      // 対称モードのヘルプボタンにイベントリスナーを追加
+      const helpBtn = document.querySelector('#symmetryHelp button');
+      const helpPopup = document.getElementById('symmetryPopup');
+      
+      helpBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        helpPopup.style.display = helpPopup.style.display === 'none' ? 'block' : 'none';
+      });
+      
+      // ポップアップの外側をクリックしたときに閉じる
+      document.addEventListener('click', function(e) {
+        if (helpPopup.style.display === 'block' && !helpBtn.contains(e.target) && !helpPopup.contains(e.target)) {
+          helpPopup.style.display = 'none';
+        }
+      });
+      
+      // 形状ボタンのイベントリスナーを設定
+      document.getElementById('circleShape').addEventListener('click', function() { 
+        setActiveShape('circle', this);
+      });
+      document.getElementById('starShape').addEventListener('click', function() { 
+        setActiveShape('star', this);
+      });
+      document.getElementById('heartShape').addEventListener('click', function() { 
+        setActiveShape('heart', this);
+      });
+      document.getElementById('flowerShape').addEventListener('click', function() { 
+        setActiveShape('flower', this);
+      });
+      
+      // マウス位置の初期化
+      lastMouseX = 0;
+      lastMouseY = 0;
+      
+      angleMode(DEGREES); // 角度を度数法で扱う
+    }
+    
+    function draw() {
+      // ドローループは常に実行されるが、アクションがあるときのみ描画
+    }
+    
+    function mouseDragged() {
+      // マウスをドラッグしたときに図形を描画
+      const now = millis();
+      const timeDiff = now - lastMouseTime;
+      
+      // マウスの移動速度を計算
+      if (timeDiff > 0) {
+        const dx = mouseX - lastMouseX;
+        const dy = mouseY - lastMouseY;
+        mouseSpeed = sqrt(dx*dx + dy*dy) / timeDiff * 10;
+        mouseSpeed = constrain(mouseSpeed, 0.5, 5);
+      }
+      
+      // 前回の位置を更新
+      lastMouseX = mouseX;
+      lastMouseY = mouseY;
+      lastMouseTime = now;
+      
+      // 対称モードに応じて図形を描画
+      const centerX = width / 2;
+      const centerY = height / 2;
+      
+      for (let i = 0; i < symmetry; i++) {
+        const angle = 360 / symmetry * i;
+        const dx = mouseX - centerX;
+        const dy = mouseY - centerY;
+        
+        // 回転行列を使用して対称位置を計算
+        const rotatedX = centerX + dx * cos(angle) - dy * sin(angle);
+        const rotatedY = centerY + dx * sin(angle) + dy * cos(angle);
+        
+        drawShape(rotatedX, rotatedY);
+      }
+      
+      return false; // タッチスクリーンでページスクロールを防ぐ
+    }
+    
+    function mousePressed() {
+      // マウスをクリックしたときに図形を描画
+      if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        lastMouseTime = millis();
+        mouseSpeed = 1;
+        
+        // 対称モードに応じて図形を描画
+        const centerX = width / 2;
+        const centerY = height / 2;
+        
+        for (let i = 0; i < symmetry; i++) {
+          const angle = 360 / symmetry * i;
+          const dx = mouseX - centerX;
+          const dy = mouseY - centerY;
+          
+          // 回転行列を使用して対称位置を計算
+          const rotatedX = centerX + dx * cos(angle) - dy * sin(angle);
+          const rotatedY = centerY + dx * sin(angle) + dy * cos(angle);
+          
+          drawShape(rotatedX, rotatedY);
+        }
+        
+        return false; // タッチスクリーンでページスクロールを防ぐ
+      }
+    }
+    
+    function drawShape(x, y) {
+      // 図形の大きさをマウスの速さに基づいて調整
+      let baseSize = 80 * (1 / mouseSpeed);
+      baseSize = constrain(baseSize, 30, 150);
+      
+      // テーマに基づいた色を生成
+      let shapeColor = getThemeColor();
+      
+      // 虹色モードの場合、インデックスを更新
+      if (colorTheme === "rainbow") {
+        colorIndex = (colorIndex + 0.1) % rainbowColors.length;
+      }
+      
+      // それぞれの形状に合わせて描画方法を最適化
+      switch(currentShape) {
+        case "circle":
+          // 円の場合は通常のグラデーション
+          noStroke();
+          for (let i = baseSize; i > 0; i -= 2) {
+            let alpha = map(i, 0, baseSize, 0, 100);
+            fill(red(shapeColor), green(shapeColor), blue(shapeColor), alpha);
+            ellipse(x, y, i, i);
+          }
+          break;
+          
+        case "star":
+          // 星の場合は少ないステップでグラデーション
+          noStroke();
+          for (let i = baseSize; i > 0; i -= baseSize/10) {
+            let alpha = map(i, 0, baseSize, 0, 100);
+            fill(red(shapeColor), green(shapeColor), blue(shapeColor), alpha);
+            drawStar(x, y, i/2, i/3.5, 5);
+          }
+          break;
+          
+        case "heart":
+          // ハートの場合は少ないステップでグラデーション
+          noStroke();
+          for (let i = baseSize; i > 0; i -= baseSize/8) {
+            let alpha = map(i, 0, baseSize, 0, 100);
+            fill(red(shapeColor), green(shapeColor), blue(shapeColor), alpha);
+            drawHeart(x, y, i/15);
+          }
+          break;
+          
+        case "flower":
+          // 花の場合は少ないステップでグラデーション
+          noStroke();
+          for (let i = baseSize; i > 0; i -= baseSize/8) {
+            let alpha = map(i, 0, baseSize, 0, 100);
+            fill(red(shapeColor), green(shapeColor), blue(shapeColor), alpha);
+            drawFlower(x, y, i/2, 6);
+          }
+          break;
+      }
+    }
+    
+    function drawStar(x, y, radius1, radius2, npoints) {
+      // 星のサイズを適切に調整
+      let outerRadius = radius1 * 0.6;
+      let innerRadius = radius2 * 0.7;
+      
+      push();
+      translate(x, y);
+      let angle = 360 / npoints; // TWO_PIから360度に変更
+      let halfAngle = angle/2.0;
+      beginShape();
+      for (let a = 0; a < 360; a += angle) { // TWO_PIから360に変更
+        let sx = cos(a) * outerRadius;
+        let sy = sin(a) * outerRadius;
+        vertex(sx, sy);
+        sx = cos(a+halfAngle) * innerRadius;
+        sy = sin(a+halfAngle) * innerRadius;
+        vertex(sx, sy);
+      }
+      endShape(CLOSE);
+      pop();
+    }
+    
+    function drawHeart(x, y, size) {
+      // ハートのサイズを適切に調整
+      let scaledSize = size * 2;
+      
+      push();
+      translate(x, y);
+      scale(0.5, 0.5); // 全体的に小さくするスケーリング
+      beginShape();
+      // ハートの形を度数法で描画
+      for (let a = 0; a < 360; a += 2) { // TWO_PIから360に変更、ステップも調整
+        let r = scaledSize;
+        // sin/cosには度数が渡されるので計算式を調整
+        let sx = 16 * sin(a) * sin(a) * sin(a) * r;
+        let sy = -(13 * cos(a) - 5 * cos(2*a) - 2 * cos(3*a) - cos(4*a)) * r;
+        vertex(sx, sy);
+      }
+      endShape(CLOSE);
+      pop();
+    }
+    
+    function drawFlower(x, y, radius, petals) {
+      // 花のサイズとペタルの数を調整
+      let flowerRadius = radius * 0.7;
+      let petalSize = radius * 0.7;
+      let actualPetals = 6; // ペタルの数を固定
+      
+      push();
+      translate(x, y);
+      
+      // 花びらを描画 - 度数法に合わせる
+      for (let i = 0; i < actualPetals; i++) {
+        let angle = (360 / actualPetals) * i; // TWO_PIから360に変更
+        let petalX = cos(angle) * flowerRadius * 0.7;
+        let petalY = sin(angle) * flowerRadius * 0.7;
+        
+        push();
+        translate(petalX, petalY);
+        rotate(angle + 90); // PI/2から90に変更
+        ellipse(0, 0, petalSize * 0.7, petalSize);
+        pop();
+      }
+      
+      // 花の中心
+      fill(255, 220, 100, 150); // 中心を黄色っぽく
+      ellipse(0, 0, flowerRadius * 0.5, flowerRadius * 0.5);
+      pop();
+    }
+    
+    function getThemeColor() {
+      switch(colorTheme) {
+        case "pastel":
+          return color(
+            random(180, 255),
+            random(180, 255),
+            random(180, 255),
+            150
+          );
+        case "vivid":
+          return color(
+            random(100, 255),
+            random(100, 255),
+            random(50, 150),
+            150
+          );
+        case "mono":
+          let val = random(50, 200);
+          return color(val, val, val, 150);
+        case "rainbow":
+          let idx = floor(colorIndex);
+          let nextIdx = (idx + 1) % rainbowColors.length;
+          let t = colorIndex - idx; // 0から1の間の補間値
+          
+          // 2色間を滑らかに補間
+          let r = lerp(rainbowColors[idx][0], rainbowColors[nextIdx][0], t);
+          let g = lerp(rainbowColors[idx][1], rainbowColors[nextIdx][1], t);
+          let b = lerp(rainbowColors[idx][2], rainbowColors[nextIdx][2], t);
+          
+          return color(r, g, b, 150);
+        case "random":
+        default:
+          return color(
+            random(50, 255),
+            random(50, 255),
+            random(50, 255),
+            150
+          );
+      }
+    }
+    
+    function resetCanvas() {
+      // キャンバスをリセット
+      background(255);
+    }
+    
+    function saveImage() {
+      // キャンバスを画像として保存
+      saveCanvas(canvas, 'タイダイ模様', 'png');
+    }
+    
+    function generateRandom() {
+      // ランダムに図形を生成
+      const shapes = ["circle", "star", "heart", "flower"];
+      const originalShape = currentShape;
+      
+      for (let i = 0; i < 15; i++) {
+        // ランダムな位置と速度
+        const x = random(width);
+        const y = random(height);
+        mouseSpeed = random(0.5, 3);
+        
+        // ランダムな形状を選択（33%の確率）
+        if (random() < 0.33) {
+          currentShape = random(shapes);
+        }
+        
+        // 対称モードに応じて図形を描画
+        const centerX = width / 2;
+        const centerY = height / 2;
+        
+        for (let j = 0; j < symmetry; j++) {
+          const angle = 360 / symmetry * j;
+          const dx = x - centerX;
+          const dy = y - centerY;
+          
+          // 回転行列を使用して対称位置を計算
+          const rotatedX = centerX + dx * cos(angle) - dy * sin(angle);
+          const rotatedY = centerY + dx * sin(angle) + dy * cos(angle);
+          
+          drawShape(rotatedX, rotatedY);
+        }
+      }
+      
+      // 元の形状に戻す
+      currentShape = originalShape;
+    }
+    
+    function changeTheme() {
+      // カラーテーマを変更
+      colorTheme = document.getElementById('themeSelect').value;
+    }
+    
+    function changeSymmetry() {
+      // 対称性を変更
+      symmetry = parseInt(document.getElementById('symmetrySelect').value);
+    }
+    
+    function setActiveShape(shape, button) {
+      // アクティブな形状を設定
+      currentShape = shape;
+      
+      // すべての形状ボタンからアクティブクラスを削除
+      const shapeBtns = document.querySelectorAll('.shape-btn');
+      shapeBtns.forEach(btn => btn.classList.remove('active'));
+      
+      // クリックされたボタンにアクティブクラスを追加
+      button.classList.add('active');
+    }
+    
+    function windowResized() {
+      // ウィンドウサイズが変更されたときにキャンバスをリサイズ
+      resizeCanvas(windowWidth * 0.95, windowHeight * 0.7);
+    }
+  </script>
+</body>
+</html>

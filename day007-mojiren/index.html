@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ff6b6b">
+
+    <meta property="og:title" content="ひらがな・カタカナ・すうじ なぞりれんしゅう />
+    <meta property="og:description" content="こども向けのひらがな・カタカナ・数字の書き方練習ができるシンプルなWebアプリです。" />
+    <meta property="og:image" content="https://raw.githubusercontent.com/Hiroe28/007_mojiren/main/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/007_mojiren/" />
+    <meta name="twitter:card" content="summary_large_image" />  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>ひらがな・カタカナ・数字なぞり練習アプリ</title>
+    
+    <!-- p5.jsライブラリを読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    
+    <!-- Kleeフォントを読み込み -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- スタイルシート -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- モバイルデバイス向けメタタグ -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+</head>
+<body>
+    <div class="container">
+        <h1>ひらがな・カタカナ・すうじ<br>なぞりれんしゅう</h1>
+        
+        <!-- カテゴリと文字選択はJavaScriptで動的に生成 -->
+        <div id="category-buttons"></div>
+        <div id="char-buttons"></div>
+        
+        <!-- キャンバスを配置する要素 -->
+        <div id="sketch-holder" style="position: relative; touch-action: none;"></div>
+        
+        <!-- 結果表示エリアを追加 -->
+        <div id="result-display"></div>
+        
+        <!-- コントロールパネル -->
+        <div id="control-panel">
+            <!-- JavaScriptで動的に生成 -->
+        </div>
+    </div>
+    
+    <!-- メインのスクリプト -->
+    <script>
+// イベントの伝播を確実に行うために追加
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM完全ロード済み');
+    
+    // モバイルデバイス向けの特別なタッチ処理を追加
+    function isTouchDevice() {
+        return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    }
+    
+    if (isTouchDevice()) {
+        console.log('タッチデバイスを検出 - スペシャルモードを有効化');
+        
+        // iOS SafariでのWeb Audio APIと音声合成APIの初期化
+        function setupAudioContext() {
+            // AudioContextの初期化
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                const audioCtx = new AudioContext();
+                // 無音を再生して初期化
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0; // 無音
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start(0);
+                oscillator.stop(0.001);
+                console.log('AudioContext初期化完了');
+            }
+            
+            // 音声合成APIの初期化
+            if ('speechSynthesis' in window) {
+                // 無音発声で初期化
+                const utterance = new SpeechSynthesisUtterance('');
+                utterance.volume = 0; // 無音
+                window.speechSynthesis.speak(utterance);
+                console.log('SpeechSynthesis初期化完了');
+            }
+        }
+        
+        // ユーザー操作時に音声機能を初期化
+        document.addEventListener('touchstart', function() {
+            setupAudioContext();
+        }, { once: true });
+        
+        // タッチ開始時のハンドラ
+        document.addEventListener('touchstart', function(e) {
+            // キャンバス内のタッチは既に処理されるので、ここでは何もしない
+            // ボタンのタッチは伝播させる
+        }, false);
+        
+        // ダブルタップによるズームを防止
+        document.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        
+        // よみあげボタンの特別処理
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('#speak-button');
+            if (target) {
+                console.log('よみあげボタンが押されました (click経由)');
+                const currentChar = document.querySelector('.char-btn.active')?.textContent || '';
+                if (currentChar) {
+                    setTimeout(function() {
+                        if (window.speakText) {
+                            window.speakText(currentChar);
+                        }
+                    }, 10);
+                }
+            }
+        }, false);
+    }
+});
+</script>
+<script src="sketch.js"></script>
+</body>
+</html>

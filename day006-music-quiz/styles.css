@@ -1,0 +1,684 @@
+/**
+ * 音楽クイズアプリ スタイルシート
+ * 整理整頓されたバージョン
+ */
+
+/* 変数定義 */
+:root {
+  --primary-color: #6366f1;
+  --secondary-color: #ec4899;
+  --accent-color: #10b981;
+  --light-bg: #f3f4f6;
+  --white: #ffffff;
+  --dark-text: #1f2937;
+  --light-text: #6b7280;
+  --border-radius: 12px;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --error-color: #ef4444;
+  --warning-color: #fbbf24;
+  --success-light: rgba(16, 185, 129, 0.3);
+}
+
+/* ベーススタイル */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Hiragino Kaku Gothic Pro', 'メイリオ', sans-serif;
+}
+
+body {
+  background: linear-gradient(to bottom, #eef2ff, #ede9fe);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* コンテナとレイアウト */
+.container {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+  animation: fadeIn 0.5s;
+}
+
+/* ヘッダー要素 */
+.title {
+  font-size: 28px;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title i {
+  margin-right: 10px;
+}
+
+.character {
+  width: 100px;
+  height: 100px;
+  background-color: #f0f9ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 50px;
+}
+
+.subtitle {
+  font-size: 18px;
+  color: var(--light-text);
+  margin-bottom: 30px;
+}
+
+/* ボタン共通スタイル */
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.btn {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.btn i:first-child {
+  margin-right: 10px;
+}
+
+/* ボタンバリエーション */
+.btn-ear {
+  background-color: var(--secondary-color);
+}
+
+.btn-note {
+  background-color: var(--primary-color);
+}
+
+.btn-progress {
+  background-color: var(--accent-color);
+}
+
+.btn-back {
+  background-color: #e5e7eb;
+  color: var(--dark-text);
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+.btn-sound {
+  background-color: var(--primary-color);
+  border-radius: 50px;
+  margin: 0 auto 20px;
+  width: auto;
+  padding: 15px 30px;
+  font-size: 18px;
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+  animation: pulse 2s infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-sound:hover {
+  background-color: #4f46e5;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.4);
+}
+
+.btn-sound::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.btn-sound:active::after {
+  animation: ripple 0.6s ease-out;
+}
+
+.btn-sound.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #9ca3af;
+  box-shadow: none;
+  animation: none;
+}
+
+.btn-sound.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 回答ボタン */
+.btn-answer {
+  background-color: var(--white);
+  border: 2px solid #d1d5db;
+  color: var(--dark-text);
+  transition: all 0.2s ease;
+}
+
+.btn-answer:hover {
+  background-color: #f9fafb;
+}
+
+.btn-answer:active {
+  transform: scale(0.95);
+  background-color: #f0f0f0;
+}
+
+.btn-answer.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.btn-answer.disabled:hover {
+  transform: none;
+  background-color: #f3f4f6;
+}
+
+/* 回答ボタンの状態表示 */
+.btn-answer.correct-selected {
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+.btn-answer.incorrect-selected {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: var(--error-color);
+  color: var(--error-color);
+  font-weight: bold;
+}
+
+.btn-answer.show-correct {
+  animation: flash-correct 1s infinite;
+  background-color: var(--success-light);
+  border-color: var(--accent-color);
+  color: #047857;
+  font-weight: bold;
+}
+
+/* クイズコンテナ */
+.quiz-container {
+  background-color: #eef2ff;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+}
+
+.quiz-title {
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+/* フィードバック表示 */
+.feedback {
+  font-size: 24px;
+  font-weight: bold;
+  min-height: 36px;
+  margin: 15px 0;
+  transition: all 0.3s ease;
+  /* スマホでの表示問題修正 */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 15px 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  max-width: 80%;
+  text-align: center;
+}
+
+.feedback.correct {
+  color: var(--accent-color);
+}
+
+.feedback.incorrect {
+  color: var(--error-color);
+  line-height: 1.5;
+}
+
+.feedback.instruction {
+  /* 指示テキストは固定表示しない */
+  position: static;
+  transform: none;
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0;
+  font-size: 18px;
+  color: var(--primary-color);
+  width: 100%;
+  max-width: 100%;
+}
+
+.correct-answer {
+  color: var(--accent-color);
+  font-weight: bold;
+  font-size: 22px;
+  display: inline-block;
+  padding: 0 5px;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-radius: 4px;
+}
+
+/* フィードバックがある時のボタン操作を防止するオーバーレイ */
+.feedback-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 15;
+  display: none;
+}
+
+.feedback-overlay.active {
+  display: block;
+}
+
+/* スコア表示 */
+.score-display {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: auto;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* 回答グリッド */
+.answer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 15px;
+}
+
+/* 楽譜表示エリア */
+.sheet-music {
+  background-color: var(--white);
+  min-height: 160px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 20px;
+  overflow: visible;
+  position: relative;
+}
+
+.sheet-music svg {
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+  margin-bottom: 10px;
+  transition: transform 0.3s ease;
+}
+
+.sheet-music svg g {
+  transform-origin: center center;
+}
+
+.sheet-music .vf-rest {
+  opacity: 0.1;
+}
+
+.sheet-music .vf-clef,
+.sheet-music .vf-staff {
+  stroke-width: 1.5px;
+}
+
+.sheet-music .vf-time {
+  opacity: 0.7;
+}
+
+/* 楽譜クイズ固有のスタイル */
+#note-quiz-screen .quiz-container {
+  background-color: #eef2ff;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+}
+
+#note-quiz-screen .quiz-title {
+  margin-bottom: 20px;
+  font-size: 20px;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+/* プログレスバーとバッジ */
+.progress-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.progress-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #e5e7eb;
+  border-radius: 50px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--accent-color);
+  border-radius: 50px;
+  transition: width 0.5s ease;
+}
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.badge {
+  height: 60px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  background-color: #f3f4f6;
+  border: 2px solid #d1d5db;
+}
+
+.badge.earned {
+  background-color: #fef3c7;
+  border-color: var(--warning-color);
+}
+
+/* オーディオオーバーレイとボタンの修正 */
+.audio-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: var(--border-radius);
+  touch-action: manipulation; /* タッチデバイスでの操作を改善 */
+}
+
+.audio-btn {
+  background-color: var(--white);
+  color: var(--primary-color);
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation; /* タッチデバイスでの操作を改善 */
+  /* 視認性向上のための追加スタイル */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  user-select: none; /* テキスト選択を防止 */
+  -webkit-user-select: none; /* Safari用 */
+  -webkit-tap-highlight-color: transparent; /* タップ時のハイライトを無効化 */
+}
+
+.audio-btn:hover, .audio-btn:active {
+  background-color: #f3f4f6;
+  transform: translateY(-2px);
+}
+
+.audio-btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.4) 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.5s;
+}
+
+.audio-btn:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* レベルアップ通知 */
+.level-up-notice {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(16, 185, 129, 0.9);
+  color: white;
+  font-weight: bold;
+  font-size: 24px;
+  padding: 20px 30px;
+  border-radius: 10px;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: popup 0.5s ease-out;
+  transition: opacity 0.5s;
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0, 0) translate(-50%, -50%); opacity: 0.5; }
+  100% { transform: scale(20, 20) translate(-50%, -50%); opacity: 0; }
+}
+
+@keyframes popup {
+  0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+  70% { transform: translate(-50%, -50%) scale(1.1); }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes flash-correct {
+  0%, 100% { background-color: rgba(16, 185, 129, 0.3); }
+  50% { background-color: rgba(16, 185, 129, 0.6); }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* レスポンシブデザイン */
+@media (min-width: 480px) {
+  .answer-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+  
+  .btn {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  
+  .answer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* レベルバッジ */
+.level-badge {
+  display: inline-block;
+  background-color: var(--accent-color);
+  color: white;
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.level-info {
+  font-size: 14px;
+  color: var(--light-text);
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+.extended-notes {
+  color: var(--secondary-color);
+  font-weight: bold;
+}
+
+.btn-reset {
+  background-color: var(--error-color);
+  color: var(--white);
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+.btn-reset:hover {
+  background-color: #dc2626;
+}
+
+/* 確認ダイアログ */
+.confirm-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-box {
+  background-color: var(--white);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  width: 80%;
+  max-width: 300px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.confirm-text {
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: var(--dark-text);
+}
+
+.confirm-buttons {
+  display: flex;
+  justify-content: space-around;
+}
+
+.confirm-yes {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.confirm-no {
+  background-color: var(--light-bg);
+  color: var(--dark-text);
+}

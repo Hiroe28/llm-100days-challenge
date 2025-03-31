@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルなパーティクルシミュレーター</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin: 10px 0;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 10px;
+            gap: 10px;
+        }
+        
+        .canvas-container {
+            flex: 3;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-color: #1e272e;
+        }
+        
+        .controls {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+        }
+        
+        input[type="color"] {
+            width: 50px;
+            height: 30px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .tool-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .tool-btn {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+        }
+        
+        .tool-btn.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .mode-display {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .mode-display span {
+            font-weight: bold;
+        }
+        
+        .rainbow-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            animation: rainbow-text 3s linear infinite;
+            font-weight: bold;
+        }
+        
+        @keyframes rainbow-text {
+            0% { color: red; }
+            15% { color: orange; }
+            30% { color: yellow; }
+            45% { color: green; }
+            60% { color: cyan; }
+            75% { color: blue; }
+            90% { color: purple; }
+            100% { color: red; }
+        }
+
+        .guide-line {
+            position: absolute;
+            border: 2px dashed white;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .guide-circle {
+            position: absolute;
+            border: 2px dashed white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <h1>パーティクルシミュレーター</h1>
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+            <div class="mode-display">
+                現在のモード: <span id="current-mode">パーティクル生成</span>
+            </div>
+            <div id="guide-line" class="guide-line" style="display: none;"></div>
+            <div id="guide-circle" class="guide-circle" style="display: none;"></div>
+        </div>
+        <div class="controls">
+            <div class="control-group">
+                <h3>ツール選択</h3>
+                <div class="tool-group">
+                    <div id="particle-tool" class="tool-btn active">✨ パーティクル</div>
+                    <div id="wall-tool" class="tool-btn">🧱 壁</div>
+                    <div id="circle-tool" class="tool-btn">⭕ 円</div>
+                </div>
+                <button id="clear-btn">🗑️ すべてクリア</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>パーティクル設定</h3>
+                <label for="particle-count">数量: <span id="count-value">10</span></label>
+                <input type="range" id="particle-count" min="1" max="50" value="10">
+                
+                <label for="particle-size">サイズ: <span id="size-value">5</span></label>
+                <input type="range" id="particle-size" min="1" max="20" value="5">
+                
+                <label for="particle-color">色:</label>
+                <input type="color" id="particle-color" value="#FF5722">
+                
+                <label class="rainbow-label">
+                    <input type="checkbox" id="rainbow-mode" checked> 🌈 虹色モード
+                </label>
+                
+                <label for="particle-shape">形状:</label>
+                <select id="particle-shape">
+                    <option value="circle">円形</option>
+                    <option value="square">四角形</option>
+                    <option value="triangle">三角形</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <h3>物理設定</h3>
+                <label for="gravity">重力: <span id="gravity-value">9.8</span></label>
+                <input type="range" id="gravity" min="0" max="20" value="9.8" step="0.1">
+                
+                <label for="friction">摩擦: <span id="friction-value">0.1</span></label>
+                <input type="range" id="friction" min="0" max="1" value="0.1" step="0.01">
+                
+                <label for="elasticity">弾性: <span id="elasticity-value">0.7</span></label>
+                <input type="range" id="elasticity" min="0" max="1" value="0.7" step="0.01">
+            </div>
+            
+            <div class="control-group">
+                <h3>アクション</h3>
+                <button id="pause-btn">一時停止</button>
+                
+                <label for="presets">プリセット:</label>
+                <select id="presets">
+                    <option value="default">デフォルト</option>
+                    <option value="space">宇宙（低重力）</option>
+                    <option value="water">水中</option>
+                    <option value="bouncy">超弾性</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // キャンバス要素と2Dコンテキストの取得
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // UI要素の参照
+        const particleCountSlider = document.getElementById('particle-count');
+        const countValue = document.getElementById('count-value');
+        const particleSizeSlider = document.getElementById('particle-size');
+        const sizeValue = document.getElementById('size-value');
+        const particleColorPicker = document.getElementById('particle-color');
+        const rainbowMode = document.getElementById('rainbow-mode');
+        const particleShapeSelect = document.getElementById('particle-shape');
+        const gravitySlider = document.getElementById('gravity');
+        const gravityValue = document.getElementById('gravity-value');
+        const frictionSlider = document.getElementById('friction');
+        const frictionValue = document.getElementById('friction-value');
+        const elasticitySlider = document.getElementById('elasticity');
+        const elasticityValue = document.getElementById('elasticity-value');
+        const pauseBtn = document.getElementById('pause-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const presets = document.getElementById('presets');
+        const particleTool = document.getElementById('particle-tool');
+        const wallTool = document.getElementById('wall-tool');
+        const circleTool = document.getElementById('circle-tool');
+        const currentMode = document.getElementById('current-mode');
+        const guideLine = document.getElementById('guide-line');
+        const guideCircle = document.getElementById('guide-circle');
+        
+        // キャンバスサイズの設定
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        
+        // 物理パラメータ
+        let gravity = 9.8;
+        let friction = 0.1;
+        let elasticity = 0.7;
+        
+        // ツール状態
+        let currentTool = 'particle';
+        let isPaused = false;
+        let wallStartPoint = null;
+        let circleCenter = null;
+        
+        // パーティクルと障害物の配列
+        let particles = [];
+        let walls = [];
+        let circles = [];
+        
+        // 初期化
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            setupEventListeners();
+            updateSliderLabels();
+            requestAnimationFrame(update);
+        }
+        
+        // イベントリスナーの設定
+        function setupEventListeners() {
+            // スライダーの値更新イベント
+            particleCountSlider.addEventListener('input', () => {
+                countValue.textContent = particleCountSlider.value;
+            });
+            
+            particleSizeSlider.addEventListener('input', () => {
+                sizeValue.textContent = particleSizeSlider.value;
+            });
+            
+            gravitySlider.addEventListener('input', () => {
+                gravity = parseFloat(gravitySlider.value);
+                gravityValue.textContent = gravity;
+            });
+            
+            frictionSlider.addEventListener('input', () => {
+                friction = parseFloat(frictionSlider.value);
+                frictionValue.textContent = friction;
+            });
+            
+            elasticitySlider.addEventListener('input', () => {
+                elasticity = parseFloat(elasticitySlider.value);
+                elasticityValue.textContent = elasticity;
+            });
+            
+            // ツール選択イベント
+            particleTool.addEventListener('click', () => setTool('particle'));
+            wallTool.addEventListener('click', () => setTool('wall'));
+            circleTool.addEventListener('click', () => setTool('circle'));
+            
+            // キャンバスのマウスイベント
+            canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            
+            // アクションボタンイベント
+            pauseBtn.addEventListener('click', togglePause);
+            clearBtn.addEventListener('click', clearAll);
+            
+            // プリセット変更イベント
+            presets.addEventListener('change', applyPreset);
+        }
+
+        // マウスダウンイベントの処理
+        function handleMouseDown(event) {
+            if (currentTool === 'circle') {
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                
+                // 円の中心点を設定
+                circleCenter = { x, y };
+                
+                // ガイド円を表示
+                guideCircle.style.display = 'block';
+                guideCircle.style.left = `${x - 1}px`; // 中心位置の調整（ボーダーの分）
+                guideCircle.style.top = `${y - 1}px`;
+                guideCircle.style.width = '0px';
+                guideCircle.style.height = '0px';
+            }
+        }
+        
+        // マウス移動イベントの処理
+        function handleMouseMove(event) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+            
+            if (currentTool === 'wall' && wallStartPoint) {
+                // 壁のガイドライン表示
+                guideLine.style.display = 'block';
+                guideLine.style.width = '0px';
+                guideLine.style.height = '0px';
+                guideLine.style.left = `${wallStartPoint.x}px`;
+                guideLine.style.top = `${wallStartPoint.y}px`;
+                
+                // 線のスタイルを設定
+                const angle = Math.atan2(mouseY - wallStartPoint.y, mouseX - wallStartPoint.x);
+                const length = Math.sqrt(Math.pow(mouseX - wallStartPoint.x, 2) + Math.pow(mouseY - wallStartPoint.y, 2));
+                
+                guideLine.style.width = `${length}px`;
+                guideLine.style.transform = `rotate(${angle}rad)`;
+                guideLine.style.transformOrigin = 'left';
+            } else if (currentTool === 'circle' && circleCenter) {
+                // 円のガイド表示
+                const dx = mouseX - circleCenter.x;
+                const dy = mouseY - circleCenter.y;
+                const radius = Math.sqrt(dx * dx + dy * dy);
+                
+                guideCircle.style.width = `${radius * 2}px`;
+                guideCircle.style.height = `${radius * 2}px`;
+                guideCircle.style.left = `${circleCenter.x - radius}px`;
+                guideCircle.style.top = `${circleCenter.y - radius}px`;
+            }
+        }
+        
+        // マウスアップイベントの処理
+        function handleMouseUp(event) {
+            if (currentTool === 'circle' && circleCenter) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+                
+                // 半径を計算
+                const dx = mouseX - circleCenter.x;
+                const dy = mouseY - circleCenter.y;
+                const radius = Math.sqrt(dx * dx + dy * dy);
+                
+                // 半径が小さすぎる場合は作成しない
+                if (radius > 5) {
+                    circles.push({
+                        x: circleCenter.x,
+                        y: circleCenter.y,
+                        radius: radius
+                    });
+                }
+                
+                // リセット
+                circleCenter = null;
+                guideCircle.style.display = 'none';
+            }
+        }
+        
+        // ツール選択の処理
+        function setTool(tool) {
+            currentTool = tool;
+            
+            // 進行中の操作をリセット
+            wallStartPoint = null;
+            circleCenter = null;
+            guideLine.style.display = 'none';
+            guideCircle.style.display = 'none';
+            
+            // UIの更新
+            particleTool.classList.toggle('active', tool === 'particle');
+            wallTool.classList.toggle('active', tool === 'wall');
+            circleTool.classList.toggle('active', tool === 'circle');
+            
+            // モード表示の更新
+            if (tool === 'particle') {
+                currentMode.textContent = 'パーティクル生成';
+            } else if (tool === 'wall') {
+                currentMode.textContent = '壁を追加 (2点をクリック)';
+            } else if (tool === 'circle') {
+                currentMode.textContent = '円を追加 (ドラッグでサイズ調整)';
+            }
+        }
+        
+        // キャンバスクリックの処理
+        function handleCanvasClick(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            if (currentTool === 'particle') {
+                createParticles(x, y);
+            } else if (currentTool === 'wall') {
+                if (!wallStartPoint) {
+                    // 1点目
+                    wallStartPoint = { x, y };
+                } else {
+                    // 2点目
+                    walls.push({
+                        x1: wallStartPoint.x,
+                        y1: wallStartPoint.y,
+                        x2: x,
+                        y2: y
+                    });
+                    wallStartPoint = null;
+                    guideLine.style.display = 'none';
+                }
+            } else if (currentTool === 'circle') {
+                // 円の追加は mousedown/mousemove/mouseup で処理
+            }
+        }
+        
+        // パーティクル生成
+        function createParticles(x, y) {
+            const count = parseInt(particleCountSlider.value);
+            const size = parseInt(particleSizeSlider.value);
+            const color = particleColorPicker.value;
+            const shape = particleShapeSelect.value;
+            const isRainbow = rainbowMode.checked;
+            
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x + Math.random() * 20 - 10,
+                    y: y + Math.random() * 20 - 10,
+                    vx: Math.random() * 4 - 2,
+                    vy: Math.random() * 4 - 2,
+                    size: size * (0.8 + Math.random() * 0.4),
+                    color: color,
+                    shape: shape,
+                    isRainbow: isRainbow,
+                    hue: Math.floor(Math.random() * 360),
+                    hueSpeed: 1 + Math.random() * 3,
+                    opacity: 1.0,
+                    lifetime: 0,
+                    maxLifetime: 500 + Math.random() * 1500
+                });
+            }
+        }
+        
+        // スライダーラベルの更新
+        function updateSliderLabels() {
+            countValue.textContent = particleCountSlider.value;
+            sizeValue.textContent = particleSizeSlider.value;
+            gravityValue.textContent = gravity;
+            frictionValue.textContent = friction;
+            elasticityValue.textContent = elasticity;
+        }
+        
+        // 一時停止/再開の切り替え
+        function togglePause() {
+            isPaused = !isPaused;
+            pauseBtn.textContent = isPaused ? '再開' : '一時停止';
+        }
+        
+        // すべてクリア
+        function clearAll() {
+            particles = [];
+            walls = [];
+            circles = [];
+        }
+        
+        // プリセットの適用
+        function applyPreset() {
+            const preset = presets.value;
+            
+            switch (preset) {
+                case 'default':
+                    gravity = 9.8;
+                    friction = 0.1;
+                    elasticity = 0.7;
+                    break;
+                case 'space':
+                    gravity = 1.0;
+                    friction = 0.01;
+                    elasticity = 0.9;
+                    break;
+                case 'water':
+                    gravity = 9.8;
+                    friction = 0.5;
+                    elasticity = 0.3;
+                    break;
+                case 'bouncy':
+                    gravity = 9.8;
+                    friction = 0.05;
+                    elasticity = 0.95;
+                    break;
+            }
+            
+            // スライダーの値を更新
+            gravitySlider.value = gravity;
+            frictionSlider.value = friction;
+            elasticitySlider.value = elasticity;
+            
+            // ラベルを更新
+            updateSliderLabels();
+        }
+        
+        // メインアップデートループ
+        function update() {
+            if (!isPaused) {
+                // キャンバスのクリア
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#1e272e';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 壁を描画
+                drawWalls();
+                
+                // 円を描画
+                drawCircles();
+                
+                // パーティクルを更新して描画
+                updateParticles();
+            }
+            
+            requestAnimationFrame(update);
+        }
+        
+        // 壁の描画
+        function drawWalls() {
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 3;
+            
+            for (const wall of walls) {
+                ctx.beginPath();
+                ctx.moveTo(wall.x1, wall.y1);
+                ctx.lineTo(wall.x2, wall.y2);
+                ctx.stroke();
+            }
+        }
+        
+        // 円の描画
+        function drawCircles() {
+            for (const circle of circles) {
+                ctx.fillStyle = 'rgba(52, 152, 219, 0.3)';
+                ctx.beginPath();
+                ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.strokeStyle = '#3498db';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+        
+        // パーティクルの更新と描画
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                
+                // 物理演算
+                p.vy += gravity * 0.016; // 重力
+                p.vx *= (1 - friction * 0.016); // 摩擦
+                p.vy *= (1 - friction * 0.016);
+                
+                // 位置の更新
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // 寿命の更新
+                p.lifetime++;
+                if (p.lifetime > p.maxLifetime) {
+                    p.opacity = 1.0 - (p.lifetime - p.maxLifetime) / 100;
+                    if (p.opacity <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+                }
+                
+                // 境界チェック
+                if (p.x < p.size) {
+                    p.x = p.size;
+                    p.vx = -p.vx * elasticity;
+                } else if (p.x > canvas.width - p.size) {
+                    p.x = canvas.width - p.size;
+                    p.vx = -p.vx * elasticity;
+                }
+                
+                if (p.y < p.size) {
+                    p.y = p.size;
+                    p.vy = -p.vy * elasticity;
+                } else if (p.y > canvas.height - p.size) {
+                    p.y = canvas.height - p.size;
+                    p.vy = -p.vy * elasticity;
+                }
+                
+                // 壁との衝突チェック
+                checkWallCollisions(p);
+                
+                // 円との衝突チェック
+                checkCircleCollisions(p);
+                
+                // パーティクルの描画
+                drawParticle(p);
+            }
+        }
+        
+        // 壁との衝突チェック
+        function checkWallCollisions(particle) {
+            for (const wall of walls) {
+                // 壁の方向ベクトル
+                const wallDx = wall.x2 - wall.x1;
+                const wallDy = wall.y2 - wall.y1;
+                const wallLength = Math.sqrt(wallDx * wallDx + wallDy * wallDy);
+                
+                if (wallLength === 0) continue;
+                
+                // 壁の単位方向ベクトル
+                const normWallDx = wallDx / wallLength;
+                const normWallDy = wallDy / wallLength;
+                
+                // パーティクルから壁への向きベクトル
+                const particleToWallDx = particle.x - wall.x1;
+                const particleToWallDy = particle.y - wall.y1;
+                
+                // 壁に沿った距離の計算
+                const wallProj = particleToWallDx * normWallDx + particleToWallDy * normWallDy;
+                
+                // 壁の範囲内かチェック
+                if (wallProj >= 0 && wallProj <= wallLength) {
+                    // 壁上の最近接点
+                    const wallPointX = wall.x1 + normWallDx * wallProj;
+                    const wallPointY = wall.y1 + normWallDy * wallProj;
+                    
+                    // 距離の計算
+                    const distX = particle.x - wallPointX;
+                    const distY = particle.y - wallPointY;
+                    const dist = Math.sqrt(distX * distX + distY * distY);
+                    
+                    // 衝突判定
+                    if (dist < particle.size) {
+                        // 壁の法線ベクトル
+                        let normalX = -normWallDy;
+                        let normalY = normWallDx;
+                        
+                        // 正しい方向かチェック
+                        let dotProduct = distX * normalX + distY * normalY;
+                        if (dotProduct < 0) {
+                            normalX = -normalX;
+                            normalY = -normalY;
+                        }
+                        
+                        // パーティクルを壁から離す
+                        const overlap = particle.size - dist;
+                        particle.x += normalX * overlap;
+                        particle.y += normalY * overlap;
+                        
+                        // 速度の反射成分
+                        dotProduct = particle.vx * normalX + particle.vy * normalY;
+                        particle.vx = particle.vx - 2 * dotProduct * normalX;
+                        particle.vy = particle.vy - 2 * dotProduct * normalY;
+                        
+                        // 弾性の適用
+                        particle.vx *= elasticity;
+                        particle.vy *= elasticity;
+                    }
+                }
+            }
+        }
+        
+        // 円との衝突チェック
+        function checkCircleCollisions(particle) {
+            for (const circle of circles) {
+                // パーティクルと円の中心との距離
+                const dx = particle.x - circle.x;
+                const dy = particle.y - circle.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // 衝突判定
+                if (distance < (particle.size + circle.radius)) {
+                    // 衝突方向の単位ベクトル
+                    let nx, ny;
+                    if (distance === 0) {
+                        nx = 1;
+                        ny = 0;
+                    } else {
+                        nx = dx / distance;
+                        ny = dy / distance;
+                    }
+                    
+                    // パーティクルを円の外側に移動
+                    const overlap = (particle.size + circle.radius) - distance;
+                    particle.x += nx * overlap;
+                    particle.y += ny * overlap;
+                    
+                    // 速度の反射成分
+                    const dotProduct = particle.vx * nx + particle.vy * ny;
+                    particle.vx = particle.vx - 2 * dotProduct * nx;
+                    particle.vy = particle.vy - 2 * dotProduct * ny;
+                    
+                    // 弾性の適用
+                    particle.vx *= elasticity;
+                    particle.vy *= elasticity;
+                }
+            }
+        }
+        
+        // パーティクルの描画
+        function drawParticle(particle) {
+            ctx.globalAlpha = particle.opacity;
+            
+            // 色の設定（虹色モードなら色相を変化させる）
+            if (particle.isRainbow) {
+                ctx.fillStyle = `hsl(${particle.hue}, 100%, 50%)`;
+            } else {
+                ctx.fillStyle = particle.color;
+            }
+            
+            // 形状に応じて描画
+            if (particle.shape === 'circle') {
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (particle.shape === 'square') {
+                ctx.fillRect(
+                    particle.x - particle.size,
+                    particle.y - particle.size,
+                    particle.size * 2,
+                    particle.size * 2
+                );
+            } else if (particle.shape === 'triangle') {
+                ctx.beginPath();
+                ctx.moveTo(particle.x, particle.y - particle.size);
+                ctx.lineTo(
+                    particle.x + particle.size * 0.866,
+                    particle.y + particle.size * 0.5
+                );
+                ctx.lineTo(
+                    particle.x - particle.size * 0.866,
+                    particle.y + particle.size * 0.5
+                );
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            ctx.globalAlpha = 1.0;
+        }
+        
+        // 初期化を実行
+        init();
+    </script>
+</body>
+</html>

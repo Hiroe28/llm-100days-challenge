@@ -1,0 +1,380 @@
+/* 基本スタイル */
+body {
+  font-family: 'Klee One', 'Arial Rounded MT Bold', 'Hiragino Maru Gothic ProN', 'ヒラギノ丸ゴ ProN W4', 'メイリオ', Meiryo, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 15px;
+  display: flex;
+  justify-content: center;
+  color: #333;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+}
+
+h1 {
+  color: #ff6b6b;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+/* カテゴリボタン */
+#category-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap; /* スマホでの折り返しを許可 */
+}
+
+.category-btn {
+  background-color: #ff9e7d;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.category-btn:hover {
+  background-color: #ff7e5f;
+}
+
+.category-btn.active {
+  background-color: #ff5c5c;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* 文字選択ボタン */
+#char-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 8px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  -webkit-overflow-scrolling: touch; /* iOS でのスムーズスクロール */
+}
+
+.char-btn {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  background-color: #87ceeb;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.3s;
+}
+
+.char-btn:hover {
+  transform: scale(1.1);
+  background-color: #5cacee;
+}
+
+.char-btn.active {
+  background-color: #4682b4;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* スケッチホルダー（キャンバスコンテナ） */
+/* スケッチホルダーを相対位置に */
+#sketch-holder {
+  position: relative;
+  width: 100%;
+  margin: 0 auto 20px auto;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  touch-action: none;
+}
+
+canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+/* コントロールパネル */
+#control-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  #control-panel {
+      margin-top: 5px;
+      flex-direction: column;
+      gap: 5px;
+      position: sticky; /* 固定ではなくスティッキー配置に変更 */
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 5px;
+      z-index: 100;
+      border-top: 1px solid #ddd;
+  }
+}
+
+/* ボタンコンテナ用のスタイル追加 */
+#button-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.control-btn {
+  background-color: #6c5ce7;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.control-btn:hover {
+  background-color: #5b4bc4;
+}
+
+/* 色選択 */
+#color-picker-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.color-option {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid white;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+.color-option.active {
+  border: 2px solid #333;
+}
+
+/* フォント選択エリア - 非表示にする */
+#font-buttons {
+  display: none;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 480px) {
+  body {
+      padding: 5px;
+  }
+  
+  .container {
+      padding: 0;
+  }
+  
+  h1 {
+      font-size: 18px;
+      margin-bottom: 5px;
+      padding: 0 5px;
+  }
+  
+  .category-btn {
+      padding: 5px 10px;
+      font-size: 14px;
+      margin-bottom: 5px;
+  }
+  
+  #category-buttons {
+      margin-bottom: 5px;
+      gap: 5px;
+  }
+  
+  #char-buttons {
+      max-height: 140px; /* 文字選択領域を拡大 */
+      margin-bottom: 5px;
+      padding: 5px;
+  }
+  
+  .char-btn {
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
+      margin: 1px;
+  }
+  
+  .control-btn {
+      padding: 5px 10px;
+      font-size: 13px;
+      min-width: 80px;
+  }
+  
+  .color-option {
+      width: 22px;
+      height: 22px;
+      margin: 0 2px;
+  }
+  
+  #control-panel {
+      margin-top: 5px;
+      flex-direction: column;
+      gap: 5px;
+      position: sticky; /* fixedからstickyに変更 */
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 5px;
+      z-index: 100;
+      border-top: 1px solid #ddd;
+  }
+  
+  #color-picker-container {
+      margin-bottom: 2px;
+  }
+  
+  #button-container {
+      width: 100%;
+      gap: 4px;
+  }
+  
+  #sketch-holder {
+      margin-bottom: 20px; /* 調整 */
+  }
+}
+
+/* Kleeフォントを全体に適用 */
+body, button, input, textarea, select {
+  font-family: 'Klee One', sans-serif;
+  -webkit-tap-highlight-color: rgba(0,0,0,0); /* タップ時のハイライトを無効化 */
+}
+
+/* タッチデバイスでのボタン押下時の表示を改善 */
+button:active, .char-btn:active, .category-btn:active, .control-btn:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+/* 安全のため touch-action を設定 */
+#sketch-holder {
+  touch-action: none;
+}
+
+/* スクロール防止 - 修正：固定スクロールをやめて通常のスクロールを許可 */
+@media (max-width: 768px) {
+  html, body {
+      overscroll-behavior: none; /* これだけ残す */
+      margin: 0;
+      padding: 0;
+      width: 100%;
+  }
+
+  body {
+      overflow-y: auto; /* 通常のスクロールを許可 */
+      overflow-x: hidden;
+      height: auto; /* 高さ自動 */
+      min-height: 100vh;
+  }
+}
+
+/* 結果表示エリア - オーバーレイの安定化 */
+#result-display {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  text-align: center;
+  padding: 20px;
+  width: 80%;
+  max-width: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border: 3px solid #ffb347;
+  pointer-events: none;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+}
+
+/* スケッチホルダーを必ず相対位置に */
+#sketch-holder {
+  position: relative !important;
+  overflow: visible !important; /* オーバーレイがはみ出ても大丈夫なように */
+}
+
+/* アニメーションの最適化 */
+.pop-in {
+  animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: center center;
+  will-change: transform;
+}
+
+#result-display.active {
+  opacity: 1;
+}
+
+/* 判定結果の表情アニメーション */
+@keyframes pop {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.pop-in {
+  animation: pop 0.5s ease-out;
+}
+
+/* モバイル用結果表示領域の調整 */
+@media (max-width: 768px) {
+  #result-display {
+    margin-bottom: 120px; /* コントロールパネルの高さ分余白を確保 */
+    font-size: 20px; /* フォントサイズを少し小さく */
+    padding: 10px;
+  }
+}
+
+/* モバイル用下部の余白 */
+.mobile-spacer {
+  height: 100px;
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-spacer {
+      display: block;
+  }
+}

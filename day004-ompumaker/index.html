@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<link rel="stylesheet" href="css/mobile-improvements.css">
+<head>
+  <meta charset="UTF-8">
+  <title>おんぷメーカー</title>
+  <meta property="og:title" content="おんぷメーカー" />
+  <meta property="og:description" content="五線譜上に音符を置いて、メロディーを作って再生できるシンプルな音楽作成ツールです。" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/Hiroe28/004_ompumaker/main/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/004_ompumaker/" />
+  <meta name="twitter:card" content="summary_large_image" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- 外部ライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  
+  <!-- スタイルシート -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- レスポンシブ対応のスタイルシート（既存のCSSを上書き） -->
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <div id="loading">
+    <button id="startButton">
+      おんぷメーカーを開始する
+    </button>
+  </div>
+
+  <h1>おんぷメーカー</h1>
+  
+  <div class="music-container">
+    <div id="playhead" class="playhead"></div>
+    
+    <!-- ト音記号の五線譜 -->
+    <div class="staff-container">
+      <div id="treble-staff" class="staff">
+        <div class="clef treble-clef">𝄞</div>
+        <div class="staff-line" style="top: 50px;"></div> <!-- 一番上の線 -->
+        <div class="staff-line" style="top: 75px;"></div> <!-- 2番目の線 -->
+        <div class="staff-line" style="top: 100px;"></div> <!-- 3番目の線 -->
+        <div class="staff-line" style="top: 125px;"></div> <!-- 4番目の線 -->
+        <div class="staff-line" style="top: 150px;"></div> <!-- 5番目の線 -->
+        <div class="grid-lines"></div>
+      </div>
+    </div>
+    
+    <!-- ヘ音記号の五線譜 -->
+    <div class="staff-container">
+      <div id="bass-staff" class="staff">
+        <div class="clef bass-clef">𝄢</div>
+        <div class="staff-line" style="top: 50px;"></div> <!-- 一番上の線 -->
+        <div class="staff-line" style="top: 75px;"></div> <!-- 2番目の線 -->
+        <div class="staff-line" style="top: 100px;"></div> <!-- 3番目の線 -->
+        <div class="staff-line" style="top: 125px;"></div> <!-- 4番目の線 -->
+        <div class="staff-line" style="top: 150px;"></div> <!-- 5番目の線 -->
+        <div class="grid-lines"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="controls">
+    <button id="play-button" class="button play">▶ 再生</button>
+    <button id="clear-button" class="button clear">✖ クリア</button>
+    <button id="loop-button" class="button loop">🔄 ループOFF</button>
+    <button id="save-button" class="button save">💾 保存</button>
+    <button id="load-button" class="button load">📂 読み込み</button>
+  </div>
+  
+  <p class="instructions">
+    五線譜をクリックして音符を置いたり消したりできるよ！<br>
+    音符をドラッグして動かすとき、色が変わると音も変わるよ！<br>
+    作ったメロディーは「保存」ボタンで名前をつけて保存できるよ♪<br>
+    再生ボタンを押すと音楽が始まるよ♪
+  </p>
+  
+  <!-- 保存ダイアログ -->
+  <div id="save-dialog" class="dialog">
+    <div class="dialog-content">
+      <h2>🎵 メロディーを保存する 🎵</h2>
+      <div class="dialog-body">
+        <div class="input-group">
+          <label for="melody-name">メロディーの名前：</label>
+          <input type="text" id="melody-name" placeholder="名前をつけてね（例：たのしいうた）">
+        </div>
+        <div class="input-group">
+          <label>絵文字を選んでね：</label>
+          <div class="emoji-selector">
+            <button class="emoji-btn" data-emoji="🎵">🎵</button>
+            <button class="emoji-btn" data-emoji="🌟">🌟</button>
+            <button class="emoji-btn" data-emoji="🎹">🎹</button>
+            <button class="emoji-btn" data-emoji="🎷">🎷</button>
+            <button class="emoji-btn" data-emoji="🎻">🎻</button>
+            <button class="emoji-btn" data-emoji="🐱">🐱</button>
+            <button class="emoji-btn" data-emoji="🐶">🐶</button>
+            <button class="emoji-btn" data-emoji="🌈">🌈</button>
+            <button class="emoji-btn" data-emoji="🍎">🍎</button>
+            <button class="emoji-btn" data-emoji="🦄">🦄</button>
+          </div>
+          <input type="hidden" id="selected-emoji" value="🎵">
+        </div>
+      </div>
+      <div class="dialog-buttons">
+        <button id="save-cancel" class="button clear">キャンセル</button>
+        <button id="save-confirm" class="button save">保存する</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 読み込みダイアログ -->
+  <div id="load-dialog" class="dialog">
+    <div class="dialog-content">
+      <h2>📂 メロディーを読み込む 📂</h2>
+      <div class="dialog-body">
+        <div class="melody-list">
+          <p id="no-melodies" style="display: none; text-align: center; color: #666;">
+            まだ保存されたメロディーがありません。<br>
+            メロディーを作って保存してみよう！
+          </p>
+          <ul id="saved-melodies">
+            <!-- ここに保存されたメロディーがリストで表示されます -->
+          </ul>
+        </div>
+      </div>
+      <div class="dialog-buttons">
+        <button id="load-cancel" class="button clear">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScriptファイル -->
+  <script src="js/notes.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/saveload.js"></script>
+  <script src="js/main.js"></script>
+  <!-- レスポンシブ対応の新しいスクリプト -->
+  <script src="js/responsive.js"></script>
+  <!-- 追加改善スクリプト -->
+  <script src="js/improvements.js"></script>
+</body>
+</html>

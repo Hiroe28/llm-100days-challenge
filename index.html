@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLMアプリ100日チャレンジ</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Arial Rounded MT Bold", "ヒラギノ丸ゴ ProN", sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-bottom: 50px;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        header {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            color: white;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        .subtitle {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        .app-grid {
+            display: grid;
+            /* 4つのカードを表示するグリッド設定 */
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+            /* 行ごとのグリッド設定 */
+            grid-auto-rows: 1fr;
+            margin-bottom: 20px;
+        }
+        
+        .app-card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            /* 固定された高さを設定 */
+            height: 250px;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .app-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        
+        .app-card:hover::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .app-icon {
+            font-size: 48px;
+            margin-bottom: 5px;
+        }
+        
+        .app-title {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .app-description {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            /* 一定の高さに制限し、溢れたテキストを省略 */
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        
+        .app-day {
+            font-size: 12px;
+            background-color: #f1f1f1;
+            border-radius: 20px;
+            padding: 5px 10px;
+            display: inline-block;
+            margin-top: auto;
+        }
+        
+        /* アニメーション */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* モバイル対応 */
+        @media (max-width: 1200px) {
+            .app-grid {
+                grid-template-columns: repeat(3, 1fr); /* タブレットでは3カラム */
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .app-grid {
+                grid-template-columns: repeat(2, 1fr); /* 小さめのタブレットでは2カラム */
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .app-grid {
+                grid-template-columns: 1fr; /* スマホでは1カラム */
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .app-card {
+                height: auto;
+                min-height: 200px;
+            }
+        }
+        
+        /* 背景の装飾 */
+        .floating {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            pointer-events: none;
+            z-index: -1;
+            animation: float 15s infinite linear;
+            opacity: 0.7;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-1000px) rotate(720deg); }
+        }
+        
+        .footer {
+            color: white;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景の浮遊要素 -->
+    <div id="background-elements"></div>
+
+    <div class="container">
+        <header>
+            <h1>✨ LLMアプリ100日チャレンジ ✨</h1>
+            <div class="subtitle">AI技術を活用したアプリ開発プロジェクト</div>
+        </header>
+
+        <div class="app-grid">
+            <!-- Day 10 -->
+            <div class="app-card" onclick="openApp('day010-aquarium/index.html')">
+                <div class="app-icon">🐠</div>
+                <div class="app-title">キラキラ水族館</div>
+                <div class="app-description">キラキラと輝く美しい魚の群れが泳ぐ水族館。エサをあげると魚が集まってきます。魚の数を増やしたり減らしたりして、自分だけの水族館を作ろう！</div>
+                <div class="app-day">Day 10</div>
+            </div>
+            
+            <!-- Day 9 -->
+            <div class="app-card" onclick="openApp('day009-fireworks/index.html')">
+                <div class="app-icon">🎆</div>
+                <div class="app-title">おえかき花火</div>
+                <div class="app-description">カラフルな花火や星、ハート、音符などを画面に描いて遊ぼう！タッチするたびに美しいエフェクトと音が広がります。</div>
+                <div class="app-day">Day 9</div>
+            </div>
+            
+            <!-- Day 8 -->
+            <div class="app-card" onclick="openApp('day008-particle-simulator/index.html')">
+                <div class="app-icon">✨</div>
+                <div class="app-title">パーティクルシミュレーター</div>
+                <div class="app-description">重力と物理法則に従って動くカラフルなパーティクルで遊ぼう！壁や円を作って、パーティクルの動きを楽しく観察できます。</div>
+                <div class="app-day">Day 8</div>
+            </div>
+            
+            <!-- Day 7 -->
+            <div class="app-card" onclick="openApp('day007-mojiren/index.html')">
+                <div class="app-icon">🖊️</div>
+                <div class="app-title">ひらがな・カタカナ・数字練習</div>
+                <div class="app-description">こども向けのひらがな・カタカナ・数字の書き方練習ができるシンプルなアプリ。正しい書き順を学べます。</div>
+                <div class="app-day">Day 7</div>
+            </div>
+        
+            <!-- Day 6 -->
+            <div class="app-card" onclick="openApp('day006-music-quiz/index.html')">
+                <div class="app-icon">🎵</div>
+                <div class="app-title">音楽クイズ</div>
+                <div class="app-description">音符を当てたり、音を聞いて音を当てるクイズです。楽しみながら音楽の基礎知識を身につけられます。</div>
+                <div class="app-day">Day 6</div>
+            </div>
+            
+            <!-- Day 5 -->
+            <div class="app-card" onclick="openApp('day005-donuts/index.html')">
+                <div class="app-icon">🍩</div>
+                <div class="app-title">ドーナツデコレーター</div>
+                <div class="app-description">リングドーナツやジャムドーナツに様々なトッピングやカラフルなデコレーションを施して、オリジナルのドーナツを作成できます。</div>
+                <div class="app-day">Day 5</div>
+            </div>
+            
+            <!-- Day 4 -->
+            <div class="app-card" onclick="openApp('day004-ompumaker/index.html')">
+                <div class="app-icon">🎼</div>
+                <div class="app-title">おんぷメーカー</div>
+                <div class="app-description">五線譜上に音符を置いて、メロディーを作って再生できるシンプルな音楽作成ツールです。自分だけのメロディーを作ってみよう！</div>
+                <div class="app-day">Day 4</div>
+            </div>
+            
+            <!-- Day 3 -->
+            <div class="app-card" onclick="openApp('day003-pillbug/index.html')">
+                <div class="app-icon">🐞</div>
+                <div class="app-title">ダンゴムシT字路迷路</div>
+                <div class="app-description">ダンゴムシが交替性転向反応に従って単純なT字路迷路を移動するシミュレーションです。生き物の行動の不思議さを観察できます。</div>
+                <div class="app-day">Day 3</div>
+            </div>
+            
+            <!-- Day 2 -->
+            <div class="app-card" onclick="openApp('day002-colorgenerator/index.html')">
+                <div class="app-icon">🎨</div>
+                <div class="app-title">楽しいカラージェネレーター</div>
+                <div class="app-description">インタラクティブなお絵描きツールです。クリック＆ドラッグで美しい模様を作成できます。カラフルなパターンを自由に生み出そう！</div>
+                <div class="app-day">Day 2</div>
+            </div>
+            
+            <!-- Day 1 -->
+            <div class="app-card" onclick="openApp('day001-janken/index.html')">
+                <div class="app-icon">✊</div>
+                <div class="app-title">じゃんけんゲーム</div>
+                <div class="app-description">シンプルで楽しいじゃんけんゲームです。コンピュータと対戦して、運と戦略で勝利を目指しましょう！</div>
+                <div class="app-day">Day 1</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            LLMアプリ100日チャレンジ © 2025 - AIを活用したクリエイティブなWebアプリ開発プロジェクト
+        </div>
+    </div>
+
+    <script>
+        // 背景の浮遊要素を生成
+        function createBackgroundElements() {
+            const container = document.getElementById('background-elements');
+            const shapes = ['★', '♪', '●', '▲', '■', '♥', '✿', '🎵', '🎮', '🎨'];
+            const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', '#F8C8DC', '#C5A3FF', '#A0E7E5'];
+            
+            for (let i = 0; i < 25; i++) {
+                const element = document.createElement('div');
+                element.classList.add('floating');
+                
+                // ランダムな形と色
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                element.innerHTML = shape;
+                element.style.color = color;
+                element.style.fontSize = 20 + Math.random() * 30 + 'px';
+                
+                // ランダムな位置
+                element.style.left = Math.random() * 100 + 'vw';
+                element.style.top = Math.random() * 100 + 'vh';
+                
+                // ランダムなアニメーション速度と遅延
+                element.style.animationDuration = 15 + Math.random() * 30 + 's';
+                element.style.animationDelay = Math.random() * 5 + 's';
+                
+                container.appendChild(element);
+            }
+        }
+        
+        // アプリを開く関数（新しいタブで開く）
+        function openApp(path) {
+            window.open(path, '_blank');
+        }
+        
+        // 初期化
+        createBackgroundElements();
+    </script>
+</body>
+</html>
