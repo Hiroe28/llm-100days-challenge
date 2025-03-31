@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
+  <meta property="og:title" content="楽しいカラージェネレーター" />
+  <meta property="og:description" content="子供から大人まで楽しめる、ブラウザ上で動作するインタラクティブなお絵描きツールです。クリック＆ドラッグで美しい模様を作成できます。" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/Hiroe28/002_colorgenerator/main/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/002_colorgenerator/" />
+  <meta name="twitter:card" content="summary_large_image" />
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>楽しいタイダイ風カラージェネレーター</title>
+  <title>楽しいカラージェネレーター</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
   <style>
     body {
@@ -96,7 +103,7 @@
   </style>
 </head>
 <body>
-  <h1>楽しいタイダイ風カラージェネレーター</h1>
+  <h1>楽しいカラージェネレーター</h1>
   <h2>クリック＆ドラッグして模様を描いてみよう！</h2>
   <div class="controls">
     <button id="resetBtn">リセット</button>
@@ -115,7 +122,7 @@
     </div>
     
     <div class="option-group">
-      <label for="symmetrySelect">対称：</label>
+      <label for="symmetrySelect">万華鏡：</label>
       <select id="symmetrySelect">
         <option value="1">なし</option>
         <option value="2">2分割</option>
@@ -125,7 +132,7 @@
       <div id="symmetryHelp" style="position: relative; display: inline-block; margin-left: 5px;">
         <button style="background: none; box-shadow: none; padding: 2px; width: 20px; height: 20px;">?</button>
         <div id="symmetryPopup" style="display: none; position: absolute; width: 220px; background: white; border: 1px solid #ddd; border-radius: 10px; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 100; left: -110px; top: 25px;">
-          <p style="margin: 0; text-align: center; font-weight: bold;">対称モードの使い方</p>
+          <p style="margin: 0; text-align: center; font-weight: bold;">万華鏡モードの使い方</p>
           <p style="margin: 5px 0;"><b>なし</b>：通常の描画です。描いた場所にだけ模様が表示されます。</p>
           <p style="margin: 5px 0;"><b>2分割</b>：左右対称になります。鏡に映ったように反対側にも同じ模様が描かれます。</p>
           <p style="margin: 5px 0;"><b>4分割</b>：十字型に4方向に同時に模様が現れます。</p>
@@ -461,10 +468,24 @@
       background(255);
     }
     
-    function saveImage() {
-      // キャンバスを画像として保存
-      saveCanvas(canvas, 'タイダイ模様', 'png');
-    }
+
+	function saveImage() {
+	  // 現在の日時を取得
+	  let now = new Date();
+
+	  // 日時をファイル名用に整形（例：2025-03-26_14-30-00）
+	  let timestamp = now.getFullYear() + "-" +
+	                  String(now.getMonth() + 1).padStart(2, '0') + "-" +
+	                  String(now.getDate()).padStart(2, '0') + "_" +
+	                  String(now.getHours()).padStart(2, '0') + "-" +
+	                  String(now.getMinutes()).padStart(2, '0') + "-" +
+	                  String(now.getSeconds()).padStart(2, '0');
+
+	  // ファイル名に日時を使用
+	  saveCanvas(canvas, '模様_' + timestamp, 'png');
+	}
+
+
     
     function generateRandom() {
       // ランダムに図形を生成

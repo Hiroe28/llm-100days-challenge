@@ -26,14 +26,15 @@
         h1 {
             text-align: center;
             color: #333;
-            margin: 10px 0;
+            margin: 8px 0;
+            font-size: 1.5rem;
         }
         
         .container {
             display: flex;
             flex: 1;
-            padding: 10px;
-            gap: 10px;
+            padding: 8px;
+            gap: 8px;
         }
         
         .canvas-container {
@@ -55,31 +56,32 @@
         .controls {
             flex: 1;
             min-width: 200px;
-            padding: 15px;
+            padding: 12px;
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            overflow-y: auto;
         }
         
         .control-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         
         .control-group h3 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
+            margin: 0 0 8px 0;
+            font-size: 14px;
             color: #333;
             border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
+            padding-bottom: 4px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
+            margin-bottom: 4px;
+            font-size: 13px;
         }
         
         input[type="range"] {
@@ -87,8 +89,8 @@
         }
         
         input[type="color"] {
-            width: 50px;
-            height: 30px;
+            width: 45px;
+            height: 28px;
             border: none;
             cursor: pointer;
         }
@@ -114,7 +116,7 @@
         .tool-group {
             display: flex;
             gap: 5px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .tool-btn {
@@ -141,9 +143,10 @@
             top: 10px;
             left: 10px;
             right: 10px;
-            padding: 8px;
+            padding: 6px;
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-size: 12px;
         }
         
         .mode-display span {
@@ -183,6 +186,125 @@
             pointer-events: none;
             z-index: 10;
         }
+        
+        /* コントロールタブ用スタイル */
+        .controls-tabs {
+            display: none;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 8px;
+        }
+        
+        .tab-button {
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            font-size: 13px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .tab-button.active {
+            border-bottom: 2px solid #4CAF50;
+            opacity: 1;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* モバイル向けのスタイル */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .canvas-container {
+                flex: 1;
+                min-height: 60vh;
+            }
+            
+            .controls {
+                display: none;
+                min-width: auto;
+                padding: 8px;
+            }
+            
+            .controls-tabs {
+                display: flex;
+                flex-direction: column;
+                background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                margin-top: 8px;
+            }
+            
+            .control-group {
+                margin-bottom: 8px;
+            }
+            
+            .tool-btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+            
+            button {
+                padding: 8px;
+                font-size: 13px;
+            }
+            
+            .mode-display {
+                padding: 5px;
+                font-size: 12px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+                margin: 6px 0;
+            }
+            
+            /* コントロールボタンを大きくしてタッチしやすく */
+            input[type="range"] {
+                height: 30px;
+            }
+            
+            input[type="color"] {
+                width: 40px;
+                height: 40px;
+            }
+            
+            select {
+                height: 30px;
+                font-size: 16px;
+            }
+            
+            /* フローティングアクションボタン */
+            .float-button {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background-color: #4CAF50;
+                color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                z-index: 100;
+                font-size: 24px;
+                cursor: pointer;
+            }
+        }
     </style>
 </head>
 <body>
@@ -196,6 +318,8 @@
             <div id="guide-line" class="guide-line" style="display: none;"></div>
             <div id="guide-circle" class="guide-circle" style="display: none;"></div>
         </div>
+        
+        <!-- デスクトップ向けコントロールパネル -->
         <div class="controls">
             <div class="control-group">
                 <h3>ツール選択</h3>
@@ -255,6 +379,78 @@
                 </select>
             </div>
         </div>
+        
+        <!-- モバイル向けタブ式コントロールパネル -->
+        <div class="controls-tabs">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="tools">ツール</button>
+                <button class="tab-button" data-tab="particle">パーティクル</button>
+                <button class="tab-button" data-tab="physics">物理</button>
+                <button class="tab-button" data-tab="actions">アクション</button>
+            </div>
+            
+            <div class="tab-content active" id="tools-tab">
+                <div class="control-group">
+                    <div class="tool-group">
+                        <div id="particle-tool-mobile" class="tool-btn active">✨ パーティクル</div>
+                        <div id="wall-tool-mobile" class="tool-btn">🧱 壁</div>
+                        <div id="circle-tool-mobile" class="tool-btn">⭕ 円</div>
+                    </div>
+                    <button id="clear-btn-mobile">🗑️ すべてクリア</button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="particle-tab">
+                <div class="control-group">
+                    <label for="particle-count-mobile">数量: <span id="count-value-mobile">10</span></label>
+                    <input type="range" id="particle-count-mobile" min="1" max="50" value="10">
+                    
+                    <label for="particle-size-mobile">サイズ: <span id="size-value-mobile">5</span></label>
+                    <input type="range" id="particle-size-mobile" min="1" max="20" value="5">
+                    
+                    <label for="particle-color-mobile">色:</label>
+                    <input type="color" id="particle-color-mobile" value="#FF5722">
+                    
+                    <label class="rainbow-label">
+                        <input type="checkbox" id="rainbow-mode-mobile" checked> 🌈 虹色モード
+                    </label>
+                    
+                    <label for="particle-shape-mobile">形状:</label>
+                    <select id="particle-shape-mobile">
+                        <option value="circle">円形</option>
+                        <option value="square">四角形</option>
+                        <option value="triangle">三角形</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="physics-tab">
+                <div class="control-group">
+                    <label for="gravity-mobile">重力: <span id="gravity-value-mobile">9.8</span></label>
+                    <input type="range" id="gravity-mobile" min="0" max="20" value="9.8" step="0.1">
+                    
+                    <label for="friction-mobile">摩擦: <span id="friction-value-mobile">0.1</span></label>
+                    <input type="range" id="friction-mobile" min="0" max="1" value="0.1" step="0.01">
+                    
+                    <label for="elasticity-mobile">弾性: <span id="elasticity-value-mobile">0.7</span></label>
+                    <input type="range" id="elasticity-mobile" min="0" max="1" value="0.7" step="0.01">
+                </div>
+            </div>
+            
+            <div class="tab-content" id="actions-tab">
+                <div class="control-group">
+                    <button id="pause-btn-mobile">一時停止</button>
+                    
+                    <label for="presets-mobile">プリセット:</label>
+                    <select id="presets-mobile">
+                        <option value="default">デフォルト</option>
+                        <option value="space">宇宙（低重力）</option>
+                        <option value="water">水中</option>
+                        <option value="bouncy">超弾性</option>
+                    </select>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -286,6 +482,31 @@
         const guideLine = document.getElementById('guide-line');
         const guideCircle = document.getElementById('guide-circle');
         
+        // モバイル用UI要素の参照
+        const particleToolMobile = document.getElementById('particle-tool-mobile');
+        const wallToolMobile = document.getElementById('wall-tool-mobile');
+        const circleToolMobile = document.getElementById('circle-tool-mobile');
+        const particleCountSliderMobile = document.getElementById('particle-count-mobile');
+        const countValueMobile = document.getElementById('count-value-mobile');
+        const particleSizeSliderMobile = document.getElementById('particle-size-mobile');
+        const sizeValueMobile = document.getElementById('size-value-mobile');
+        const particleColorPickerMobile = document.getElementById('particle-color-mobile');
+        const rainbowModeMobile = document.getElementById('rainbow-mode-mobile');
+        const particleShapeSelectMobile = document.getElementById('particle-shape-mobile');
+        const gravitySliderMobile = document.getElementById('gravity-mobile');
+        const gravityValueMobile = document.getElementById('gravity-value-mobile');
+        const frictionSliderMobile = document.getElementById('friction-mobile');
+        const frictionValueMobile = document.getElementById('friction-value-mobile');
+        const elasticitySliderMobile = document.getElementById('elasticity-mobile');
+        const elasticityValueMobile = document.getElementById('elasticity-value-mobile');
+        const pauseBtnMobile = document.getElementById('pause-btn-mobile');
+        const clearBtnMobile = document.getElementById('clear-btn-mobile');
+        const presetsMobile = document.getElementById('presets-mobile');
+        
+        // タブ切り替え要素
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
         // キャンバスサイズの設定
         function resizeCanvas() {
             const container = canvas.parentElement;
@@ -315,7 +536,71 @@
             window.addEventListener('resize', resizeCanvas);
             setupEventListeners();
             updateSliderLabels();
+            
+            // タブの初期化
+            initTabs();
+            
+            // アニメーションループの開始
             requestAnimationFrame(update);
+        }
+        
+        // タブ切り替えの初期化
+        function initTabs() {
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // すべてのタブボタンから active クラスを削除
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // すべてのタブコンテンツから active クラスを削除
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // クリックされたボタンに active クラスを追加
+                    button.classList.add('active');
+                    
+                    // 対応するタブコンテンツをアクティブにする
+                    const tabId = button.getAttribute('data-tab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+        
+        // 値の同期関数
+        function syncValues(sourceElement, targetElement) {
+            if (sourceElement && targetElement) {
+                targetElement.value = sourceElement.value;
+                
+                // 表示値の更新
+                const sourceId = sourceElement.id;
+                const targetId = targetElement.id;
+                
+                if (sourceId.includes('count') || targetId.includes('count')) {
+                    countValue.textContent = sourceElement.value;
+                    if (countValueMobile) countValueMobile.textContent = sourceElement.value;
+                }
+                
+                if (sourceId.includes('size') || targetId.includes('size')) {
+                    sizeValue.textContent = sourceElement.value;
+                    if (sizeValueMobile) sizeValueMobile.textContent = sourceElement.value;
+                }
+                
+                if (sourceId.includes('gravity') || targetId.includes('gravity')) {
+                    gravity = parseFloat(sourceElement.value);
+                    gravityValue.textContent = gravity;
+                    if (gravityValueMobile) gravityValueMobile.textContent = gravity;
+                }
+                
+                if (sourceId.includes('friction') || targetId.includes('friction')) {
+                    friction = parseFloat(sourceElement.value);
+                    frictionValue.textContent = friction;
+                    if (frictionValueMobile) frictionValueMobile.textContent = friction;
+                }
+                
+                if (sourceId.includes('elasticity') || targetId.includes('elasticity')) {
+                    elasticity = parseFloat(sourceElement.value);
+                    elasticityValue.textContent = elasticity;
+                    if (elasticityValueMobile) elasticityValueMobile.textContent = elasticity;
+                }
+            }
         }
         
         // イベントリスナーの設定
@@ -323,31 +608,134 @@
             // スライダーの値更新イベント
             particleCountSlider.addEventListener('input', () => {
                 countValue.textContent = particleCountSlider.value;
+                syncValues(particleCountSlider, particleCountSliderMobile);
             });
             
             particleSizeSlider.addEventListener('input', () => {
                 sizeValue.textContent = particleSizeSlider.value;
+                syncValues(particleSizeSlider, particleSizeSliderMobile);
             });
             
             gravitySlider.addEventListener('input', () => {
                 gravity = parseFloat(gravitySlider.value);
                 gravityValue.textContent = gravity;
+                syncValues(gravitySlider, gravitySliderMobile);
             });
             
             frictionSlider.addEventListener('input', () => {
                 friction = parseFloat(frictionSlider.value);
                 frictionValue.textContent = friction;
+                syncValues(frictionSlider, frictionSliderMobile);
             });
             
             elasticitySlider.addEventListener('input', () => {
                 elasticity = parseFloat(elasticitySlider.value);
                 elasticityValue.textContent = elasticity;
+                syncValues(elasticitySlider, elasticitySliderMobile);
             });
+            
+            // モバイル用スライダーの値更新イベント
+            if (particleCountSliderMobile) {
+                particleCountSliderMobile.addEventListener('input', () => {
+                    syncValues(particleCountSliderMobile, particleCountSlider);
+                });
+            }
+            
+            if (particleSizeSliderMobile) {
+                particleSizeSliderMobile.addEventListener('input', () => {
+                    syncValues(particleSizeSliderMobile, particleSizeSlider);
+                });
+            }
+            
+            if (gravitySliderMobile) {
+                gravitySliderMobile.addEventListener('input', () => {
+                    syncValues(gravitySliderMobile, gravitySlider);
+                });
+            }
+            
+            if (frictionSliderMobile) {
+                frictionSliderMobile.addEventListener('input', () => {
+                    syncValues(frictionSliderMobile, frictionSlider);
+                });
+            }
+            
+            if (elasticitySliderMobile) {
+                elasticitySliderMobile.addEventListener('input', () => {
+                    syncValues(elasticitySliderMobile, elasticitySlider);
+                });
+            }
+            
+            // 色の同期
+            particleColorPicker.addEventListener('input', () => {
+                if (particleColorPickerMobile) {
+                    particleColorPickerMobile.value = particleColorPicker.value;
+                }
+            });
+            
+            if (particleColorPickerMobile) {
+                particleColorPickerMobile.addEventListener('input', () => {
+                    particleColorPicker.value = particleColorPickerMobile.value;
+                });
+            }
+            
+            // 虹色モードの同期
+            rainbowMode.addEventListener('change', () => {
+                if (rainbowModeMobile) {
+                    rainbowModeMobile.checked = rainbowMode.checked;
+                }
+            });
+            
+            if (rainbowModeMobile) {
+                rainbowModeMobile.addEventListener('change', () => {
+                    rainbowMode.checked = rainbowModeMobile.checked;
+                });
+            }
+            
+            // 形状選択の同期
+            particleShapeSelect.addEventListener('change', () => {
+                if (particleShapeSelectMobile) {
+                    particleShapeSelectMobile.value = particleShapeSelect.value;
+                }
+            });
+            
+            if (particleShapeSelectMobile) {
+                particleShapeSelectMobile.addEventListener('change', () => {
+                    particleShapeSelect.value = particleShapeSelectMobile.value;
+                });
+            }
+            
+            // プリセットの同期
+            presets.addEventListener('change', () => {
+                if (presetsMobile) {
+                    presetsMobile.value = presets.value;
+                }
+                applyPreset();
+            });
+            
+            if (presetsMobile) {
+                presetsMobile.addEventListener('change', () => {
+                    presets.value = presetsMobile.value;
+                    applyPreset();
+                });
+            }
             
             // ツール選択イベント
             particleTool.addEventListener('click', () => setTool('particle'));
             wallTool.addEventListener('click', () => setTool('wall'));
             circleTool.addEventListener('click', () => setTool('circle'));
+            
+            // モバイル用ツール選択イベント
+            if (particleToolMobile) {
+                particleToolMobile.addEventListener('click', () => setTool('particle'));
+            }
+            
+            if (wallToolMobile) {
+                wallToolMobile.addEventListener('click', () => setTool('wall'));
+            }
+            
+            if (circleToolMobile) {
+                circleToolMobile.addEventListener('click', () => setTool('circle'));
+            }
             
             // キャンバスのマウスイベント
             canvas.addEventListener('click', handleCanvasClick);
@@ -355,12 +743,130 @@
             canvas.addEventListener('mousemove', handleMouseMove);
             canvas.addEventListener('mouseup', handleMouseUp);
             
+            // タッチイベント
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handleTouchEnd);
+            
             // アクションボタンイベント
             pauseBtn.addEventListener('click', togglePause);
             clearBtn.addEventListener('click', clearAll);
             
-            // プリセット変更イベント
-            presets.addEventListener('change', applyPreset);
+            // モバイル用アクションボタンイベント
+            if (pauseBtnMobile) {
+                pauseBtnMobile.addEventListener('click', togglePause);
+            }
+            
+            if (clearBtnMobile) {
+                clearBtnMobile.addEventListener('click', clearAll);
+            }
+        }
+        
+        // タッチイベント処理
+        function handleTouchStart(event) {
+            event.preventDefault();
+            if (event.touches.length > 0) {
+                const touch = event.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                if (currentTool === 'particle') {
+                    createParticles(x, y);
+                } else if (currentTool === 'wall') {
+                    if (!wallStartPoint) {
+                        wallStartPoint = { x, y };
+                    }
+                } else if (currentTool === 'circle') {
+                    circleCenter = { x, y };
+                    
+                    // ガイド円を表示
+                    guideCircle.style.display = 'block';
+                    guideCircle.style.left = `${x - 1}px`;
+                    guideCircle.style.top = `${y - 1}px`;
+                    guideCircle.style.width = '0px';
+                    guideCircle.style.height = '0px';
+                }
+            }
+        }
+        
+        function handleTouchMove(event) {
+            event.preventDefault();
+            if (event.touches.length > 0) {
+                const touch = event.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                if (currentTool === 'wall' && wallStartPoint) {
+                    // 壁のガイドライン表示
+                    guideLine.style.display = 'block';
+                    guideLine.style.width = '0px';
+                    guideLine.style.height = '0px';
+                    guideLine.style.left = `${wallStartPoint.x}px`;
+                    guideLine.style.top = `${wallStartPoint.y}px`;
+                    
+                    const angle = Math.atan2(y - wallStartPoint.y, x - wallStartPoint.x);
+                    const length = Math.sqrt(Math.pow(x - wallStartPoint.x, 2) + Math.pow(y - wallStartPoint.y, 2));
+                    
+                    guideLine.style.width = `${length}px`;
+                    guideLine.style.transform = `rotate(${angle}rad)`;
+                    guideLine.style.transformOrigin = 'left';
+                } else if (currentTool === 'circle' && circleCenter) {
+                    const dx = x - circleCenter.x;
+                    const dy = y - circleCenter.y;
+                    const radius = Math.sqrt(dx * dx + dy * dy);
+                    
+                    guideCircle.style.width = `${radius * 2}px`;
+                    guideCircle.style.height = `${radius * 2}px`;
+                    guideCircle.style.left = `${circleCenter.x - radius}px`;
+                    guideCircle.style.top = `${circleCenter.y - radius}px`;
+                }
+            }
+        }
+        
+        function handleTouchEnd(event) {
+            event.preventDefault();
+            if (currentTool === 'wall' && wallStartPoint) {
+                if (event.changedTouches.length > 0) {
+                    const touch = event.changedTouches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    
+                    walls.push({
+                        x1: wallStartPoint.x,
+                        y1: wallStartPoint.y,
+                        x2: x,
+                        y2: y
+                    });
+                    
+                    wallStartPoint = null;
+                    guideLine.style.display = 'none';
+                }
+            } else if (currentTool === 'circle' && circleCenter) {
+                if (event.changedTouches.length > 0) {
+                    const touch = event.changedTouches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+                    
+                    const dx = x - circleCenter.x;
+                    const dy = y - circleCenter.y;
+                    const radius = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (radius > 5) {
+                        circles.push({
+                            x: circleCenter.x,
+                            y: circleCenter.y,
+                            radius: radius
+                        });
+                    }
+                    
+                    circleCenter = null;
+                    guideCircle.style.display = 'none';
+                }
+            }
         }
 
         // マウスダウンイベントの処理
@@ -458,11 +964,24 @@
             wallTool.classList.toggle('active', tool === 'wall');
             circleTool.classList.toggle('active', tool === 'circle');
             
+            // モバイルUIの更新
+            if (particleToolMobile) {
+                particleToolMobile.classList.toggle('active', tool === 'particle');
+            }
+            
+            if (wallToolMobile) {
+                wallToolMobile.classList.toggle('active', tool === 'wall');
+            }
+            
+            if (circleToolMobile) {
+                circleToolMobile.classList.toggle('active', tool === 'circle');
+            }
+            
             // モード表示の更新
             if (tool === 'particle') {
                 currentMode.textContent = 'パーティクル生成';
             } else if (tool === 'wall') {
-                currentMode.textContent = '壁を追加 (2点をクリック)';
+                currentMode.textContent = '壁を追加 (2点をタップ)';
             } else if (tool === 'circle') {
                 currentMode.textContent = '円を追加 (ドラッグでサイズ調整)';
             }
@@ -530,12 +1049,22 @@
             gravityValue.textContent = gravity;
             frictionValue.textContent = friction;
             elasticityValue.textContent = elasticity;
+            
+            // モバイル用のラベル更新
+            if (countValueMobile) countValueMobile.textContent = particleCountSlider.value;
+            if (sizeValueMobile) sizeValueMobile.textContent = particleSizeSlider.value;
+            if (gravityValueMobile) gravityValueMobile.textContent = gravity;
+            if (frictionValueMobile) frictionValueMobile.textContent = friction;
+            if (elasticityValueMobile) elasticityValueMobile.textContent = elasticity;
         }
         
         // 一時停止/再開の切り替え
         function togglePause() {
             isPaused = !isPaused;
             pauseBtn.textContent = isPaused ? '再開' : '一時停止';
+            if (pauseBtnMobile) {
+                pauseBtnMobile.textContent = isPaused ? '再開' : '一時停止';
+            }
         }
         
         // すべてクリア
@@ -576,6 +1105,11 @@
             gravitySlider.value = gravity;
             frictionSlider.value = friction;
             elasticitySlider.value = elasticity;
+            
+            // モバイル用スライダーの値を更新
+            if (gravitySliderMobile) gravitySliderMobile.value = gravity;
+            if (frictionSliderMobile) frictionSliderMobile.value = friction;
+            if (elasticitySliderMobile) elasticitySliderMobile.value = elasticity;
             
             // ラベルを更新
             updateSliderLabels();
@@ -826,6 +1360,19 @@
         
         // 初期化を実行
         init();
+
+        // シミュレーションの初期デモ
+        setTimeout(() => {
+            // 画面サイズに応じたデモパーティクル数
+            let demoParticleCount = Math.min(20, Math.floor(canvas.width / 30));
+            
+            // いくつかの場所でパーティクルを生成
+            for (let i = 0; i < 3; i++) {
+                const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+                const y = Math.random() * canvas.height * 0.4 + canvas.height * 0.1;
+                createParticles(x, y);
+            }
+        }, 500);
     </script>
 </body>
 </html>
