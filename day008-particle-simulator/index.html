@@ -223,86 +223,192 @@
         
         /* モバイル向けのスタイル */
         @media (max-width: 768px) {
+            body {
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                max-height: -webkit-fill-available; /* iOS Safariで高さ問題を解決 */
+                padding-bottom: env(safe-area-inset-bottom, 0); /* ノッチ対応 */
+            }
+            
             .container {
                 flex-direction: column;
+                padding: 4px;
+                gap: 4px;
+                flex: 1;
+                overflow: hidden;
+            }
+            
+            h1 {
+                font-size: 1.2rem;
+                margin: 4px 0;
             }
             
             .canvas-container {
                 flex: 1;
-                min-height: 60vh;
+                min-height: 0; /* Flexboxでうまく動作するために必要 */
+                position: relative;
+            }
+            
+            canvas {
+                touch-action: none; /* タッチイベント処理を改善 */
             }
             
             .controls {
                 display: none;
-                min-width: auto;
-                padding: 8px;
             }
             
-            .controls-tabs {
+            /* モバイルツールバー */
+            .mobile-toolbar {
                 display: flex;
+                background-color: white;
+                padding: 6px;
+                border-radius: 8px 8px 0 0;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                position: relative;
+                z-index: 10;
+            }
+            
+            .tool-group-mobile {
+                display: flex;
+                width: 100%;
+                gap: 3px;
+            }
+            
+            .tool-btn-mobile {
+                flex: 1;
+                padding: 10px 5px;
+                text-align: center;
+                background-color: #f1f1f1;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 13px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 3px;
+            }
+            
+            .tool-btn-mobile.active {
+                background-color: #4CAF50;
+                color: white;
+            }
+            
+            .tool-icon {
+                font-size: 18px;
+            }
+            
+            .tool-text {
+                font-size: 11px;
+            }
+            
+            /* コントロールパネル */
+            .controls-tabs {
+                display: none;
                 flex-direction: column;
                 background-color: white;
                 border-radius: 8px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                margin-top: 8px;
+                position: absolute;
+                bottom: 65px;
+                left: 10px;
+                right: 10px;
+                z-index: 100;
+                padding: 8px;
+                max-height: 40vh;
+                overflow-y: auto;
+            }
+            
+            .controls-tabs.visible {
+                display: flex;
+            }
+            
+            .tab-buttons {
+                display: flex;
+                border-bottom: 1px solid #ddd;
+                margin-bottom: 8px;
+            }
+            
+            .tab-button {
+                padding: 6px 10px;
+                border: none;
+                background: none;
+                font-size: 12px;
+                cursor: pointer;
+                opacity: 0.7;
+            }
+            
+            .tab-button.active {
+                border-bottom: 2px solid #4CAF50;
+                opacity: 1;
+                font-weight: bold;
+            }
+            
+            .tab-content {
+                display: none;
+                padding: 4px;
+            }
+            
+            .tab-content.active {
+                display: block;
             }
             
             .control-group {
                 margin-bottom: 8px;
             }
             
-            .tool-btn {
-                padding: 10px;
-                font-size: 13px;
-            }
-            
-            button {
-                padding: 8px;
-                font-size: 13px;
-            }
-            
+            /* その他のモバイル調整 */
             .mode-display {
-                padding: 5px;
-                font-size: 12px;
+                padding: 4px;
+                font-size: 11px;
+                top: 4px;
+                left: 4px;
+                right: 4px;
             }
             
-            h1 {
-                font-size: 1.3rem;
-                margin: 6px 0;
-            }
-            
-            /* コントロールボタンを大きくしてタッチしやすく */
             input[type="range"] {
-                height: 30px;
+                height: 28px;
             }
             
             input[type="color"] {
-                width: 40px;
-                height: 40px;
+                width: 36px;
+                height: 36px;
             }
             
             select {
                 height: 30px;
-                font-size: 16px;
+                font-size: 14px;
             }
             
-            /* フローティングアクションボタン */
-            .float-button {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                width: 50px;
-                height: 50px;
+            label {
+                font-size: 12px;
+                margin-bottom: 2px;
+            }
+            
+            button {
+                padding: 8px;
+                font-size: 12px;
+            }
+            
+            /* 設定ボタン */
+            .settings-btn {
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
+                width: 40px;
+                height: 40px;
                 border-radius: 50%;
                 background-color: #4CAF50;
                 color: white;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
                 z-index: 100;
-                font-size: 24px;
+                font-size: 20px;
                 cursor: pointer;
+                border: none;
             }
         }
     </style>
@@ -317,6 +423,7 @@
             </div>
             <div id="guide-line" class="guide-line" style="display: none;"></div>
             <div id="guide-circle" class="guide-circle" style="display: none;"></div>
+            <button id="settings-btn" class="settings-btn">⚙️</button>
         </div>
         
         <!-- デスクトップ向けコントロールパネル -->
@@ -380,27 +487,41 @@
             </div>
         </div>
         
+        <!-- モバイル向けツールバー -->
+        <div class="mobile-toolbar">
+            <div class="tool-group-mobile">
+                <div id="particle-tool-mobile" class="tool-btn-mobile active">
+                    <div class="tool-icon">✨</div>
+                    <div class="tool-text">パーティクル</div>
+                </div>
+                <div id="wall-tool-mobile" class="tool-btn-mobile">
+                    <div class="tool-icon">🧱</div>
+                    <div class="tool-text">壁</div>
+                </div>
+                <div id="circle-tool-mobile" class="tool-btn-mobile">
+                    <div class="tool-icon">⭕</div>
+                    <div class="tool-text">円</div>
+                </div>
+                <div id="clear-btn-mobile" class="tool-btn-mobile">
+                    <div class="tool-icon">🗑️</div>
+                    <div class="tool-text">クリア</div>
+                </div>
+                <div id="pause-btn-mobile" class="tool-btn-mobile">
+                    <div class="tool-icon">⏸️</div>
+                    <div class="tool-text">一時停止</div>
+                </div>
+            </div>
+        </div>
+        
         <!-- モバイル向けタブ式コントロールパネル -->
         <div class="controls-tabs">
             <div class="tab-buttons">
-                <button class="tab-button active" data-tab="tools">ツール</button>
-                <button class="tab-button" data-tab="particle">パーティクル</button>
+                <button class="tab-button active" data-tab="particle">パーティクル</button>
                 <button class="tab-button" data-tab="physics">物理</button>
-                <button class="tab-button" data-tab="actions">アクション</button>
+                <button class="tab-button" data-tab="actions">その他</button>
             </div>
             
-            <div class="tab-content active" id="tools-tab">
-                <div class="control-group">
-                    <div class="tool-group">
-                        <div id="particle-tool-mobile" class="tool-btn active">✨ パーティクル</div>
-                        <div id="wall-tool-mobile" class="tool-btn">🧱 壁</div>
-                        <div id="circle-tool-mobile" class="tool-btn">⭕ 円</div>
-                    </div>
-                    <button id="clear-btn-mobile">🗑️ すべてクリア</button>
-                </div>
-            </div>
-            
-            <div class="tab-content" id="particle-tab">
+            <div class="tab-content active" id="particle-tab">
                 <div class="control-group">
                     <label for="particle-count-mobile">数量: <span id="count-value-mobile">10</span></label>
                     <input type="range" id="particle-count-mobile" min="1" max="50" value="10">
@@ -408,12 +529,14 @@
                     <label for="particle-size-mobile">サイズ: <span id="size-value-mobile">5</span></label>
                     <input type="range" id="particle-size-mobile" min="1" max="20" value="5">
                     
-                    <label for="particle-color-mobile">色:</label>
-                    <input type="color" id="particle-color-mobile" value="#FF5722">
-                    
-                    <label class="rainbow-label">
-                        <input type="checkbox" id="rainbow-mode-mobile" checked> 🌈 虹色モード
-                    </label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label for="particle-color-mobile">色:</label>
+                        <input type="color" id="particle-color-mobile" value="#FF5722">
+                        
+                        <label class="rainbow-label" style="margin-left: 10px;">
+                            <input type="checkbox" id="rainbow-mode-mobile" checked> 🌈
+                        </label>
+                    </div>
                     
                     <label for="particle-shape-mobile">形状:</label>
                     <select id="particle-shape-mobile">
@@ -439,8 +562,6 @@
             
             <div class="tab-content" id="actions-tab">
                 <div class="control-group">
-                    <button id="pause-btn-mobile">一時停止</button>
-                    
                     <label for="presets-mobile">プリセット:</label>
                     <select id="presets-mobile">
                         <option value="default">デフォルト</option>
@@ -759,6 +880,16 @@
             
             if (clearBtnMobile) {
                 clearBtnMobile.addEventListener('click', clearAll);
+            }
+            
+            // 設定ボタンのイベント
+            const settingsBtn = document.getElementById('settings-btn');
+            const controlsTabs = document.querySelector('.controls-tabs');
+            
+            if (settingsBtn && controlsTabs) {
+                settingsBtn.addEventListener('click', () => {
+                    controlsTabs.classList.toggle('visible');
+                });
             }
         }
         
