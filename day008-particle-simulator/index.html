@@ -324,6 +324,39 @@
                 display: flex;
             }
             
+            .overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.3);
+                z-index: 90;
+            }
+            
+            .overlay.visible {
+                display: block;
+            }
+            
+            .close-btn {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                width: 24px;
+                height: 24px;
+                background-color: #f1f1f1;
+                border-radius: 50%;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                padding: 0;
+                cursor: pointer;
+                z-index: 101;
+            }
+            
             .tab-buttons {
                 display: flex;
                 border-bottom: 1px solid #ddd;
@@ -524,7 +557,9 @@
         </div>
         
         <!-- モバイル向けタブ式コントロールパネル -->
+        <div id="overlay" class="overlay"></div>
         <div class="controls-tabs">
+            <button id="close-settings" class="close-btn">✕</button>
             <div class="tab-buttons">
                 <button class="tab-button active" data-tab="particle">パーティクル</button>
                 <button class="tab-button" data-tab="physics">物理</button>
@@ -895,11 +930,45 @@
             // 設定ボタンのイベント
             const settingsBtn = document.getElementById('settings-btn');
             const controlsTabs = document.querySelector('.controls-tabs');
+            const overlay = document.getElementById('overlay');
+            const closeSettingsBtn = document.getElementById('close-settings');
             
-            if (settingsBtn && controlsTabs) {
+            if (settingsBtn && controlsTabs && overlay && closeSettingsBtn) {
+                // 設定ボタンでパネルを開く
                 settingsBtn.addEventListener('click', () => {
-                    controlsTabs.classList.toggle('visible');
+                    controlsTabs.classList.add('visible');
+                    overlay.classList.add('visible');
                 });
+                
+                // 閉じるボタンでパネルを閉じる
+                closeSettingsBtn.addEventListener('click', () => {
+                    controlsTabs.classList.remove('visible');
+                    overlay.classList.remove('visible');
+                });
+                
+                // オーバーレイクリックでパネルを閉じる
+                overlay.addEventListener('click', () => {
+                    controlsTabs.classList.remove('visible');
+                    overlay.classList.remove('visible');
+                });
+                
+                // スワイプでパネルを閉じる機能
+                let touchStartY = 0;
+                
+                controlsTabs.addEventListener('touchstart', (e) => {
+                    touchStartY = e.touches[0].clientY;
+                }, { passive: true });
+                
+                controlsTabs.addEventListener('touchmove', (e) => {
+                    const touchY = e.touches[0].clientY;
+                    const distance = touchY - touchStartY;
+                    
+                    // 下方向へのスワイプを検出（しきい値: 40px）
+                    if (distance > 40) {
+                        controlsTabs.classList.remove('visible');
+                        overlay.classList.remove('visible');
+                    }
+                }, { passive: true });
             }
         }
         
