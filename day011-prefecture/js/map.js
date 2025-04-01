@@ -133,7 +133,6 @@ function loadSVGsFromData() {
                 
                 // タップイベントの追加（モバイル向け）
                 newPath.addEventListener('touchend', handlePrefectureTap);
-                // newPath.addEventListener('click', handlePrefectureClick);
                 
                 // グループに追加
                 prefGroup.appendChild(newPath);
@@ -290,57 +289,57 @@ function resetZoom() {
 // ピンチズーム機能のセットアップ
 function setupPinchZoom() {
     // タッチスタート時の処理
-    // mapContainer.addEventListener('touchstart', (e) => {
-    //     if (e.touches.length === 2) {
-    //         // 2本指のピンチ操作開始
-    //         mapState.isPinching = true;
-    //         mapState.pinchStartDistance = getTouchDistance(e.touches);
-    //         mapState.pinchStartZoom = mapState.zoomLevel;
-    //         e.preventDefault(); // スクロールを防止
-    //     }
-    // });
+    mapContainer.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            // 2本指のピンチ操作開始
+            mapState.isPinching = true;
+            mapState.pinchStartDistance = getTouchDistance(e.touches);
+            mapState.pinchStartZoom = mapState.zoomLevel;
+            e.preventDefault(); // スクロールを防止
+        }
+    });
     
-    // // タッチ移動時の処理
-    // mapContainer.addEventListener('touchmove', (e) => {
-    //     if (mapState.isPinching && e.touches.length === 2) {
-    //         // 現在の2点間の距離を計算
-    //         const currentDistance = getTouchDistance(e.touches);
+    // タッチ移動時の処理
+    mapContainer.addEventListener('touchmove', (e) => {
+        if (mapState.isPinching && e.touches.length === 2) {
+            // 現在の2点間の距離を計算
+            const currentDistance = getTouchDistance(e.touches);
             
-    //         // ズーム倍率の計算（相対的な変化）
-    //         const scale = currentDistance / mapState.pinchStartDistance;
-    //         const newZoom = mapState.pinchStartZoom * scale;
+            // ズーム倍率の計算（相対的な変化）
+            const scale = currentDistance / mapState.pinchStartDistance;
+            const newZoom = mapState.pinchStartZoom * scale;
             
-    //         // ズームレベルの変化量
-    //         const zoomDelta = newZoom - mapState.zoomLevel;
+            // ズームレベルの変化量
+            const zoomDelta = newZoom - mapState.zoomLevel;
             
-    //         // ズーム適用
-    //         zoomMap(zoomDelta);
+            // ズーム適用
+            zoomMap(zoomDelta);
             
-    //         e.preventDefault(); // スクロールを防止
-    //     }
-    // });
+            e.preventDefault(); // スクロールを防止
+        }
+    });
     
-    // // タッチ終了時の処理
-    // mapContainer.addEventListener('touchend', (e) => {
-    //     if (mapState.isPinching) {
-    //         mapState.isPinching = false;
-    //         mapState.lastPinchTime = Date.now(); // ピンチ操作の終了時刻を記録
-    //         e.preventDefault(); // スクロールを防止
-    //     }
-    // });
+    // タッチ終了時の処理
+    mapContainer.addEventListener('touchend', (e) => {
+        if (mapState.isPinching) {
+            mapState.isPinching = false;
+            mapState.lastPinchTime = Date.now(); // ピンチ操作の終了時刻を記録
+            e.preventDefault(); // スクロールを防止
+        }
+    });
     
-    // // タッチキャンセル時の処理
-    // mapContainer.addEventListener('touchcancel', (e) => {
-    //     mapState.isPinching = false;
-    //     mapState.lastPinchTime = Date.now(); // ピンチ操作の終了時刻を記録
-    // });
+    // タッチキャンセル時の処理
+    mapContainer.addEventListener('touchcancel', (e) => {
+        mapState.isPinching = false;
+        mapState.lastPinchTime = Date.now(); // ピンチ操作の終了時刻を記録
+    });
     
-    // // 2点間の距離を計算する関数
-    // function getTouchDistance(touches) {
-    //     const dx = touches[0].clientX - touches[1].clientX;
-    //     const dy = touches[0].clientY - touches[1].clientY;
-    //     return Math.sqrt(dx * dx + dy * dy);
-    // }
+    // 2点間の距離を計算する関数
+    function getTouchDistance(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 }
 
 // マップのパン（ドラッグ＆ドロップで移動）機能
