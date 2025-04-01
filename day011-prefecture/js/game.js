@@ -43,6 +43,21 @@ function detectMobileDevice() {
     }
 }
 
+// 設定ボタンのイベントリスナー
+document.getElementById('settings-toggle').addEventListener('click', function() {
+    const panel = document.getElementById('settings-panel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+    } else {
+        panel.style.display = 'none';
+    }
+});
+
+// 設定パネルを閉じるボタン
+document.getElementById('close-settings').addEventListener('click', function() {
+    document.getElementById('settings-panel').style.display = 'none';
+});
+
 // 遊び方の表示/非表示を切り替える
 helpButton.addEventListener('click', function() {
     console.log("遊び方ボタンがクリックされました");
@@ -53,6 +68,9 @@ helpButton.addEventListener('click', function() {
         instructionsElement.style.display = 'none';
         helpButton.textContent = '遊び方を表示';
     }
+    
+    // 設定パネルを自動的に閉じる
+    document.getElementById('settings-panel').style.display = 'none';
 });
 
 // 地方選択が変更されたときの処理
@@ -131,38 +149,54 @@ function initSounds() {
     }
 }
 
-// モード切り替え
-mapModeButton.addEventListener('click', () => {
-    if (gameState.gameMode !== 'map') {
-        gameState.gameMode = 'map';
-        mapModeButton.classList.add('active');
-        choiceModeButton.classList.remove('active');
-        optionsContainer.style.display = 'none';
-        
-        // 「地図全体を表示」ボタンに更新
-        if (typeof updateCenterButtonForGameMode === 'function') {
-            updateCenterButtonForGameMode();
-        }
-        
-        resetAndNextQuestion();
-    }
-});
-
-choiceModeButton.addEventListener('click', () => {
-    if (gameState.gameMode !== 'choice') {
-        gameState.gameMode = 'choice';
-        choiceModeButton.classList.add('active');
-        mapModeButton.classList.remove('active');
-        optionsContainer.style.display = 'flex';
-        
-        // 「ハイライト部分を表示」ボタンに更新
-        if (typeof updateCenterButtonForGameMode === 'function') {
-            updateCenterButtonForGameMode();
-        }
-        
-        resetAndNextQuestion();
-    }
-});
+// モード切り替え - メインページのボタンと設定パネル内のボタンの両方に対応
+function setupModeButtons() {
+    // マップモードへの切り替え
+    const mapModeButtons = document.querySelectorAll('#map-mode');
+    mapModeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (gameState.gameMode !== 'map') {
+                gameState.gameMode = 'map';
+                // すべてのマップモードボタンをアクティブにする
+                document.querySelectorAll('#map-mode').forEach(btn => btn.classList.add('active'));
+                // すべての選択肢モードボタンを非アクティブにする
+                document.querySelectorAll('#choice-mode').forEach(btn => btn.classList.remove('active'));
+                
+                optionsContainer.style.display = 'none';
+                
+                // 「地図全体を表示」ボタンに更新
+                if (typeof updateCenterButtonForGameMode === 'function') {
+                    updateCenterButtonForGameMode();
+                }
+                
+                resetAndNextQuestion();
+            }
+        });
+    });
+    
+    // 選択肢モードへの切り替え
+    const choiceModeButtons = document.querySelectorAll('#choice-mode');
+    choiceModeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (gameState.gameMode !== 'choice') {
+                gameState.gameMode = 'choice';
+                // すべての選択肢モードボタンをアクティブにする
+                document.querySelectorAll('#choice-mode').forEach(btn => btn.classList.add('active'));
+                // すべてのマップモードボタンを非アクティブにする
+                document.querySelectorAll('#map-mode').forEach(btn => btn.classList.remove('active'));
+                
+                optionsContainer.style.display = 'flex';
+                
+                // 「ハイライト部分を表示」ボタンに更新
+                if (typeof updateCenterButtonForGameMode === 'function') {
+                    updateCenterButtonForGameMode();
+                }
+                
+                resetAndNextQuestion();
+            }
+        });
+    });
+}
 
 // 次の問題ボタン
 nextButton.addEventListener('click', resetAndNextQuestion);
@@ -672,24 +706,14 @@ function initGame() {
     // モバイルデバイスの検出
     detectMobileDevice();
     
+    // ゲームモードボタンのセットアップ
+    setupModeButtons();
+    
     // 効果音の初期化
     initSounds();
     
     // 初回訪問時のヘルプ表示処理
     showInitialHelpIfNecessary();
-    
-    // モードガイド表示/非表示の設定（最初の3回だけ表示）
-    const visitCount = parseInt(localStorage.getItem('prefectureQuizVisitCount') || '0');
-    const modeGuide = document.getElementById('mode-guide');
-    
-    if (modeGuide) {
-        if (visitCount < 3) {
-            modeGuide.style.display = 'block';
-            localStorage.setItem('prefectureQuizVisitCount', (visitCount + 1).toString());
-        } else {
-            modeGuide.style.display = 'none';
-        }
-    }
     
     // 利用可能な都道府県の初期化
     updateAvailablePrefectures();

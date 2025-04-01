@@ -438,25 +438,28 @@ function movePanTouch(e) {
 
 // パンの終了
 function endPan() {
+    // 短時間のパンはタップ判定のため、isPanningフラグをすぐに解除
     mapState.isPanning = false;
     mapContainer.classList.remove('grabbing');
+    
+    // 短いパン操作はタップとして扱えるように、パン終了時刻を記録しない
 }
 
 // タップで都道府県を選択する処理（モバイル向け）
 function handlePrefectureTap(e) {
     // タップの場合は、パンやピンチ操作中でなければ都道府県選択として処理
-    if (mapState.isPanning || mapState.isPinching) {
+    if (mapState.isPinching) {
         e.preventDefault();
         return;
     }
     
-    // ピンチズーム操作の直後は誤タップを防ぐために一定時間無効化
-    if (mapState.lastPinchTime && (Date.now() - mapState.lastPinchTime < 500)) {
+    // ピンチズーム操作の直後は誤タップを防ぐために一時的に無効化（時間を短縮）
+    if (mapState.lastPinchTime && (Date.now() - mapState.lastPinchTime < 200)) {
         e.preventDefault();
         return;
     }
     
-    // タップかスワイプかを判断（移動距離と時間で判定）
+    // タップかスワイプかを判断（移動距離と時間で判定 - より緩やかに）
     const touchEndTime = Date.now();
     const touchDuration = touchEndTime - mapState.touchStartTime;
     
@@ -468,16 +471,16 @@ function handlePrefectureTap(e) {
         touchDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
     
-    // 移動距離が大きいまたは長時間のタッチはスワイプと判断して無視
-    if (touchDistance > 10 || touchDuration > 300) {
-        e.preventDefault();
+    // 明らかに大きな移動や長いタッチのみスワイプと判断（閾値を緩和）
+    if (touchDistance > 20 || touchDuration > 500) {
+        // スワイプ判定の場合は何もしない
         return;
     }
     
     const code = e.target.getAttribute('data-code');
     const name = e.target.getAttribute('data-name');
     
-    // 正しいタップ判定のため、タッチムーブの距離が小さい場合のみ選択と判断
+    // コードと名前があれば選択処理を実行
     if (code && name && !gameState.answered) {
         e.preventDefault(); // デフォルトのタッチイベントを防止
         handlePrefectureClick({ target: e.target }); // クリックイベントと同様に処理

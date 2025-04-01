@@ -33,25 +33,28 @@
 <body>
     <h1>都道府県当てクイズ</h1>
     <div id="game-container">
-        <!-- ゲームモード選択の説明 -->
-        <div id="mode-guide">
-            <p><span class="highlight-text">ゲームモードを選択してください:</span></p>
-            <div class="guide-description">
-                <div class="guide-item">
-                    <strong>マップモード</strong>: 都道府県名から場所を当てる
-                </div>
-                <div class="guide-item">
-                    <strong>選択肢モード</strong>: 地図上の場所から名前を当てる
-                </div>
+        <!-- ゲームモード切替ボタンを常に表示 -->
+        <div class="main-mode-buttons">
+            <div class="game-mode">
+                <div class="mode-button active no-zoom" id="map-mode">マップモード</div>
+                <div class="mode-button no-zoom" id="choice-mode">選択肢モード</div>
             </div>
         </div>
-    
-        <div class="game-options">
-            <div class="option-row game-mode-row">
-                <div class="game-mode">
-                    <div class="mode-button active no-zoom" id="map-mode">マップモード</div>
-                    <div class="mode-button no-zoom" id="choice-mode">選択肢モード</div>
-                </div>
+        
+        <!-- 設定ボタン -->
+        <div id="settings-button-container">
+            <button id="settings-toggle" class="no-zoom">⚙️ 設定</button>
+        </div>
+        
+        <!-- 設定パネル（デフォルトは折りたたみ） -->
+        <div id="settings-panel" style="display: none;">
+            <div class="settings-header">
+                <h3>クイズ設定</h3>
+                <button id="close-settings" class="no-zoom">✖</button>
+            </div>
+            
+            <div class="settings-group">
+                <div class="settings-label">地方選択:</div>
                 <div class="region-selector">
                     <select id="region-select">
                         <option value="all" selected>全国</option>
@@ -65,12 +68,17 @@
                     </select>
                 </div>
             </div>
-            <div class="option-row">
-                <button id="help-button" class="no-zoom">遊び方を表示</button>
+            
+            <div class="settings-group">
+                <div class="settings-label">表示モード:</div>
                 <div class="text-mode">
                     <div class="mode-button active no-zoom" id="kanji-mode">漢字</div>
                     <div class="mode-button no-zoom" id="hiragana-mode">ひらがな</div>
                 </div>
+            </div>
+            
+            <div class="settings-group">
+                <button id="help-button" class="no-zoom">遊び方を表示</button>
             </div>
         </div>
         <div id="quiz-info">
