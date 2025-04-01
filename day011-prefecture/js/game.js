@@ -11,8 +11,8 @@ const choiceModeButton = document.getElementById('choice-mode');
 const regionSelect = document.getElementById('region-select');
 const instructionsElement = document.getElementById('instructions');
 const helpButton = document.getElementById('help-button');
-const kanjiModeButton = document.getElementById('kanji-mode');  // この行を追加
-const hiraganaModeButton = document.getElementById('hiragana-mode');  // この行を追加
+const kanjiModeButton = document.getElementById('kanji-mode');
+const hiraganaModeButton = document.getElementById('hiragana-mode');
 
 // ゲーム状態の管理
 const gameState = {
@@ -23,8 +23,25 @@ const gameState = {
     answered: false,
     currentRegion: 'all', // デフォルトは全国
     availablePrefectures: [...prefectures], // 初期値として全都道府県をコピー
-    textMode: 'kanji' // 'kanji' または 'hiragana'  // この行を追加
+    textMode: 'kanji', // 'kanji' または 'hiragana'
+    isMobileDevice: false // モバイルデバイスかどうか
 };
+
+// モバイルデバイスの検出
+function detectMobileDevice() {
+    gameState.isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    
+    // モバイルデバイスの場合のUI調整
+    if (gameState.isMobileDevice) {
+        // 選択肢モードがモバイルでより使いやすいため、モバイルではデフォルトで選択肢モードに設定
+        if (window.innerWidth <= 480) {
+            gameState.gameMode = 'choice';
+            mapModeButton.classList.remove('active');
+            choiceModeButton.classList.add('active');
+            optionsContainer.style.display = 'flex';
+        }
+    }
+}
 
 // 遊び方の表示/非表示を切り替える
 helpButton.addEventListener('click', function() {
@@ -306,6 +323,17 @@ function generateOptions() {
         optionButton.setAttribute('data-code', code);
         optionButton.setAttribute('data-name', prefecture.name);
         
+        // タッチ操作に最適化したイベントリスナー
+        if (gameState.isMobileDevice) {
+            // モバイルではtouchendを使用
+            optionButton.addEventListener('touchend', function(e) {
+                if (gameState.answered) return;
+                e.preventDefault(); // デフォルトのタッチイベントを防止
+                checkAnswer(code, prefecture.name);
+            });
+        }
+        
+        // クリックイベントは常に設定（PCユーザー用）
         optionButton.addEventListener('click', function() {
             if (gameState.answered) return;
             checkAnswer(code, prefecture.name);
@@ -313,6 +341,13 @@ function generateOptions() {
         
         optionsContainer.appendChild(optionButton);
     });
+    
+    // モバイルデバイスの場合、選択肢の表示を調整
+    if (gameState.isMobileDevice && window.innerWidth <= 600) {
+        optionsContainer.style.flexDirection = 'column';
+    } else {
+        optionsContainer.style.flexDirection = 'row';
+    }
 }
 
 // 配列をシャッフル（Fisher-Yates アルゴリズム）
@@ -404,6 +439,14 @@ function checkAnswer(code, name) {
     
     // 次のボタンを表示
     nextButton.style.display = 'block';
+    
+    // 正解表示後、モバイルデバイスの場合は自動的にスクロールして結果を表示
+    if (gameState.isMobileDevice) {
+        // スムーズにスクロール
+        setTimeout(() => {
+            resultMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    }
 }
 
 // リセットして次の問題へ
@@ -486,10 +529,35 @@ function resetAndNextQuestion() {
     } else {
         optionsContainer.style.display = 'none';
     }
+    
+    // モバイルデバイスの場合、質問部分を表示するためにスクロール
+    if (gameState.isMobileDevice) {
+        setTimeout(() => {
+            questionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
 }
+
+// ウィンドウサイズが変わったときにレイアウトを調整
+window.addEventListener('resize', function() {
+    // モバイルフラグを更新
+    detectMobileDevice();
+    
+    // 選択肢の表示方向を調整
+    if (gameState.gameMode === 'choice') {
+        if (window.innerWidth <= 600) {
+            optionsContainer.style.flexDirection = 'column';
+        } else {
+            optionsContainer.style.flexDirection = 'row';
+        }
+    }
+});
 
 // 初期化
 function initGame() {
+    // モバイルデバイスの検出
+    detectMobileDevice();
+    
     // 効果音の初期化
     initSounds();
     

@@ -16,7 +16,10 @@ const mapState = {
     startPanX: 0,
     startPanY: 0,
     lastTranslateX: 0,
-    lastTranslateY: 0
+    lastTranslateY: 0,
+    pinchStartDistance: 0,
+    pinchStartZoom: 1,
+    isPinching: false
 };
 
 // 都道府県の枠を読み込む
@@ -125,6 +128,9 @@ function loadSVGsFromData() {
                 // クリックイベントの追加
                 newPath.addEventListener('click', handlePrefectureClick);
                 
+                // タップイベントの追加（モバイル向け）
+                newPath.addEventListener('touchend', handlePrefectureTap);
+                
                 // グループに追加
                 prefGroup.appendChild(newPath);
             });
@@ -145,8 +151,31 @@ function loadSVGsFromData() {
     // パン機能のセットアップ
     setupMapPanning();
     
+    // ピンチズーム機能のセットアップ
+    setupPinchZoom();
+    
     // 中心表示ボタンを追加
     addCenterButton();
+    
+    // モバイルデバイスかどうかをチェックして初期調整
+    if (isMobileDevice()) {
+        adjustForMobile();
+    }
+}
+
+// モバイルデバイスかどうかをチェック
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+}
+
+// モバイルデバイス向けの調整
+function adjustForMobile() {
+    // マップサイズの初期調整
+    if (window.innerWidth <= 480) {
+        // 小さい画面では少し拡大して表示
+        mapState.zoomLevel = 1.2;
+        zoomMap(0); // 現在のズームレベルを適用
+    }
 }
 
 // SVG地図の表示調整
@@ -226,6 +255,60 @@ function resetZoom() {
     mapState.lastTranslateY = 0;
 }
 
+// ピンチズーム機能のセットアップ
+function setupPinchZoom() {
+    // タッチスタート時の処理
+    mapContainer.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            // 2本指のピンチ操作開始
+            mapState.isPinching = true;
+            mapState.pinchStartDistance = getTouchDistance(e.touches);
+            mapState.pinchStartZoom = mapState.zoomLevel;
+            e.preventDefault(); // スクロールを防止
+        }
+    });
+    
+    // タッチ移動時の処理
+    mapContainer.addEventListener('touchmove', (e) => {
+        if (mapState.isPinching && e.touches.length === 2) {
+            // 現在の2点間の距離を計算
+            const currentDistance = getTouchDistance(e.touches);
+            
+            // ズーム倍率の計算（相対的な変化）
+            const scale = currentDistance / mapState.pinchStartDistance;
+            const newZoom = mapState.pinchStartZoom * scale;
+            
+            // ズームレベルの変化量
+            const zoomDelta = newZoom - mapState.zoomLevel;
+            
+            // ズーム適用
+            zoomMap(zoomDelta);
+            
+            e.preventDefault(); // スクロールを防止
+        }
+    });
+    
+    // タッチ終了時の処理
+    mapContainer.addEventListener('touchend', (e) => {
+        if (mapState.isPinching) {
+            mapState.isPinching = false;
+            e.preventDefault(); // スクロールを防止
+        }
+    });
+    
+    // タッチキャンセル時の処理
+    mapContainer.addEventListener('touchcancel', (e) => {
+        mapState.isPinching = false;
+    });
+    
+    // 2点間の距離を計算する関数
+    function getTouchDistance(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+}
+
 // マップのパン（ドラッグ＆ドロップで移動）機能
 function setupMapPanning() {
     // マウスイベント
@@ -254,7 +337,7 @@ function startPan(e) {
 
 // パンの開始（タッチ）
 function startPanTouch(e) {
-    if (gameState.answered || e.touches.length !== 1) return;
+    if (gameState.answered || e.touches.length !== 1 || mapState.isPinching) return;
     
     mapState.isPanning = true;
     mapState.startPanX = e.touches[0].clientX;
@@ -289,7 +372,7 @@ function movePan(e) {
 
 // パンの移動（タッチ）
 function movePanTouch(e) {
-    if (!mapState.isPanning || e.touches.length !== 1) return;
+    if (!mapState.isPanning || e.touches.length !== 1 || mapState.isPinching) return;
     
     // パン中はスクロールを防止
     e.preventDefault();
@@ -317,6 +400,21 @@ function movePanTouch(e) {
 function endPan() {
     mapState.isPanning = false;
     mapContainer.classList.remove('grabbing');
+}
+
+// タップで都道府県を選択する処理（モバイル向け）
+function handlePrefectureTap(e) {
+    // タップの場合は、パンやピンチ操作中でなければ都道府県選択として処理
+    if (mapState.isPanning || mapState.isPinching) return;
+    
+    const code = e.target.getAttribute('data-code');
+    const name = e.target.getAttribute('data-name');
+    
+    // 正しいタップ判定のため、タッチムーブの距離が小さい場合のみ選択と判断
+    if (code && name && !gameState.answered) {
+        e.preventDefault(); // デフォルトのタッチイベントを防止
+        handlePrefectureClick({ target: e.target }); // クリックイベントと同様に処理
+    }
 }
 
 // ホイールでのズーム処理
@@ -348,9 +446,6 @@ function centerPrefecture(prefectureCode) {
     if (!prefElement) return false;
     
     try {
-        // ズームレベルをリセット（もっと引きの状態に調整）
-        mapState.zoomLevel = 1.0;
-        
         // 都道府県のバウンディングボックスを計算
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         const paths = prefElement.querySelectorAll('path');
@@ -371,14 +466,21 @@ function centerPrefecture(prefectureCode) {
         const centerX = (minX + maxX) / 2;
         const centerY = (minY + maxY) / 2;
         
-        // 表示する領域のサイズを計算（より広い範囲を表示）
-        const width = (maxX - minX) * 5; // 5倍に拡大（より引いた表示に）
-        const height = (maxY - minY) * 5;
+        // モバイルかどうかで拡大率を調整
+        const viewScale = isMobileDevice() ? 3 : 5;
+        
+        // 表示する領域のサイズを計算
+        const width = (maxX - minX) * viewScale;
+        const height = (maxY - minY) * viewScale;
         
         // 新しいビューボックスを設定
         const newViewBox = `${centerX - width/2} ${centerY - height/2} ${width} ${height}`;
         mapContainer.setAttribute('viewBox', newViewBox);
         mapState.currentViewBox = newViewBox;
+        
+        // ズームレベルを更新（アプロキシメーション）
+        const originalVb = mapState.originalViewBox.split(' ').map(Number);
+        mapState.zoomLevel = originalVb[2] / width;
         
         console.log(`都道府県${prefectureCode}を中心に表示しました`);
         return true;

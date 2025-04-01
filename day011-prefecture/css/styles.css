@@ -2,25 +2,29 @@ body {
     font-family: 'Meiryo', 'Hiragino Kaku Gothic Pro', sans-serif;
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 20px 10px;
     background-color: #f5f5f5;
 }
 
 h1 {
     text-align: center;
     color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 28px;
 }
 
 #game-container {
     background-color: white;
     border-radius: 10px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    position: relative;
 }
 
 /* ゲームオプション */
 .game-options {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .option-row {
@@ -28,19 +32,26 @@ h1 {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.game-mode {
+.game-mode, .text-mode {
     display: flex;
+    flex: 1;
+    min-width: 160px;
 }
 
 .mode-button {
-    padding: 8px 16px;
+    padding: 8px 12px;
     background-color: #f0f0f0;
     border: 1px solid #ddd;
-    margin: 0 5px;
+    margin: 0 2px;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 14px;
+    flex: 1;
+    text-align: center;
 }
 
 .mode-button.active {
@@ -48,21 +59,28 @@ h1 {
     color: white;
 }
 
+.region-selector {
+    flex: 1;
+    min-width: 160px;
+}
+
 .region-selector select {
-    padding: 8px 16px;
+    padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: #f0f0f0;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
+    width: 100%;
 }
 
 #help-button {
-    padding: 8px 16px;
+    padding: 8px 12px;
     background-color: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 14px;
 }
 
 #help-button:hover {
@@ -73,8 +91,8 @@ h1 {
 #map-container {
     position: relative;
     width: 100%;
-    height: 550px;
-    margin: 20px 0;
+    height: 450px;
+    margin: 10px 0;
     border: 1px solid #ddd;
     overflow: hidden;
     touch-action: none; /* パンジェスチャーを無効化（カスタム処理用） */
@@ -143,30 +161,35 @@ h1 {
 /* クイズ情報 */
 #quiz-info {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #question {
-    font-size: 24px;
+    font-size: 20px;
     color: #333;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    width: 100%;
 }
 
 #score {
-    font-size: 18px;
+    font-size: 16px;
     color: #555;
 }
 
 #result-message {
     text-align: center;
-    font-size: 24px;
-    margin: 20px 0;
+    font-size: 18px;
+    margin: 15px 0;
     font-weight: bold;
+    line-height: 1.4;
 }
 
 #next-button {
     display: block;
-    margin: 20px auto;
+    margin: 15px auto;
     padding: 10px 20px;
     background-color: #4caf50;
     color: white;
@@ -174,6 +197,7 @@ h1 {
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #next-button:hover {
@@ -185,16 +209,18 @@ h1 {
     display: none;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
-    margin: 20px 0;
+    gap: 8px;
+    margin: 15px 0;
 }
 
 .option-button {
-    padding: 8px 16px;
+    padding: 10px 15px;
     background-color: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .option-button:hover {
@@ -212,17 +238,25 @@ h1 {
 #zoom-controls {
     display: flex;
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 8px;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 5px;
+    padding: 3px;
+    z-index: 100;
 }
 
 .zoom-button {
-    padding: 5px 10px;
-    margin: 0 5px;
+    padding: 6px 10px;
+    margin: 0 2px;
     background-color: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .zoom-button:hover {
@@ -231,37 +265,136 @@ h1 {
 
 /* 遊び方 */
 #instructions {
-    margin-top: 20px;
-    padding: 15px;
+    margin-top: 15px;
+    padding: 12px;
     background-color: #f9f9f9;
     border-radius: 5px;
     border-left: 4px solid #4caf50;
+    font-size: 14px;
 }
 
 #instructions h3 {
     margin-top: 0;
+    margin-bottom: 8px;
     color: #333;
 }
 
-/* レスポンシブ対応 */
+#instructions p {
+    margin: 8px 0;
+}
+
+/* 「問題を表示」ボタン */
+#center-prefecture {
+    background-color: #4caf50;
+    color: white;
+    padding: 6px 10px;
+    margin-left: 5px;
+}
+
+/* モバイル向けのレスポンシブデザイン */
 @media (max-width: 600px) {
-    #map-container {
-        height: 400px;
+    body {
+        padding: 10px 5px;
+    }
+    
+    h1 {
+        font-size: 22px;
+        margin-bottom: 10px;
+    }
+    
+    #game-container {
+        padding: 10px;
     }
     
     .option-row {
         flex-direction: column;
         align-items: stretch;
+        gap: 8px;
+        margin-bottom: 8px;
     }
     
-    .game-mode, .region-selector {
+    .game-mode, .region-selector, .text-mode {
+        width: 100%;
+        margin-bottom: 0;
+    }
+    
+    .mode-button, #help-button {
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    #map-container {
+        height: 300px;
+    }
+    
+    #quiz-info {
         margin-bottom: 10px;
+    }
+    
+    #question {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    
+    #score {
+        font-size: 14px;
+    }
+    
+    #result-message {
+        font-size: 16px;
+        margin: 10px 0;
+    }
+    
+    #next-button {
+        padding: 8px 16px;
+        font-size: 14px;
+        margin: 10px auto;
+    }
+    
+    .option-button {
+        padding: 12px;
+        font-size: 14px;
+        width: 100%;
+    }
+    
+    #options-container {
+        flex-direction: column;
+        margin: 10px 0;
+    }
+    
+    #zoom-controls {
+        bottom: 5px;
+        right: 5px;
+    }
+    
+    .zoom-button {
+        padding: 5px 8px;
+        font-size: 14px;
+    }
+    
+    #instructions {
+        font-size: 13px;
+        padding: 10px;
     }
 }
 
-#center-prefecture {
-    background-color: #4caf50;
-    color: white;
-    padding: 5px 10px;
-    margin-left: 15px;
+/* 特小画面向け */
+@media (max-width: 320px) {
+    h1 {
+        font-size: 20px;
+    }
+    
+    #map-container {
+        height: 250px;
+    }
+    
+    .mode-button, #help-button {
+        padding: 6px;
+        font-size: 13px;
+        min-width: 0;
+    }
+    
+    #question {
+        font-size: 15px;
+    }
 }
