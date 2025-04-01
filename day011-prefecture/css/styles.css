@@ -200,12 +200,13 @@ h1 {
     position: relative;
     width: 100%;
     /* height: 450px; ← これを削除 */
-    height: 65vh; /* 画面高さの65%という例 */
+    height: 70vh; /* 画面高さの70%という例 */
     margin: 10px 0;
     border: 1px solid #ddd;
     overflow: hidden;
     /* touch-action: none; ← これだとすべてのジェスチャーが無効になるので注意 */
-    touch-action: pan-x pan-y; /* 指ドラッグでのパンを優先する例 */
+    /*touch-action: pan-x pan-y;  指ドラッグでのパンを優先する例 */
+    touch-action: auto;
 }
 
 /* PCとタブレット向けマップ拡大 */

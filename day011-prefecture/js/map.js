@@ -453,38 +453,38 @@ function handlePrefectureTap(e) {
         return;
     }
     
-    // ピンチズーム操作の直後は誤タップを防ぐために一時的に無効化（時間を短縮）
-    if (mapState.lastPinchTime && (Date.now() - mapState.lastPinchTime < 200)) {
-        e.preventDefault();
-        return;
-    }
+    // // ピンチズーム操作の直後は誤タップを防ぐために一時的に無効化（時間を短縮）
+    // if (mapState.lastPinchTime && (Date.now() - mapState.lastPinchTime < 200)) {
+    //     e.preventDefault();
+    //     return;
+    // }
     
-    // タップかスワイプかを判断（移動距離と時間で判定 - より緩やかに）
-    const touchEndTime = Date.now();
-    const touchDuration = touchEndTime - mapState.touchStartTime;
+    // // タップかスワイプかを判断（移動距離と時間で判定 - より緩やかに）
+    // const touchEndTime = Date.now();
+    // const touchDuration = touchEndTime - mapState.touchStartTime;
     
-    // タッチの移動距離を計算
-    let touchDistance = 0;
-    if (e.changedTouches && e.changedTouches.length > 0) {
-        const deltaX = e.changedTouches[0].clientX - mapState.touchStartPos.x;
-        const deltaY = e.changedTouches[0].clientY - mapState.touchStartPos.y;
-        touchDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    }
+    // // タッチの移動距離を計算
+    // let touchDistance = 0;
+    // if (e.changedTouches && e.changedTouches.length > 0) {
+    //     const deltaX = e.changedTouches[0].clientX - mapState.touchStartPos.x;
+    //     const deltaY = e.changedTouches[0].clientY - mapState.touchStartPos.y;
+    //     touchDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    // }
     
-    // 明らかに大きな移動や長いタッチのみスワイプと判断（閾値を緩和）
-    if (touchDistance > 20 || touchDuration > 500) {
-        // スワイプ判定の場合は何もしない
-        return;
-    }
+    // // 明らかに大きな移動や長いタッチのみスワイプと判断（閾値を緩和）
+    // if (touchDistance > 20 || touchDuration > 500) {
+    //     // スワイプ判定の場合は何もしない
+    //     return;
+    // }
     
-    const code = e.target.getAttribute('data-code');
-    const name = e.target.getAttribute('data-name');
+    // const code = e.target.getAttribute('data-code');
+    // const name = e.target.getAttribute('data-name');
     
-    // コードと名前があれば選択処理を実行
-    if (code && name && !gameState.answered) {
-        e.preventDefault(); // デフォルトのタッチイベントを防止
-        handlePrefectureClick({ target: e.target }); // クリックイベントと同様に処理
-    }
+    // // コードと名前があれば選択処理を実行
+    // if (code && name && !gameState.answered) {
+    //     e.preventDefault(); // デフォルトのタッチイベントを防止
+    //     handlePrefectureClick({ target: e.target }); // クリックイベントと同様に処理
+    // }
 }
 
 // ホイールでのズーム処理
