@@ -132,7 +132,7 @@ function loadSVGsFromData() {
                 newPath.addEventListener('click', handlePrefectureClick);
                 
                 // タップイベントの追加（モバイル向け）
-                // newPath.addEventListener('touchend', handlePrefectureTap);
+                newPath.addEventListener('touchend', handlePrefectureTap);
                 // newPath.addEventListener('click', handlePrefectureClick);
                 
                 // グループに追加
@@ -351,9 +351,9 @@ function setupMapPanning() {
     document.addEventListener('mouseup', endPan);
     
     // タッチイベント
-    // mapContainer.addEventListener('touchstart', startPanTouch);
-    // document.addEventListener('touchmove', movePanTouch);
-    // document.addEventListener('touchend', endPan);
+    mapContainer.addEventListener('touchstart', startPanTouch);
+    document.addEventListener('touchmove', movePanTouch);
+    document.addEventListener('touchend', endPan);
     
     // ホイールでのズーム
     mapContainer.addEventListener('wheel', handleWheel);
