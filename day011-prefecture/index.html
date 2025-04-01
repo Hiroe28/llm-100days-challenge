@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta property="og:title" content="都道府県当てクイズ" />
+    <meta property="og:description" content="日本の47都道府県を楽しく学べる地理クイズ。マップモードと選択肢モードの2種類で遊べ、漢字/ひらがな表示切替や地方別学習にも対応。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day011-prefecture/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day011-prefecture/index.html" />
+    <meta name="twitter:card" content="summary_large_image" />  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+    
+    <title>都道府県当てクイズ</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <h1>都道府県当てクイズ</h1>
+    <div id="game-container">
+        <div class="game-options">
+            <div class="option-row">
+                <div class="game-mode">
+                    <div class="mode-button active" id="map-mode">マップモード</div>
+                    <div class="mode-button" id="choice-mode">選択肢モード</div>
+                </div>
+                <div class="region-selector">
+                    <select id="region-select">
+                        <option value="all" selected>全国</option>
+                        <option value="hokkaido-tohoku">北海道・東北</option>
+                        <option value="kanto">関東</option>
+                        <option value="chubu">中部</option>
+                        <option value="kinki">近畿</option>
+                        <option value="chugoku">中国</option>
+                        <option value="shikoku">四国</option>
+                        <option value="kyushu">九州・沖縄</option>
+                    </select>
+                </div>
+            </div>
+            <div class="option-row">
+                <button id="help-button">遊び方を表示</button>
+                <div class="text-mode">
+                    <div class="mode-button active" id="kanji-mode">漢字</div>
+                    <div class="mode-button" id="hiragana-mode">ひらがな</div>
+                </div>
+            </div>
+        </div>
+        <div id="quiz-info">
+            <div id="question">どこの都道府県でしょう？</div>
+            <div id="score">スコア: 0</div>
+        </div>
+        <div id="map-container">
+            <div id="loading-message">日本地図を読み込み中...</div>
+            <svg id="japan-map" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                <!-- SVGの地図要素がここに動的に追加されます -->
+            </svg>
+        </div>
+        <div id="zoom-controls">
+            <button class="zoom-button" id="zoom-in">+</button>
+            <button class="zoom-button" id="zoom-reset">リセット</button>
+            <button class="zoom-button" id="zoom-out">-</button>
+        </div>
+        <div id="options-container"></div>
+        <div id="result-message"></div>
+        <button id="next-button" style="display: none;">次の問題</button>
+        
+        <div id="instructions" style="display: none;">
+            <h3>遊び方</h3>
+            <p><strong>マップモード</strong>：問題に表示された都道府県名を見て、地図上のどこにあるかをクリックして答えてください。</p>
+            <p><strong>選択肢モード</strong>：問題で表示されたハイライトされた地域がどの都道府県かを、4つの選択肢から選んでください。</p>
+            <p><strong>操作方法</strong>：ズームボタンで拡大・縮小、マウスドラッグまたはタッチでマップをスクロールできます。</p>
+            <p><strong>地方選択</strong>：特定の地方の都道府県だけを学びたい場合は、地方を選択してください。</p>
+            <p><strong>漢字/ひらがな</strong>：お子さんの学習レベルに合わせて、漢字かひらがなを選択できます。</p>
+        </div>
+    </div>
+
+    <!-- 必ずprefecture_data.jsを先に読み込む -->
+    <script src="js/prefecture_data.js"></script>
+    <script src="js/waku_data.js"></script>
+    <script src="js/prefectures.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
