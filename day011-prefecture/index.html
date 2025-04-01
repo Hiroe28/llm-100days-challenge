@@ -33,8 +33,21 @@
 <body>
     <h1>都道府県当てクイズ</h1>
     <div id="game-container">
+        <!-- ゲームモード選択の説明 -->
+        <div id="mode-guide">
+            <p><span class="highlight-text">ゲームモードを選択してください:</span></p>
+            <div class="guide-description">
+                <div class="guide-item">
+                    <strong>マップモード</strong>: 都道府県名から場所を当てる
+                </div>
+                <div class="guide-item">
+                    <strong>選択肢モード</strong>: 地図上の場所から名前を当てる
+                </div>
+            </div>
+        </div>
+    
         <div class="game-options">
-            <div class="option-row">
+            <div class="option-row game-mode-row">
                 <div class="game-mode">
                     <div class="mode-button active no-zoom" id="map-mode">マップモード</div>
                     <div class="mode-button no-zoom" id="choice-mode">選択肢モード</div>
@@ -88,7 +101,8 @@
                     <li>指でドラッグ：マップをスクロール</li>
                     <li>2本指でピンチ：拡大・縮小</li>
                     <li>ズームボタン：拡大・縮小</li>
-                    <li>「問題を表示」ボタン：出題中の都道府県を中心に表示</li>
+                    <li>マップモード：「地図全体を表示」ボタンで日本地図全体を表示</li>
+                    <li>選択肢モード：「ハイライト部分を表示」ボタンでハイライトされた都道府県を中心に表示</li>
                 </ul>
             </p>
             <p><strong>地方選択</strong>：特定の地方の都道府県だけを学びたい場合は、地方を選択してください。</p>
@@ -100,6 +114,7 @@
     <script src="js/prefecture_data.js"></script>
     <script src="js/waku_data.js"></script>
     <script src="js/prefectures.js"></script>
+    <script src="js/neighboring_data.js"></script>
     <script src="js/map.js"></script>
     <script src="js/game.js"></script>
 </body>

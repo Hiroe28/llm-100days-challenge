@@ -22,6 +22,36 @@ h1 {
     position: relative;
 }
 
+/* ゲームモード選択ガイド */
+#mode-guide {
+    background-color: #ffffe0;
+    border-left: 4px solid #ffd700;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+#mode-guide p {
+    margin: 5px 0;
+}
+
+.highlight-text {
+    font-weight: bold;
+    color: #333;
+}
+
+.guide-description {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 5px;
+}
+
+.guide-item {
+    flex: 1;
+    min-width: 180px;
+}
+
 /* ゲームオプション */
 .game-options {
     margin-bottom: 15px;
@@ -34,6 +64,13 @@ h1 {
     margin-bottom: 10px;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.game-mode-row {
+    background-color: #f0f8ff;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #add8e6;
 }
 
 .game-mode, .text-mode {
@@ -96,6 +133,13 @@ h1 {
     border: 1px solid #ddd;
     overflow: hidden;
     touch-action: none; /* パンジェスチャーを無効化（カスタム処理用） */
+}
+
+/* PCとタブレット向けマップ拡大 */
+@media (min-width: 768px) {
+    #map-container {
+        height: 550px; /* PCではより大きく表示 */
+    }
 }
 
 #japan-map {
@@ -289,6 +333,18 @@ h1 {
     color: white;
     padding: 6px 10px;
     margin-left: 5px;
+    font-size: 13px;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+/* モバイル向けのボタンサイズ調整 */
+@media (max-width: 600px) {
+    #center-prefecture {
+        font-size: 12px;
+        padding: 5px 8px;
+        min-width: 80px;
+    }
 }
 
 /* モバイル向けのレスポンシブデザイン */
@@ -304,6 +360,19 @@ h1 {
     
     #game-container {
         padding: 10px;
+    }
+    
+    #mode-guide {
+        padding: 8px 12px;
+    }
+    
+    .guide-description {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .guide-item {
+        min-width: 0;
     }
     
     .option-row {

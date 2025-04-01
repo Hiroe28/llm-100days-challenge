@@ -138,6 +138,12 @@ mapModeButton.addEventListener('click', () => {
         mapModeButton.classList.add('active');
         choiceModeButton.classList.remove('active');
         optionsContainer.style.display = 'none';
+        
+        // 「地図全体を表示」ボタンに更新
+        if (typeof updateCenterButtonForGameMode === 'function') {
+            updateCenterButtonForGameMode();
+        }
+        
         resetAndNextQuestion();
     }
 });
@@ -148,6 +154,12 @@ choiceModeButton.addEventListener('click', () => {
         choiceModeButton.classList.add('active');
         mapModeButton.classList.remove('active');
         optionsContainer.style.display = 'flex';
+        
+        // 「ハイライト部分を表示」ボタンに更新
+        if (typeof updateCenterButtonForGameMode === 'function') {
+            updateCenterButtonForGameMode();
+        }
+        
         resetAndNextQuestion();
     }
 });
@@ -283,34 +295,90 @@ function generateOptions() {
     const correctCode = gameState.currentPrefecture.code;
     const options = [correctCode];
     
-    // ランダムな3つの異なる都道府県を追加
-    let attempts = 0;
-    while (options.length < 4 && attempts < 100) {
-        attempts++;
-        const randomPrefecture = gameState.availablePrefectures[Math.floor(Math.random() * gameState.availablePrefectures.length)];
-        const randomCode = randomPrefecture.code;
-        if (!options.includes(randomCode)) {
-            options.push(randomCode);
+    // まず近隣の都道府県から選択肢を追加
+    if (typeof neighboringPrefectures !== 'undefined') {
+        // 近隣都道府県リストが利用可能な場合
+        let neighbors = neighboringPrefectures[correctCode] || [];
+        
+        // 現在の地方に含まれる近隣都道府県だけをフィルタリング
+        let availableNeighbors = neighbors.filter(code => 
+            gameState.availablePrefectures.some(p => p.code === code)
+        );
+        
+        // シャッフルして近隣都道府県をランダムに選択
+        shuffleArray(availableNeighbors);
+        
+        // 3つまで近隣都道府県を追加
+        for (let i = 0; i < Math.min(3, availableNeighbors.length); i++) {
+            if (!options.includes(availableNeighbors[i])) {
+                options.push(availableNeighbors[i]);
+            }
+            
+            // 4つの選択肢が揃ったら終了
+            if (options.length >= 4) break;
         }
     }
     
-    // 選択肢が足りない場合（地方選択で都道府県が少ない場合）
+    // 選択肢が足りない場合は同じ地方から追加
+    if (options.length < 4) {
+        // 同じ地方の都道府県をシャッフルしてランダムに追加
+        const sameRegionPrefectures = gameState.availablePrefectures
+            .filter(p => p.code !== correctCode && !options.includes(p.code));
+        
+        shuffleArray(sameRegionPrefectures);
+        
+        for (let i = 0; i < sameRegionPrefectures.length && options.length < 4; i++) {
+            options.push(sameRegionPrefectures[i].code);
+        }
+    }
+    
+    // それでも選択肢が足りない場合は全国から追加
     while (options.length < 4) {
-        // 他の地方から選択肢を追加
-        const allOtherPrefectures = prefectures.filter(p => !gameState.availablePrefectures.some(ap => ap.code === p.code));
-        if (allOtherPrefectures.length > 0) {
-            const randomIndex = Math.floor(Math.random() * allOtherPrefectures.length);
-            const randomCode = allOtherPrefectures[randomIndex].code;
-            if (!options.includes(randomCode)) {
-                options.push(randomCode);
-            }
-        } else {
-            break; // どうしようもない場合は諦める
+        // 全都道府県からランダムに追加
+        const randomPrefecture = prefectures[Math.floor(Math.random() * prefectures.length)];
+        const randomCode = randomPrefecture.code;
+        
+        if (!options.includes(randomCode)) {
+            options.push(randomCode);
+        }
+        
+        // 無限ループ防止
+        if (options.length === 4 || prefectures.length <= options.length) {
+            break;
         }
     }
     
     // 選択肢をシャッフル
     shuffleArray(options);
+    
+    // 難易度調整：選択肢が4つに満たない場合にダミー選択肢を追加
+    while (options.length < 4) {
+        // 別の地方からダミー選択肢を追加
+        const correctRegion = getRegionForPrefecture(correctCode);
+        
+        if (correctRegion) {
+            const otherRegions = Object.keys(regionPrefectures).filter(r => r !== correctRegion);
+            
+            if (otherRegions.length > 0) {
+                // ランダムに別の地方を選択
+                const randomRegion = otherRegions[Math.floor(Math.random() * otherRegions.length)];
+                const prefCodesInRegion = regionPrefectures[randomRegion];
+                
+                if (prefCodesInRegion && prefCodesInRegion.length > 0) {
+                    const randomPrefCode = prefCodesInRegion[Math.floor(Math.random() * prefCodesInRegion.length)];
+                    
+                    if (!options.includes(randomPrefCode)) {
+                        options.push(randomPrefCode);
+                    }
+                }
+            }
+        }
+        
+        // どうしても追加できなければループを抜ける
+        if (options.length < 4 && options.length === prefectures.length) {
+            break;
+        }
+    }
     
     // 選択肢ボタンを生成
     options.forEach(code => {
@@ -348,6 +416,16 @@ function generateOptions() {
     } else {
         optionsContainer.style.flexDirection = 'row';
     }
+}
+
+// 都道府県コードから所属する地方を取得する
+function getRegionForPrefecture(prefCode) {
+    for (const [region, codes] of Object.entries(regionPrefectures)) {
+        if (codes.includes(prefCode)) {
+            return region;
+        }
+    }
+    return null;
 }
 
 // 配列をシャッフル（Fisher-Yates アルゴリズム）
@@ -505,6 +583,11 @@ function resetAndNextQuestion() {
         
         // 選択肢モードからマップモードに切り替えた場合、ズームを適度にリセット
         resetZoom();
+        
+        // ボタンの表示を更新
+        if (typeof updateCenterButtonForGameMode === 'function') {
+            updateCenterButtonForGameMode();
+        }
     } else {
         // 選択肢モード: 都道府県をハイライトし、名前を当てさせる
         questionElement.textContent = `ハイライトされているのはどこの都道府県でしょう？`;
@@ -520,6 +603,11 @@ function resetAndNextQuestion() {
         
         // 選択肢モードでは問題の都道府県を中心に表示
         centerPrefecture(gameState.currentPrefecture.code);
+        
+        // ボタンの表示を更新
+        if (typeof updateCenterButtonForGameMode === 'function') {
+            updateCenterButtonForGameMode();
+        }
     }
     
     // 選択肢モードの場合は選択肢を生成
@@ -553,6 +641,32 @@ window.addEventListener('resize', function() {
     }
 });
 
+// 初期表示時のチュートリアル表示
+function showInitialHelpIfNecessary() {
+    // LocalStorageで初回訪問かどうかを確認
+    const hasVisitedBefore = localStorage.getItem('hasVisitedPrefectureQuiz');
+    
+    // 初回訪問時（または記録がない場合）
+    if (!hasVisitedBefore) {
+        // 「遊び方」を自動的に表示
+        instructionsElement.style.display = 'block';
+        helpButton.textContent = '遊び方を隠す';
+        
+        // 訪問記録を保存
+        localStorage.setItem('hasVisitedPrefectureQuiz', 'true');
+        
+        // モバイルデバイスでは最初に遊び方にスクロール
+        if (gameState.isMobileDevice) {
+            setTimeout(() => {
+                instructionsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 500);
+        }
+    } else {
+        // 2回目以降の訪問では非表示
+        instructionsElement.style.display = 'none';
+    }
+}
+
 // 初期化
 function initGame() {
     // モバイルデバイスの検出
@@ -561,8 +675,21 @@ function initGame() {
     // 効果音の初期化
     initSounds();
     
-    // 遊び方の初期状態を設定
-    instructionsElement.style.display = 'none';
+    // 初回訪問時のヘルプ表示処理
+    showInitialHelpIfNecessary();
+    
+    // モードガイド表示/非表示の設定（最初の3回だけ表示）
+    const visitCount = parseInt(localStorage.getItem('prefectureQuizVisitCount') || '0');
+    const modeGuide = document.getElementById('mode-guide');
+    
+    if (modeGuide) {
+        if (visitCount < 3) {
+            modeGuide.style.display = 'block';
+            localStorage.setItem('prefectureQuizVisitCount', (visitCount + 1).toString());
+        } else {
+            modeGuide.style.display = 'none';
+        }
+    }
     
     // 利用可能な都道府県の初期化
     updateAvailablePrefectures();
