@@ -128,11 +128,26 @@ function loadSVGsFromData() {
                     newPath.setAttribute('data-name', prefecture.name);
                 }
                 
-                // クリックイベントの追加
+                // クリックイベントとタッチイベントの追加部分を以下のように修正
                 newPath.addEventListener('click', handlePrefectureClick);
-                
-                // タップイベントの追加（モバイル向け）
-                newPath.addEventListener('touchend', handlePrefectureTap);
+
+                // タッチでの選択を強化するため、タッチスタート時にもデータを記録
+                newPath.addEventListener('touchstart', function(e) {
+                    if (e.touches && e.touches.length === 1) {
+                        const touch = e.touches[0];
+                        // 明示的にこの要素のタッチデータを記録
+                        mapState.touchElementCode = this.getAttribute('data-code');
+                        mapState.touchElementName = this.getAttribute('data-name');
+                    }
+                });
+
+                // タップイベントの改善
+                newPath.addEventListener('touchend', function(e) {
+                    // 同じ要素でのタッチの場合のみ反応
+                    if (mapState.touchElementCode === this.getAttribute('data-code')) {
+                        handlePrefectureTap(e);
+                    }
+                });
                 
                 // グループに追加
                 prefGroup.appendChild(newPath);
@@ -368,20 +383,24 @@ function startPan(e) {
     mapContainer.classList.add('grabbing');
 }
 
-// パンの開始（タッチ）
+// startPanTouch関数も修正して、タッチ情報をより確実に記録
 function startPanTouch(e) {
     if (gameState.answered || e.touches.length !== 1 || mapState.isPinching) return;
     
-    mapState.isPanning = true;
-    mapState.startPanX = e.touches[0].clientX;
-    mapState.startPanY = e.touches[0].clientY;
-    
-    // タッチ開始時刻と位置を記録（クリック判定用）
-    mapState.touchStartTime = Date.now();
-    mapState.touchStartPos = { 
-        x: e.touches[0].clientX, 
-        y: e.touches[0].clientY 
-    };
+    // 現在のタッチ位置を明示的に記録
+    if (e.touches && e.touches.length > 0) {
+        const touch = e.touches[0];
+        mapState.isPanning = true;
+        mapState.startPanX = touch.clientX;
+        mapState.startPanY = touch.clientY;
+        
+        // タッチ開始時刻と位置を確実に記録（クリック判定用）
+        mapState.touchStartTime = Date.now();
+        mapState.touchStartPos = { 
+            x: touch.clientX, 
+            y: touch.clientY 
+        };
+    }
 }
 
 // パンの移動（マウス）
@@ -445,47 +464,42 @@ function endPan() {
     // 短いパン操作はタップとして扱えるように、パン終了時刻を記録しない
 }
 
-// タップで都道府県を選択する処理（モバイル向け）
+// タップで都道府県を選択する処理（モバイル向け）の改善
 function handlePrefectureTap(e) {
-    // タップの場合は、パンやピンチ操作中でなければ都道府県選択として処理
-    if (mapState.isPinching) {
+    // タッチイベントの簡素化と判定条件の緩和
+    
+    // 直近のピンチ操作後は短い時間だけタップを無効化
+    if (mapState.isPinching || (mapState.lastPinchTime && (Date.now() - mapState.lastPinchTime < 150))) {
         e.preventDefault();
         return;
     }
     
-    // ピンチズーム操作の直後は誤タップを防ぐために一時的に無効化（時間を短縮）
-    if (mapState.lastPinchTime && (Date.now() - mapState.lastPinchTime < 200)) {
-        e.preventDefault();
-        return;
-    }
-    
-    // タップかスワイプかを判断（移動距離と時間で判定 - より緩やかに）
+    // 簡易タップ判定（従来の複雑な条件を簡素化）
     const touchEndTime = Date.now();
     const touchDuration = touchEndTime - mapState.touchStartTime;
     
-    // タッチの移動距離を計算
+    // タッチ移動距離の計算を確実に行う
     let touchDistance = 0;
     if (e.changedTouches && e.changedTouches.length > 0) {
-        const deltaX = e.changedTouches[0].clientX - mapState.touchStartPos.x;
-        const deltaY = e.changedTouches[0].clientY - mapState.touchStartPos.y;
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - mapState.touchStartPos.x;
+        const deltaY = touch.clientY - mapState.touchStartPos.y;
         touchDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     }
     
-    // 明らかに大きな移動や長いタッチのみスワイプと判断（閾値を緩和）
-    if (touchDistance > 20 || touchDuration > 500) {
-        // スワイプ判定の場合は何もしない
-        return;
-    }
-    
-    const code = e.target.getAttribute('data-code');
-    const name = e.target.getAttribute('data-name');
-    
-    // コードと名前があれば選択処理を実行
-    if (code && name && !gameState.answered) {
-        e.preventDefault(); // デフォルトのタッチイベントを防止
-        handlePrefectureClick({ target: e.target }); // クリックイベントと同様に処理
+    // 判定条件を大幅に緩和（モバイルでも選択しやすく）
+    if (touchDistance < 30 && touchDuration < 800) {
+        const code = e.target.getAttribute('data-code');
+        const name = e.target.getAttribute('data-name');
+        
+        if (code && name && !gameState.answered) {
+            e.preventDefault(); // デフォルトのタッチイベントを防止
+            e.stopPropagation(); // イベントの伝播を停止
+            handlePrefectureClick({ target: e.target }); // クリックイベントと同様に処理
+        }
     }
 }
+
 
 // ホイールでのズーム処理を修正
 function handleWheel(e) {
