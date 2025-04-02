@@ -298,7 +298,7 @@ function updateResultMessage() {
                 
                 if (selectedPref) {
                     const selectedPrefName = getPrefectureName(selectedPref);
-                    resultMessage.innerHTML = `不正解... あなたが選んだのは${selectedPrefName}です。<br>正解のハイライトされた${correctPrefName}を確認しましょう。`;
+                    resultMessage.innerHTML = `不正解...<br>正解は${correctPrefName}です。`;
                 }
             }
         }
@@ -494,7 +494,7 @@ function checkAnswer(code, name) {
         if (isCorrect) {
             resultMessage.textContent = `正解！ ハイライトされているのは${selectedPrefName}です！`;
         } else {
-            resultMessage.innerHTML = `不正解... あなたが選んだのは${selectedPrefName}です。<br>正解のハイライトされた${correctPrefName}を確認しましょう。`;
+            resultMessage.innerHTML = `不正解... <br>正解は${correctPrefName}です。`;
         }
     }
     
