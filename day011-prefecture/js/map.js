@@ -18,15 +18,19 @@ const mapState = {
     lastTranslateX: 0,
     lastTranslateY: 0,
     pinchStartDistance: 0,
-    pinchStartZoom: 1,
+    pinchStartZoom: 1,    // 初期値を設定
     isPinching: false,
-    lastPinchTime: 0,   // ピンチ操作が最後に完了した時刻
-    touchStartTime: 0,  // タッチ開始時刻
-    touchStartPos: { x: 0, y: 0 } // タッチ開始位置
+    lastPinchTime: 0,     // ピンチ操作が最後に完了した時刻
+    touchStartTime: 0,    // タッチ開始時刻
+    touchStartPos: { x: 0, y: 0 }, // タッチ開始位置
+    touchElementCode: null, // タッチされた要素のコード
+    touchElementName: null  // タッチされた要素の名前
 };
 
 
-// シンプルなタッチジェスチャー処理ライブラリの部分を修正
+// hammerJS 変数の内容を以下のコードに置き換えてください
+// これはシンプルなタッチジェスチャー処理ライブラリの改善版です
+
 const hammerJS = `
 // シンプルなタッチジェスチャー処理ライブラリ（Hammer.jsの最小版）
 (function(){
@@ -41,6 +45,7 @@ const hammerJS = `
     this.startZoom = 1;
     this.pinchCenterX = 0;
     this.pinchCenterY = 0;
+    this.isPinching = false; // ピンチ状態を追跡
     
     // バインディング
     this._handleStart = this._handleStart.bind(this);
@@ -68,6 +73,7 @@ const hammerJS = `
       this.isDragging = false;
     } else if (e.touches.length === 2) {
       // ピンチズーム
+      this.isPinching = true; // ピンチ開始
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const dx = touch1.clientX - touch2.clientX;
@@ -78,13 +84,17 @@ const hammerJS = `
       this.pinchCenterY = (touch1.clientY + touch2.clientY) / 2;
       
       this.startDistance = Math.sqrt(dx * dx + dy * dy);
+      
+      // 現在のズームレベルを正確に保存
       this.startZoom = mapState.zoomLevel;
+      mapState.pinchStartZoom = mapState.zoomLevel;
+      
       e.preventDefault();
     }
   };
   
   TouchHandler.prototype._handleMove = function(e) {
-    if (e.touches.length === 1) {
+    if (e.touches.length === 1 && !this.isPinching) {
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;
       
@@ -123,7 +133,7 @@ const hammerJS = `
       // ピンチコールバックを呼び出し
       if (this.onPinch) {
         const scale = distance / this.startDistance;
-        this.onPinch(scale, this.pinchCenterX, this.pinchCenterY);
+        this.onPinch(scale, currentCenterX, currentCenterY);
       }
       
       e.preventDefault(); // スクロール防止
@@ -131,18 +141,35 @@ const hammerJS = `
   };
   
   TouchHandler.prototype._handleEnd = function(e) {
-    if (!this.isDragging && Date.now() - this.startTime < 300) {
-      // 短時間でドラッグなしならタップと判定
-      if (this.onTap) {
-        // タップ位置から要素を取得
-        const element = document.elementFromPoint(this.startX, this.startY);
-        if (element) {
-          this.onTap(element, e);
+    if (e.touches.length === 0) {
+      // すべてのタッチが終了した
+      if (this.isPinching) {
+        // ピンチ操作の終了
+        this.isPinching = false;
+        mapState.lastPinchTime = Date.now(); // ピンチ操作の終了時刻を記録
+      } else if (!this.isDragging && Date.now() - this.startTime < 300) {
+        // 短時間でドラッグなしならタップと判定
+        if (this.onTap) {
+          // タップ位置から要素を取得
+          const element = document.elementFromPoint(this.startX, this.startY);
+          if (element) {
+            this.onTap(element, e);
+          }
         }
       }
+      
+      this.isDragging = false;
+    } else if (e.touches.length === 1 && this.isPinching) {
+      // 2本指から1本指になった場合、ピンチ終了
+      this.isPinching = false;
+      mapState.lastPinchTime = Date.now();
+      
+      // 新しいシングルタッチの開始位置を設定
+      this.startX = this.lastX = e.touches[0].clientX;
+      this.startY = this.lastY = e.touches[0].clientY;
+      this.startTime = Date.now();
+      this.isDragging = false;
     }
-    
-    this.isDragging = false;
   };
   
   // グローバルに公開
@@ -373,34 +400,36 @@ function setupSimpleTouchHandling() {
             const vb = mapContainer.getAttribute('viewBox').split(' ').map(Number);
             const [currentX, currentY, currentWidth, currentHeight] = vb;
             
-            // マウス位置をSVG座標に変換（相対位置を計算）
+            // タッチの中心位置をSVG座標に変換（相対位置を計算）
             const rect = mapContainer.getBoundingClientRect();
             const relativeX = (centerX - rect.left) / rect.width;
             const relativeY = (centerY - rect.top) / rect.height;
             
-            // 現在のSVG座標系でのマウス位置
+            // 現在のSVG座標系でのタッチ中心位置
             const svgCenterX = currentX + currentWidth * relativeX;
             const svgCenterY = currentY + currentHeight * relativeY;
             
-            // ズームレベルを更新
+            // ズームレベルを更新（mapState.startZoomが正しく設定されていることを確認）
             const oldZoom = mapState.zoomLevel;
-            const newZoom = mapState.startZoom * scale;
+            
+            // mapState.pinchStartZoomが設定されていない場合は現在の値を使用
+            if (!mapState.pinchStartZoom) {
+                mapState.pinchStartZoom = oldZoom;
+            }
+            
+            // 新しいズームレベルを計算
+            const newZoom = mapState.pinchStartZoom * scale;
             
             // ズームレベルの制限
-            if (newZoom < 0.5) {
-                mapState.zoomLevel = 0.5;
-            } else if (newZoom > 5) {
-                mapState.zoomLevel = 5;
-            } else {
-                mapState.zoomLevel = newZoom;
-            }
+            const limitedZoom = Math.max(0.5, Math.min(5, newZoom));
+            mapState.zoomLevel = limitedZoom;
             
             // 新しいビューボックスサイズを計算
             const originalVb = mapState.originalViewBox.split(' ').map(Number);
             const newWidth = originalVb[2] / mapState.zoomLevel;
             const newHeight = originalVb[3] / mapState.zoomLevel;
             
-            // 新しいビューボックスの位置を計算（中心点を維持）
+            // 新しいビューボックスの位置を計算（タッチ中心点を維持）
             const newX = svgCenterX - newWidth * relativeX;
             const newY = svgCenterY - newHeight * relativeY;
             
@@ -408,8 +437,11 @@ function setupSimpleTouchHandling() {
             const newViewBox = `${newX} ${newY} ${newWidth} ${newHeight}`;
             mapContainer.setAttribute('viewBox', newViewBox);
             mapState.currentViewBox = newViewBox;
+            
+            // コンソールログで確認（テスト時に役立ちます、実際のコードでは削除可能）
+            console.log(`Pinch: scale=${scale}, zoom=${mapState.zoomLevel}, center=(${relativeX.toFixed(2)}, ${relativeY.toFixed(2)})`);
         };
-        
+    
         // タップ処理
         touchHandler.onTap = function(element, event) {
             if (!gameState.answered && gameState.gameMode === 'map') {
