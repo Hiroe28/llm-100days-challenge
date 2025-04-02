@@ -229,8 +229,8 @@ h1 {
 
 .prefecture {
     fill: #e0e0e0;
-    stroke: #fff;
-    stroke-width: 1;
+    stroke: #333; /* 白(#fff)から濃いグレー(#333)に変更 */
+    stroke-width: 1.5; /* 線の太さを1pxから1.5pxに増加 */
     transition: fill 0.3s;
 }
 

@@ -487,13 +487,59 @@ function handlePrefectureTap(e) {
     }
 }
 
-// ホイールでのズーム処理
+// ホイールでのズーム処理を修正
 function handleWheel(e) {
     e.preventDefault();
     
-    // ホイール操作でのズーム量の調整（デルタが大きすぎる場合は調整）
+    // ホイール操作でのズーム量
     const delta = -Math.sign(e.deltaY) * 0.1;
-    zoomMap(delta);
+    
+    // マウス位置を取得
+    const rect = mapContainer.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // マウス位置でズーム
+    zoomMapAtPoint(delta, mouseX, mouseY);
+}
+
+// 指定された点を中心にズームする新しい関数
+function zoomMapAtPoint(zoomDelta, pointX, pointY) {
+    if (!mapState.currentViewBox) return;
+    
+    // 現在のビューボックスを取得
+    const vb = mapContainer.getAttribute('viewBox').split(' ').map(Number);
+    const [currentX, currentY, currentWidth, currentHeight] = vb;
+    
+    // マウス位置をSVG座標に変換（相対位置を計算）
+    const svgWidth = mapContainer.clientWidth;
+    const svgHeight = mapContainer.clientHeight;
+    const relativeX = pointX / svgWidth;
+    const relativeY = pointY / svgHeight;
+    
+    // 現在のSVG座標系でのマウス位置
+    const svgMouseX = currentX + currentWidth * relativeX;
+    const svgMouseY = currentY + currentHeight * relativeY;
+    
+    // ズームレベルを更新
+    const oldZoom = mapState.zoomLevel;
+    mapState.zoomLevel += zoomDelta;
+    if (mapState.zoomLevel < 0.5) mapState.zoomLevel = 0.5; // 最小50%
+    if (mapState.zoomLevel > 5) mapState.zoomLevel = 5; // 最大500%
+    
+    // 新しいビューボックスサイズを計算
+    const originalVb = mapState.originalViewBox.split(' ').map(Number);
+    const newWidth = originalVb[2] / mapState.zoomLevel;
+    const newHeight = originalVb[3] / mapState.zoomLevel;
+    
+    // 新しいビューボックスの位置を計算（マウス位置を維持）
+    const newX = svgMouseX - newWidth * relativeX;
+    const newY = svgMouseY - newHeight * relativeY;
+    
+    // 新しいビューボックスを設定
+    const newViewBox = `${newX} ${newY} ${newWidth} ${newHeight}`;
+    mapContainer.setAttribute('viewBox', newViewBox);
+    mapState.currentViewBox = newViewBox;
 }
 
 // ズームボタンのイベントリスナーを設定
