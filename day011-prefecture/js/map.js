@@ -26,7 +26,7 @@ const mapState = {
 };
 
 
-// map.jsの先頭付近に追加（グローバル変数の下あたり）
+// シンプルなタッチジェスチャー処理ライブラリの部分を修正
 const hammerJS = `
 // シンプルなタッチジェスチャー処理ライブラリ（Hammer.jsの最小版）
 (function(){
@@ -39,6 +39,8 @@ const hammerJS = `
     this.isDragging = false;
     this.startDistance = 0;
     this.startZoom = 1;
+    this.pinchCenterX = 0;
+    this.pinchCenterY = 0;
     
     // バインディング
     this._handleStart = this._handleStart.bind(this);
@@ -66,8 +68,15 @@ const hammerJS = `
       this.isDragging = false;
     } else if (e.touches.length === 2) {
       // ピンチズーム
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
+      
+      // ピンチの中心点を計算して保存
+      this.pinchCenterX = (touch1.clientX + touch2.clientX) / 2;
+      this.pinchCenterY = (touch1.clientY + touch2.clientY) / 2;
+      
       this.startDistance = Math.sqrt(dx * dx + dy * dy);
       this.startZoom = mapState.zoomLevel;
       e.preventDefault();
@@ -101,14 +110,20 @@ const hammerJS = `
       }
     } else if (e.touches.length === 2) {
       // ピンチジェスチャー
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
       const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // 現在のピンチ中心点を更新
+      const currentCenterX = (touch1.clientX + touch2.clientX) / 2;
+      const currentCenterY = (touch1.clientY + touch2.clientY) / 2;
       
       // ピンチコールバックを呼び出し
       if (this.onPinch) {
         const scale = distance / this.startDistance;
-        this.onPinch(scale);
+        this.onPinch(scale, this.pinchCenterX, this.pinchCenterY);
       }
       
       e.preventDefault(); // スクロール防止
@@ -323,8 +338,7 @@ function loadSVGsFromData() {
     
 }
 
-
-// シンプルなタッチ処理の設定
+// setupSimpleTouchHandling関数も修正
 function setupSimpleTouchHandling() {
     setTimeout(() => {
         if (!window.SimpleTouchHandler) {
@@ -353,13 +367,47 @@ function setupSimpleTouchHandling() {
             mapContainer.setAttribute('viewBox', `${newX} ${newY} ${vb[2]} ${vb[3]}`);
         };
         
-        // ピンチズーム処理
-        touchHandler.onPinch = function(scale) {
+        // ピンチズーム処理 - 中心点を考慮したズーム
+        touchHandler.onPinch = function(scale, centerX, centerY) {
+            // 現在のビューボックスを取得
+            const vb = mapContainer.getAttribute('viewBox').split(' ').map(Number);
+            const [currentX, currentY, currentWidth, currentHeight] = vb;
+            
+            // マウス位置をSVG座標に変換（相対位置を計算）
+            const rect = mapContainer.getBoundingClientRect();
+            const relativeX = (centerX - rect.left) / rect.width;
+            const relativeY = (centerY - rect.top) / rect.height;
+            
+            // 現在のSVG座標系でのマウス位置
+            const svgCenterX = currentX + currentWidth * relativeX;
+            const svgCenterY = currentY + currentHeight * relativeY;
+            
+            // ズームレベルを更新
             const oldZoom = mapState.zoomLevel;
             const newZoom = mapState.startZoom * scale;
-            const zoomDelta = newZoom - oldZoom;
             
-            zoomMap(zoomDelta);
+            // ズームレベルの制限
+            if (newZoom < 0.5) {
+                mapState.zoomLevel = 0.5;
+            } else if (newZoom > 5) {
+                mapState.zoomLevel = 5;
+            } else {
+                mapState.zoomLevel = newZoom;
+            }
+            
+            // 新しいビューボックスサイズを計算
+            const originalVb = mapState.originalViewBox.split(' ').map(Number);
+            const newWidth = originalVb[2] / mapState.zoomLevel;
+            const newHeight = originalVb[3] / mapState.zoomLevel;
+            
+            // 新しいビューボックスの位置を計算（中心点を維持）
+            const newX = svgCenterX - newWidth * relativeX;
+            const newY = svgCenterY - newHeight * relativeY;
+            
+            // 新しいビューボックスを設定
+            const newViewBox = `${newX} ${newY} ${newWidth} ${newHeight}`;
+            mapContainer.setAttribute('viewBox', newViewBox);
+            mapState.currentViewBox = newViewBox;
         };
         
         // タップ処理

@@ -747,7 +747,7 @@ function addVersionDisplay() {
     versionDiv.style.paddingTop = '10px';
     versionDiv.innerHTML = `
         <div class="settings-label">バージョン:</div>
-        <div>v1.0.2 (2025/04/03)</div>
+        <div>v1.0.3 (2025/04/03)</div>
     `;
     
     // 設定パネルに追加
