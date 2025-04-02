@@ -430,15 +430,6 @@ h1 {
     min-width: 100px;
 }
 
-/* モバイル向けのボタンサイズ調整 */
-@media (max-width: 600px) {
-    #center-prefecture {
-        font-size: 12px;
-        padding: 5px 8px;
-        min-width: 80px;
-    }
-}
-
 /* モバイル向けのレスポンシブデザイン */
 @media (max-width: 600px) {
     body {
@@ -454,6 +445,24 @@ h1 {
         padding: 10px;
     }
     
+    /* ここに新しいCSSを追加 - モード切替ボタンを固定表示 */
+    .main-mode-buttons {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background-color: white;
+        padding: 5px 0;
+        margin: -5px 0 10px 0;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    /* モードボタンをタップしやすいサイズに */
+    .main-mode-buttons .mode-button {
+        padding: 10px 12px;
+        font-size: 15px;
+    }
+    
+    /* 以下は既存のスタイル */
     #mode-guide {
         padding: 8px 12px;
     }
@@ -462,6 +471,7 @@ h1 {
         flex-direction: column;
         gap: 8px;
     }
+
     
     .guide-item {
         min-width: 0;
@@ -559,3 +569,4 @@ h1 {
         font-size: 15px;
     }
 }
+
