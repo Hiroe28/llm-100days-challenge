@@ -728,6 +728,30 @@ function initGame() {
     
     // 最初の問題を出題
     resetAndNextQuestion();
+
+    // バージョン表示を追加
+    addVersionDisplay();
+
+}
+
+// バージョン表示を追加する関数
+function addVersionDisplay() {
+    const settingsPanel = document.getElementById('settings-panel');
+    if (!settingsPanel) return;
+    
+    // バージョン表示要素
+    const versionDiv = document.createElement('div');
+    versionDiv.className = 'settings-group';
+    versionDiv.style.borderTop = '1px solid #eee';
+    versionDiv.style.marginTop = '10px';
+    versionDiv.style.paddingTop = '10px';
+    versionDiv.innerHTML = `
+        <div class="settings-label">バージョン:</div>
+        <div>v1.0.2 (2025/04/03)</div>
+    `;
+    
+    // 設定パネルに追加
+    settingsPanel.appendChild(versionDiv);
 }
 
 // ゲーム開始

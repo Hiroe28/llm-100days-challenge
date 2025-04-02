@@ -25,6 +25,131 @@ const mapState = {
     touchStartPos: { x: 0, y: 0 } // タッチ開始位置
 };
 
+
+// map.jsの先頭付近に追加（グローバル変数の下あたり）
+const hammerJS = `
+// シンプルなタッチジェスチャー処理ライブラリ（Hammer.jsの最小版）
+(function(){
+  function TouchHandler(element) {
+    this.element = element;
+    this.startX = 0;
+    this.startY = 0;
+    this.lastX = 0;
+    this.lastY = 0;
+    this.isDragging = false;
+    this.startDistance = 0;
+    this.startZoom = 1;
+    
+    // バインディング
+    this._handleStart = this._handleStart.bind(this);
+    this._handleMove = this._handleMove.bind(this);
+    this._handleEnd = this._handleEnd.bind(this);
+    
+    // イベントリスナー追加
+    element.addEventListener('touchstart', this._handleStart, {passive: false});
+    element.addEventListener('touchmove', this._handleMove, {passive: false});
+    element.addEventListener('touchend', this._handleEnd, {passive: false});
+    element.addEventListener('touchcancel', this._handleEnd, {passive: false});
+    
+    // コールバック
+    this.onPan = null;
+    this.onPinch = null;
+    this.onTap = null;
+  }
+  
+  TouchHandler.prototype._handleStart = function(e) {
+    if (e.touches.length === 1) {
+      // シングルタッチ - パンまたはタップ
+      this.startX = this.lastX = e.touches[0].clientX;
+      this.startY = this.lastY = e.touches[0].clientY;
+      this.startTime = Date.now();
+      this.isDragging = false;
+    } else if (e.touches.length === 2) {
+      // ピンチズーム
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      this.startDistance = Math.sqrt(dx * dx + dy * dy);
+      this.startZoom = mapState.zoomLevel;
+      e.preventDefault();
+    }
+  };
+  
+  TouchHandler.prototype._handleMove = function(e) {
+    if (e.touches.length === 1) {
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      
+      // 動きの距離を計算
+      const deltaX = x - this.startX;
+      const deltaY = y - this.startY;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      
+      // 10px以上移動したらドラッグ開始と判定
+      if (distance > 10) {
+        this.isDragging = true;
+        
+        // パンコールバックを呼び出し
+        if (this.onPan) {
+          const dx = this.lastX - x;
+          const dy = this.lastY - y;
+          this.onPan(dx, dy);
+        }
+        
+        this.lastX = x;
+        this.lastY = y;
+        e.preventDefault(); // スクロール防止
+      }
+    } else if (e.touches.length === 2) {
+      // ピンチジェスチャー
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // ピンチコールバックを呼び出し
+      if (this.onPinch) {
+        const scale = distance / this.startDistance;
+        this.onPinch(scale);
+      }
+      
+      e.preventDefault(); // スクロール防止
+    }
+  };
+  
+  TouchHandler.prototype._handleEnd = function(e) {
+    if (!this.isDragging && Date.now() - this.startTime < 300) {
+      // 短時間でドラッグなしならタップと判定
+      if (this.onTap) {
+        // タップ位置から要素を取得
+        const element = document.elementFromPoint(this.startX, this.startY);
+        if (element) {
+          this.onTap(element, e);
+        }
+      }
+    }
+    
+    this.isDragging = false;
+  };
+  
+  // グローバルに公開
+  window.SimpleTouchHandler = TouchHandler;
+})();
+`;
+
+// ページロード時に実行
+function injectTouchHandler() {
+    // スクリプトタグ作成
+    const script = document.createElement('script');
+    script.textContent = hammerJS;
+    document.head.appendChild(script);
+    
+    // overscroll-behavior設定の追加
+    document.body.style.overscrollBehavior = 'contain';
+    document.getElementById('game-container').style.overscrollBehavior = 'contain';
+    
+    console.log("タッチハンドラーを注入しました");
+}
+
+
 // 都道府県の枠を読み込む
 function loadFrameSVG() {
     if (!wakuSvgData) {
@@ -190,7 +315,70 @@ function loadSVGsFromData() {
     // touch-actionを適切に設定
     // adjustTouchAction();
     enhanceMobileInteraction();
+
+    // 最後に実行
+    injectTouchHandler();
+    setupSimpleTouchHandling();
+
     
+}
+
+
+// シンプルなタッチ処理の設定
+function setupSimpleTouchHandling() {
+    setTimeout(() => {
+        if (!window.SimpleTouchHandler) {
+            console.error("SimpleTouchHandlerが見つかりません");
+            return;
+        }
+        
+        // 既存のタッチイベントを無効化
+        mapContainer.style.touchAction = "none";
+        
+        // 新しいタッチハンドラーを作成
+        const touchHandler = new window.SimpleTouchHandler(mapContainer);
+        
+        // パン処理
+        touchHandler.onPan = function(dx, dy) {
+            // 現在のビューボックスを取得
+            const vb = mapContainer.getAttribute('viewBox').split(' ').map(Number);
+            
+            // 移動量を計算（スクリーン座標からSVG座標に変換）
+            const svgDx = dx * (vb[2] / mapContainer.clientWidth);
+            const svgDy = dy * (vb[3] / mapContainer.clientHeight);
+            
+            // 新しいビューボックスを設定
+            const newX = vb[0] + svgDx;
+            const newY = vb[1] + svgDy;
+            mapContainer.setAttribute('viewBox', `${newX} ${newY} ${vb[2]} ${vb[3]}`);
+        };
+        
+        // ピンチズーム処理
+        touchHandler.onPinch = function(scale) {
+            const oldZoom = mapState.zoomLevel;
+            const newZoom = mapState.startZoom * scale;
+            const zoomDelta = newZoom - oldZoom;
+            
+            zoomMap(zoomDelta);
+        };
+        
+        // タップ処理
+        touchHandler.onTap = function(element, event) {
+            if (!gameState.answered && gameState.gameMode === 'map') {
+                if (element.classList.contains('prefecture')) {
+                    const code = element.getAttribute('data-code');
+                    const name = element.getAttribute('data-name');
+                    
+                    if (code && name) {
+                        console.log("タップで都道府県を選択:", name);
+                        handlePrefectureClick({ target: element });
+                    }
+                }
+            }
+        };
+        
+        console.log("シンプルなタッチ処理を設定しました");
+    }, 500);
 }
 
 // *** 新しいコード - スマホ用タップ処理の抜本的改善 ***
