@@ -227,6 +227,20 @@ h1 {
     cursor: grabbing; /* つかんでいるカーソル */
 }
 
+
+#map-container {
+    touch-action: pan-x pan-y; /* パン操作は許可、ダブルタップズームは無効 */
+    -webkit-user-select: none; /* 選択を防止 */
+    user-select: none;
+}
+
+
+
+.prefecture {
+    touch-action: pan-x pan-y; /* 要素単位でもタッチアクションを設定 */
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* タップ時のハイライトを非表示 */
+}
+
 .prefecture {
     fill: #e0e0e0;
     stroke: #333; /* 白(#fff)から濃いグレー(#333)に変更 */

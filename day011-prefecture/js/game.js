@@ -471,7 +471,12 @@ function shuffleArray(array) {
 }
 
 // 回答をチェック
+// 回答をチェック関数を少し修正
 function checkAnswer(code, name) {
+    // 以前の処理を継続する前に確実に有効な回答かチェック
+    if (!code || !name || gameState.answered) {
+        return; // 無効な場合は早期リターン
+    }
     gameState.answered = true;
     const correctCode = gameState.currentPrefecture.code;
     const isCorrect = code === correctCode;

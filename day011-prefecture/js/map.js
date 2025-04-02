@@ -186,6 +186,10 @@ function loadSVGsFromData() {
     } else {
         adjustForPC(); // PC向けの調整を追加
     }
+
+    // touch-actionを適切に設定
+    adjustTouchAction();
+    
 }
 
 // モバイルデバイスかどうかをチェック
@@ -357,20 +361,121 @@ function setupPinchZoom() {
     }
 }
 
-// マップのパン（ドラッグ＆ドロップで移動）機能
+
+// タッチ操作の管理を根本から見直し
+function setupTouchEvents() {
+    // 全てのタッチリスナーを一度削除（既存のリスナーをリセット）
+    mapContainer.removeEventListener('touchstart', startPanTouch);
+    document.removeEventListener('touchmove', movePanTouch);
+    document.removeEventListener('touchend', endPan);
+    
+    // シンプルなタップ検出のためのリスナー
+    mapContainer.addEventListener('touchstart', function(e) {
+        // シングルタッチの場合だけタップとして処理
+        if (e.touches.length === 1) {
+            // タッチ開始情報を記録
+            const touch = e.touches[0];
+            mapState.isTapping = true; // タップモードをオン
+            mapState.isPanning = false; // パンモードをリセット
+            mapState.touchStartTime = Date.now();
+            mapState.touchStartPos = {
+                x: touch.clientX,
+                y: touch.clientY
+            };
+        } else {
+            // 複数タッチの場合はタップモードをオフ
+            mapState.isTapping = false;
+        }
+    }, { passive: true }); // passiveをtrueにしてスクロールパフォーマンスを向上
+    
+    // タッチ移動のリスナー
+    mapContainer.addEventListener('touchmove', function(e) {
+        // 移動距離が大きい場合はタップではなくパンと判断
+        if (mapState.isTapping && e.touches.length === 1) {
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - mapState.touchStartPos.x;
+            const deltaY = touch.clientY - mapState.touchStartPos.y;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            // 移動距離が閾値を超えたらタップモードをオフ
+            if (distance > 10) { // 閾値を小さく設定
+                mapState.isTapping = false;
+                mapState.isPanning = true; // 代わりにパンモードをオン
+            }
+        }
+    }, { passive: true });
+    
+    // タッチ終了のリスナー - シンプルなタップ検出に特化
+    mapContainer.addEventListener('touchend', function(e) {
+        if (mapState.isTapping && !mapState.isPanning) {
+            // タップが検出された時のみ処理
+            const touchDuration = Date.now() - mapState.touchStartTime;
+            
+            // 短時間のタップのみを処理（長押しは除外）
+            if (touchDuration < 300) {
+                // タップ位置から対象の要素を取得
+                const touch = e.changedTouches[0];
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                // 都道府県の要素かチェック
+                if (element && element.classList.contains('prefecture')) {
+                    const code = element.getAttribute('data-code');
+                    const name = element.getAttribute('data-name');
+                    
+                    if (code && name && !gameState.answered) {
+                        // タップした都道府県を選択処理
+                        handlePrefectureClick({ target: element });
+                        e.preventDefault(); // これは必要な場合のみ
+                    }
+                }
+            }
+        }
+        
+        // 状態をリセット
+        mapState.isTapping = false;
+        mapState.isPanning = false;
+    });
+    
+    // ピンチズーム用のリスナーを再設定（簡素化）
+    mapContainer.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+            // ピンチズーム開始
+            mapState.isPinching = true;
+            mapState.isTapping = false; // タップモードをオフ
+            mapState.pinchStartDistance = getTouchDistance(e.touches);
+            mapState.pinchStartZoom = mapState.zoomLevel;
+            e.preventDefault(); // ピンチ中はスクロールを防止
+        }
+    });
+    
+    // その他のピンチズームとパン操作は既存のコードで処理
+}
+
+// 既存の設定関数を修正して新しいタッチイベント設定を呼び出す
 function setupMapPanning() {
-    // マウスイベント
+    // マウスイベント（変更なし）
     mapContainer.addEventListener('mousedown', startPan);
     document.addEventListener('mousemove', movePan);
     document.addEventListener('mouseup', endPan);
     
-    // タッチイベント
-    mapContainer.addEventListener('touchstart', startPanTouch);
-    document.addEventListener('touchmove', movePanTouch);
-    document.addEventListener('touchend', endPan);
+    // タッチイベントの設定を別関数に
+    setupTouchEvents();
     
     // ホイールでのズーム
     mapContainer.addEventListener('wheel', handleWheel);
+}
+
+// CSS touch-action の設定を追加
+function adjustTouchAction() {
+    // 都道府県のパス要素にtouch-actionを設定
+    const paths = document.querySelectorAll('.prefecture');
+    paths.forEach(path => {
+        // パンとピンチズームを許可し、タップの誤検出を減らす
+        path.style.touchAction = "pan-x pan-y"; 
+    });
+    
+    // マップコンテナのtouch-actionも設定
+    mapContainer.style.touchAction = "pan-x pan-y"; 
 }
 
 // パンの開始（マウス）
