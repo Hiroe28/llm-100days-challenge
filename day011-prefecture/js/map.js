@@ -188,8 +188,91 @@ function loadSVGsFromData() {
     }
 
     // touch-actionを適切に設定
-    adjustTouchAction();
+    // adjustTouchAction();
+    enhanceMobileInteraction();
     
+}
+
+// *** 新しいコード - スマホ用タップ処理の抜本的改善 ***
+function improveMapTouchHandling() {
+    // モバイルデバイスの場合のみ適用
+    if (!isMobileDevice()) return;
+    
+    console.log("モバイルデバイス用のタップ処理を最適化します");
+    
+    // 既存のタッチイベントを一度削除（重複防止）
+    clearTouchEvents();
+    
+    // SVG内の全ての都道府県要素にタップ用のイベントを直接追加
+    const allPrefectures = document.querySelectorAll('.prefecture');
+    
+    allPrefectures.forEach(path => {
+        // タッチスタート時のハンドラ
+        path.addEventListener('touchstart', function(e) {
+            // タッチ開始位置を記録
+            if (e.touches && e.touches.length === 1) {
+                const touch = e.touches[0];
+                this.dataset.touchStartX = touch.clientX;
+                this.dataset.touchStartY = touch.clientY;
+                this.dataset.touchStartTime = Date.now();
+            }
+        }, { passive: true });
+        
+        // タッチエンド時の処理 - シンプルな判定でタップを検出
+        path.addEventListener('touchend', function(e) {
+            if (gameState.answered) return;
+            
+            // 移動距離と時間を計算
+            if (e.changedTouches && e.changedTouches.length === 1 && 
+                this.dataset.touchStartX && this.dataset.touchStartY) {
+                
+                const touch = e.changedTouches[0];
+                const deltaX = touch.clientX - this.dataset.touchStartX;
+                const deltaY = touch.clientY - this.dataset.touchStartY;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                const touchTime = Date.now() - this.dataset.touchStartTime;
+                
+                // 短時間かつ小さな移動のみをタップとして処理
+                if (distance < 20 && touchTime < 300) {
+                    const code = this.getAttribute('data-code');
+                    const name = this.getAttribute('data-name');
+                    
+                    console.log("都道府県をタップしました:", name);
+                    
+                    // 都道府県の選択処理を直接呼び出し
+                    if (code && name && gameState.gameMode === 'map') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // 選択処理を呼び出し
+                        handlePrefectureClick({ target: this });
+                    }
+                }
+            }
+        });
+    });
+}
+
+// 既存のタッチイベントを整理
+function clearTouchEvents() {
+    const prefElements = document.querySelectorAll('.prefecture');
+    
+    // 一部のイベントリスナーを削除（完全に削除するのは難しいため注意）
+    prefElements.forEach(el => {
+        const newEl = el.cloneNode(true);
+        el.parentNode.replaceChild(newEl, el);
+        
+        // クリックイベントを再度追加
+        newEl.addEventListener('click', handlePrefectureClick);
+    });
+}
+
+// マップ読み込み完了時に呼び出す
+function enhanceMobileInteraction() {
+    // マップの読み込みが完了してから少し遅延させて実行
+    setTimeout(() => {
+        improveMapTouchHandling();
+    }, 1000);
 }
 
 // モバイルデバイスかどうかをチェック
