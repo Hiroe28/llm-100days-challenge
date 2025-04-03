@@ -1,0 +1,1053 @@
+/* リセットとベーススタイル */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Minecraft', Arial, sans-serif;
+  user-select: none; /* テキスト選択を無効化 */
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+}
+
+/* ゲームコンテナ */
+#game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 単語表示のスタイル */
+.word-container {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-shadow: 2px 2px 4px #000;
+  pointer-events: none;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 2px solid #555;
+}
+
+/* ゲームUI */
+#game-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#top-ui {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  width: 100%;
+}
+
+#score-container, #level-container {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 24px;
+  margin-right: 15px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  border: 2px solid #555;
+}
+
+#score {
+  color: #FFCC00;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+#level {
+  color: #66FF66;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+#lives-container {
+  display: flex;
+  align-items: center;
+}
+
+/* タイピング表示 */
+#typing-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 36px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  padding: 15px 25px;
+  border-radius: 10px;
+  border: 3px solid #555;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.typed {
+  color: #66FF66;
+}
+
+.incorrect {
+  color: #FF6666;
+}
+
+/* プログレスバー */
+#progress-container {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  border: 2px solid #555;
+  overflow: hidden;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: #66FF66;
+  border-radius: 8px;
+  transition: width 0.3s ease;
+}
+
+/* パワーアップ表示 */
+#powerups-display {
+  position: absolute;
+  top: 80px;
+  right: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  z-index: 15;
+}
+
+.powerup-indicator {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  color: white;
+  border: 2px solid #555;
+}
+
+.powerup-text {
+  font-size: 18px;
+  color: #FFFFFF;
+}
+
+.powerup-timer {
+  margin-left: 8px;
+  color: #FFCC00;
+  font-weight: bold;
+}
+
+/* ゲームオーバー画面 */
+#game-over {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  color: white;
+  z-index: 50;
+  border: 4px solid #555;
+  display: none; /* 初期状態は非表示 */
+  min-width: 400px;
+}
+
+#game-over h2 {
+  font-size: 42px;
+  margin-bottom: 20px;
+  color: #FF5555;
+  text-shadow: 2px 2px 0 #000;
+}
+
+#final-score {
+  font-size: 36px;
+  color: #FFCC00;
+  font-weight: bold;
+}
+
+/* スタート画面 */
+#start-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  z-index: 40;
+}
+
+#start-screen p {
+  font-size: 24px;
+  margin-bottom: 30px;
+  text-align: center;
+  line-height: 1.5;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* 難易度選択 */
+#difficulty-select {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+.difficulty-btn {
+  padding: 10px 20px;
+  margin: 0 10px;
+  font-size: 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  text-shadow: 1px 1px 0 #000;
+}
+
+#easy-button {
+  background-color: #55AA55;
+}
+
+#easy-button:hover, #easy-button.selected {
+  background-color: #33CC33;
+  transform: scale(1.05);
+}
+
+#normal-button {
+  background-color: #AAAA55;
+}
+
+#normal-button:hover, #normal-button.selected {
+  background-color: #CCCC33;
+  transform: scale(1.05);
+}
+
+#hard-button {
+  background-color: #AA5555;
+}
+
+#hard-button:hover, #hard-button.selected {
+  background-color: #CC3333;
+  transform: scale(1.05);
+}
+
+/* モード選択 */
+#mode-select {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.mode-btn {
+  padding: 8px 15px;
+  margin: 0 10px;
+  font-size: 18px;
+  background-color: #555;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-btn:hover, .mode-btn.selected {
+  background-color: #777;
+}
+
+#start-button {
+  margin-top: 20px;
+  padding: 15px 30px;
+  font-size: 24px;
+  background-color: #5555AA;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 1px 1px 0 #000;
+}
+
+#start-button:hover {
+  background-color: #3333CC;
+  transform: scale(1.05);
+}
+
+#settings-section {
+  margin-top: 30px;
+  display: flex;
+}
+
+#settings-button, #help-button {
+  padding: 8px 15px;
+  margin: 0 10px;
+  font-size: 18px;
+  background-color: #555;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#settings-button:hover, #help-button:hover {
+  background-color: #777;
+}
+
+#restart-button, #menu-button {
+  margin-top: 20px;
+  padding: 12px 25px;
+  font-size: 20px;
+  background-color: #5555AA;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin: 10px;
+}
+
+#restart-button:hover, #menu-button:hover {
+  background-color: #3333CC;
+}
+
+/* 設定画面 */
+#settings-screen, #help-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 45;
+  color: white;
+  padding: 30px;
+}
+
+#settings-screen h2, #help-screen h2 {
+  font-size: 36px;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 80%;
+  max-width: 500px;
+}
+
+.settings-option label {
+  font-size: 20px;
+  margin-right: 15px;
+  min-width: 150px;
+}
+
+.toggle-btn {
+  padding: 5px 15px;
+  background-color: #555;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toggle-btn.on {
+  background-color: #55AA55;
+}
+
+.toggle-btn.off {
+  background-color: #AA5555;
+}
+
+input[type="range"] {
+  width: 100%;
+  margin-left: 15px;
+}
+
+select {
+  padding: 8px;
+  font-size: 16px;
+  background-color: #333;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 4px;
+}
+
+#back-from-settings, #back-from-help {
+  margin-top: 30px;
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #555;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#back-from-settings:hover, #back-from-help:hover {
+  background-color: #777;
+}
+
+/* ヘルプ画面 */
+.help-content {
+  text-align: left;
+  margin-bottom: 30px;
+  width: 80%;
+  max-width: 600px;
+}
+
+.help-content p {
+  font-size: 18px;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.powerup-guide {
+  width: 80%;
+  max-width: 600px;
+}
+
+.powerup-guide h3 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.powerup-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.powerup-item p {
+  font-size: 16px;
+  line-height: 1.4;
+  margin-left: 15px;
+}
+
+/* パーティクルコンテナ */
+#particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* 間違い入力時のシェイクアニメーション */
+@keyframes shake {
+  0%, 100% { transform: translateX(-50%); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(-55%, -5px); }
+  20%, 40%, 60%, 80% { transform: translate(-45%, 5px); }
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* 正解時のフラッシュアニメーション */
+@keyframes correct-flash {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); background-color: rgba(100, 255, 100, 0.3); }
+  100% { transform: scale(1); }
+}
+
+.correct-flash {
+  animation: correct-flash 0.5s ease;
+}
+
+/* 汎用クラス */
+.hidden {
+  display: none !important;
+}
+
+/* フォントサイズ設定 */
+.font-small .word-container, .font-small #typing-display {
+  font-size: 20px;
+}
+
+.font-large .word-container, .font-large #typing-display {
+  font-size: 32px;
+}
+
+/* 高コントラストモード（アクセシビリティ） */
+.high-contrast .word-container {
+  background-color: rgba(0, 0, 0, 0.9);
+  color: yellow;
+  border: 3px solid white;
+}
+
+.high-contrast .typed {
+  color: #00FF00;
+}
+
+.high-contrast .incorrect {
+  color: #FF0000;
+}
+
+/* マイクラ風タイピングゲーム用CSS画像代替リソース */
+
+/* 1. 敵キャラクター */
+
+/* エンダーマン */
+.enemy-enderman {
+  width: 12px;
+  height: 24px;
+  background-color: #000;
+  position: relative;
+  transform-origin: bottom center;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.enemy-enderman::before,
+.enemy-enderman::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: #ff00ff; /* 紫色の目 */
+  top: 2px;
+  box-shadow: 0 0 3px #ff00ff;
+}
+
+.enemy-enderman::before { left: 2px; }
+.enemy-enderman::after { right: 2px; }
+
+/* 腕 */
+.enemy-enderman .arm-left,
+.enemy-enderman .arm-right {
+  position: absolute;
+  width: 2px;
+  height: 12px;
+  background-color: #000;
+  top: 5px;
+}
+
+.enemy-enderman .arm-left { left: -3px; }
+.enemy-enderman .arm-right { right: -3px; }
+
+/* 脚 */
+.enemy-enderman .leg-left,
+.enemy-enderman .leg-right {
+  position: absolute;
+  width: 2px;
+  height: 7px;
+  background-color: #000;
+  bottom: -7px;
+}
+
+.enemy-enderman .leg-left { left: 3px; }
+.enemy-enderman .leg-right { right: 3px; }
+
+/* 緑のモンスター */
+.enemy-creeper {
+  width: 12px;
+  height: 12px;
+  background-color: #33aa33; /* 緑色 */
+  position: relative;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.enemy-creeper::before,
+.enemy-creeper::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: #000; /* 黒目 */
+  top: 3px;
+}
+
+.enemy-creeper::before { left: 2px; }
+.enemy-creeper::after { right: 2px; }
+
+/* 口 */
+.enemy-creeper .mouth {
+  position: absolute;
+  width: 4px;
+  height: 3px;
+  background-color: #000;
+  bottom: 3px;
+  left: 4px;
+}
+
+/* 足 */
+.enemy-creeper .foot {
+  position: absolute;
+  width: 2px;
+  height: 3px;
+  background-color: #33aa33;
+  bottom: -3px;
+}
+
+.enemy-creeper .foot-1 { left: 2px; }
+.enemy-creeper .foot-2 { left: 6px; }
+.enemy-creeper .foot-3 { right: 2px; }
+.enemy-creeper .foot-4 { right: 6px; }
+
+/* 2. アイテム */
+
+/* ダイヤモンド剣 */
+.item-diamond-sword {
+  width: 4px;
+  height: 16px;
+  background-color: #55aaff; /* ダイヤモンド色 */
+  position: relative;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  box-shadow: 0 0 5px rgba(85, 170, 255, 0.5);
+}
+
+.item-diamond-sword::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 3px;
+  background-color: #333; /* 持ち手 */
+  bottom: -3px;
+  left: -2px;
+}
+
+.item-diamond-sword::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: #333; /* 持ち手の底 */
+  bottom: -5px;
+  left: 1px;
+}
+
+/* 金のリンゴ */
+.item-golden-apple {
+  width: 10px;
+  height: 10px;
+  background-color: #ffcc00; /* 金色 */
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+}
+
+.item-golden-apple::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 3px;
+  background-color: #663300; /* 茎 */
+  top: -3px;
+  left: 4px;
+}
+
+.item-golden-apple::after {
+  content: '';
+  position: absolute;
+  width: 3px;
+  height: 1px;
+  background-color: #006600; /* 葉 */
+  top: -3px;
+  left: 6px;
+}
+
+/* エンチャント本 */
+.item-enchanted-book {
+  width: 10px;
+  height: 12px;
+  background-color: #9966cc; /* 紫色 */
+  position: relative;
+  border: 1px solid #663399;
+  box-shadow: 0 0 8px rgba(153, 102, 204, 0.6);
+}
+
+.item-enchanted-book::before {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 1px;
+  background-color: #ffffff; /* 装飾 */
+  top: 3px;
+  left: 2px;
+  box-shadow: 0 2px 0 #ffffff, 0 4px 0 #ffffff;
+}
+
+/* エメラルド */
+.item-emerald {
+  width: 8px;
+  height: 12px;
+  background-color: #00aa00; /* 緑色 */
+  transform: rotate(45deg);
+  position: relative;
+  box-shadow: 0 0 8px rgba(0, 170, 0, 0.6);
+}
+
+.item-emerald::before {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #00cc00; /* ハイライト */
+  top: 2px;
+  left: 2px;
+}
+
+/* 3. UI要素 */
+
+/* ハート（ライフ） */
+.ui-heart {
+  width: 16px;
+  height: 14px;
+  position: relative;
+  margin: 0 2px;
+  display: inline-block;
+}
+
+.ui-heart::before,
+.ui-heart::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  background-color: #ff3333; /* 赤色 */
+  border-radius: 8px 8px 0 0;
+}
+
+.ui-heart::before {
+  transform: rotate(-45deg);
+  left: 1px;
+  top: 0;
+}
+
+.ui-heart::after {
+  transform: rotate(45deg);
+  right: 1px;
+  top: 0;
+}
+
+/* 空のハート */
+.ui-heart-empty {
+  width: 16px;
+  height: 14px;
+  position: relative;
+  margin: 0 2px;
+  display: inline-block;
+}
+
+.ui-heart-empty::before,
+.ui-heart-empty::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  background-color: #555; /* グレー */
+  border-radius: 8px 8px 0 0;
+}
+
+.ui-heart-empty::before {
+  transform: rotate(-45deg);
+  left: 1px;
+  top: 0;
+}
+
+.ui-heart-empty::after {
+  transform: rotate(45deg);
+  right: 1px;
+  top: 0;
+}
+
+/* スコアアイコン */
+.ui-score-icon {
+  width: 16px;
+  height: 16px;
+  background-color: #ffcc00; /* 金色 */
+  border-radius: 50%;
+  position: relative;
+  display: inline-block;
+  margin-right: 5px;
+  box-shadow: 0 0 3px rgba(255, 204, 0, 0.7);
+}
+
+.ui-score-icon::before {
+  content: 'S';
+  position: absolute;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  top: 2px;
+  left: 5px;
+}
+
+/* レベルアイコン */
+.ui-level-icon {
+  width: 16px;
+  height: 16px;
+  background-color: #66ff66; /* 緑色 */
+  border-radius: 3px;
+  position: relative;
+  display: inline-block;
+  margin-right: 5px;
+  box-shadow: 0 0 3px rgba(102, 255, 102, 0.7);
+}
+
+.ui-level-icon::before {
+  content: 'L';
+  position: absolute;
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  top: 2px;
+  left: 5px;
+}
+
+/* 4. エフェクト */
+
+/* 爆発エフェクト */
+@keyframes explosion {
+  0% {
+    transform: scale(0.1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.effect-explosion {
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, #ff5500, #ff0000);
+  border-radius: 50%;
+  position: absolute;
+  animation: explosion 0.5s ease-out forwards;
+  z-index: 100;
+}
+
+/* キラキラエフェクト */
+@keyframes sparkle {
+  0% {
+    transform: scale(0.1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) rotate(90deg);
+    opacity: 0;
+  }
+}
+
+.effect-sparkle {
+  width: 10px;
+  height: 10px;
+  background-color: #ffffff;
+  position: absolute;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: sparkle 0.5s ease-out forwards;
+  z-index: 90;
+}
+
+/* 5. ゲームロゴ */
+.game-logo {
+  width: 300px;
+  height: 60px;
+  position: relative;
+  margin: 0 auto 30px;
+  text-align: center;
+}
+
+.game-logo-text {
+  font-family: 'Minecraft', Arial, sans-serif;
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow: 
+    2px 2px 0 #333,
+    -2px 2px 0 #333,
+    2px -2px 0 #333,
+    -2px -2px 0 #333;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.game-logo-subtext {
+  font-family: 'Minecraft', Arial, sans-serif;
+  font-size: 16px;
+  color: #ffcc00;
+  text-shadow: 1px 1px 2px #000;
+  margin-top: 5px;
+  letter-spacing: 1px;
+}
+
+/* 基本的な背景設定 */
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+}
+
+/* ゲームコンテナ */
+#game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-image: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 65%, #5c913b 65%, #5c913b 100%);
+}
+
+/* 雲の装飾 */
+.cloud {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+}
+
+.cloud-1 {
+  width: 100px;
+  height: 40px;
+  top: 50px;
+  left: 10%;
+}
+
+.cloud-2 {
+  width: 150px;
+  height: 50px;
+  top: 80px;
+  left: 60%;
+}
+
+.cloud-3 {
+  width: 80px;
+  height: 30px;
+  top: 30px;
+  left: 40%;
+}
+
+/* アイテムサンプル用（ヘルプ画面など） */
+.item-sample {
+  transform: scale(3);
+  margin: 10px;
+  display: inline-block;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .game-logo {
+    max-width: 90%;
+  }
+  
+  #top-ui {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  #score-container, #level-container {
+    margin-bottom: 10px;
+  }
+  
+  .difficulty-btn, .mode-btn {
+    padding: 8px 15px;
+    font-size: 16px;
+  }
+  
+  #typing-display {
+    font-size: 28px;
+  }
+}
+
+/* フォーカス中の単語コンテナのスタイル */
+.word-container.focused {
+  border: 3px solid #ffcc00; /* 金色の枠線 */
+  box-shadow: 0 0 10px rgba(255, 204, 0, 0.7); /* 光るエフェクト */
+  transform: translateX(-50%) scale(1.1); /* 少し大きく表示 */
+  transition: all 0.2s ease; /* アニメーション効果 */
+  background-color: rgba(0, 0, 0, 0.8); /* 背景を少し濃く */
+}
+
+/* フォーカス時の矢印表示 */
+.word-container.focused::after {
+  content: '▼';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffcc00;
+  font-size: 16px;
+  animation: bounce 0.5s infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-5px); }
+}
+
+/* フォーカス切り替えヒント表示用スタイル */
+#focus-hint {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 25;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#focus-hint.visible {
+  opacity: 1;
+}
+

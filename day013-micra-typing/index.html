@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta property="og:title" content="マイクラ風タイピングゲーム" />
+  <meta property="og:description" content="マインクラフトのモンスターをモチーフにしたタイピングゲームです。迫りくるモンスターを倒すために、表示される単語を正確にタイプしましょう。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day012-flag-quiz/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day012-flag-quiz/index.html" />
+  <meta name="twitter:card" content="summary_large_image" />  
+
+  <title>マイクラ風タイピングゲーム</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Three.jsをインポート -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- 効果音ライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+
+  <script>
+    // ページ読み込み後に実行
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        // すべての.word-containerにfocusedクラスを追加するテスト
+        document.querySelectorAll('.word-container').forEach(function(el) {
+          el.classList.add('focused');
+        });
+        console.log('フォーカステスト実行');
+      }, 3000); // 3秒後に実行
+    });
+  </script>
+
+
+<style>
+  /* 単語コンテナ内の要素のスタイル調整 */
+  .word-container div:first-child {
+    color: white !important; /* ひらがなを強制的に白色に */
+    text-shadow: 1px 1px 2px black; /* 読みやすさを向上 */
+  }
+  
+  .word-container div:last-child {
+    font-size: 0.7em;
+    margin-top: 3px;
+  }
+  
+  /* word-container全体を少し大きく */
+  .word-container {
+    padding: 8px 15px !important;
+    min-width: 100px;
+  }
+  
+  /* ひらがなを確実に白にする強制的なスタイル */
+  [style*="color: #66FF66"] {
+    color: white !important;
+  }
+  </style>
+  
+
+</head>
+
+
+
+<body>
+  <div id="game-container">
+    <!-- 背景 -->
+    <div class="game-background"></div>
+    
+    <!-- ゲームUI -->
+    <div id="game-ui">
+      <div id="top-ui">
+        <div id="score-container">
+          <div class="ui-score-icon"></div>
+          <span>スコア: </span>
+          <span id="score">0</span>
+        </div>
+        <div id="level-container">
+          <div class="ui-level-icon"></div>
+          <span>レベル: </span>
+          <span id="level">1</span>
+        </div>
+        <div id="lives-container">
+          <div class="ui-heart"></div>
+          <div class="ui-heart"></div>
+          <div class="ui-heart"></div>
+        </div>
+        <!-- 新しいボタン -->
+        <div id="back-to-title-container">
+
+          <button id="back-to-title-button" style="pointer-events: auto !important;" onclick="window.location.reload()">メニューに戻る</button>
+        </div>
+      </div>
+
+      <style>
+        #back-to-title-container {
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          z-index: 100;
+        }
+        
+        #back-to-title-button {
+          padding: 8px 15px;
+          font-size: 16px;
+          background-color: #555;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+        
+        #back-to-title-button:hover {
+          background-color: #777;
+        }
+        </style>
+        
+
+
+      
+      <!-- パワーアップ表示エリア -->
+      <div id="powerups-display"></div>
+      
+      <!-- 単語表示エリア -->
+      <div id="typing-display"></div>
+      
+      <!-- プログレスバー -->
+      <div id="progress-container">
+        <div id="progress-bar"></div>
+      </div>
+    </div>
+    
+    <!-- ゲームオーバー画面 -->
+    <div id="game-over">
+      <h2>ゲームオーバー</h2>
+      <p>最終スコア: <span id="final-score">0</span></p>
+      <button id="restart-button">もう一度プレイ</button>
+      <button id="menu-button">メニューに戻る</button>
+    </div>
+    
+    <!-- スタート画面 -->
+    <div id="start-screen">
+      <div class="game-logo">
+        <div class="game-logo-text">マイクラ風タイピング</div>
+        <div class="game-logo-subtext">モンスターをやっつけろ！</div>
+      </div>
+      
+      <p>モンスターが近づいてきます！<br>タイピングして撃退しましょう！</p>
+      
+      <!-- 難易度選択 -->
+      <div id="difficulty-select">
+        <button id="easy-button" class="difficulty-btn">かんたん</button>
+        <button id="normal-button" class="difficulty-btn">ふつう</button>
+        <button id="hard-button" class="difficulty-btn">むずかしい</button>
+      </div>
+      
+      <!-- モード選択 -->
+      <div id="mode-select">
+        <button id="hiragana-mode" class="mode-btn selected">ひらがな</button>
+        <button id="english-mode" class="mode-btn">えいご</button>
+      </div>
+      
+      <button id="start-button">ゲームスタート</button>
+      
+      <div id="settings-section">
+        <button id="settings-button">せってい</button>
+        <button id="help-button">あそびかた</button>
+      </div>
+    </div>
+    
+    <!-- 設定画面 -->
+    <div id="settings-screen" class="hidden">
+      <h2>せってい</h2>
+      <div class="settings-option">
+        <label for="sound-toggle">おと:</label>
+        <button id="sound-toggle" class="toggle-btn on">オン</button>
+      </div>
+      <div class="settings-option">
+        <label for="bgm-volume">BGMの大きさ:</label>
+        <input type="range" id="bgm-volume" min="0" max="100" value="50">
+      </div>
+      <div class="settings-option">
+        <label for="sfx-volume">効果音の大きさ:</label>
+        <input type="range" id="sfx-volume" min="0" max="100" value="70">
+      </div>
+      <div class="settings-option">
+        <label for="font-size">もじの大きさ:</label>
+        <select id="font-size">
+          <option value="small">小さい</option>
+          <option value="medium" selected>ふつう</option>
+          <option value="large">大きい</option>
+        </select>
+      </div>
+      <button id="back-from-settings">もどる</button>
+    </div>
+    
+
+    <!-- 遊び方画面 -->
+    <div id="help-screen" class="hidden">
+        <h2>あそびかた</h2>
+        <div class="help-content">
+        <p>1. モンスターが近づいてきたら、表示されている単語をタイプしましょう</p>
+        <p>2. 単語を正しくタイプすると、モンスターを倒せます</p>
+        <p>3. モンスターが近づきすぎると、ライフが減ります</p>
+        <p>4. ライフがなくなるとゲームオーバーです</p>
+        </div>
+        <!-- パワーアップガイドを削除 -->
+        <button id="back-from-help">もどる</button>
+    </div>
+    
+    <!-- パーティクルコンテナ（爆発エフェクトなど） -->
+    <div id="particles-container"></div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+
+  <script>
+    // グローバル関数を定義
+    window.backToTitle = function() {
+      console.log("メニューに戻るボタンがクリックされました");
+      // モジュールシステム経由で関数を呼び出すためのイベントを発火
+      const event = new CustomEvent('back-to-title-clicked');
+      document.dispatchEvent(event);
+    };
+  </script>
+
+</body>
+
+<script>
+  // ページ読み込み完了時に実行
+  window.addEventListener('DOMContentLoaded', function() {
+    console.log("背景対応を実行します");
+    
+    // canvas要素の背景を透明に設定
+    var canvases = document.getElementsByTagName('canvas');
+    if (canvases.length > 0) {
+      canvases[0].style.background = 'transparent';
+    }
+    
+    // 背景のグラデーションを設定（背景画像の代替）
+    // ここでは境界を58%に設定し、地面の位置をキャラクターの足元に合わせる
+    document.body.style.background = 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 45%, #5c913b 45%, #5c913b 100%)';
+    
+    var gameContainer = document.getElementById('game-container');
+    if (gameContainer) {
+      gameContainer.style.background = 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 45%, #5c913b 45%, #5c913b 100%)';
+    }
+    
+    // エラーの可能性のあるコードを削除
+    setTimeout(function() {
+      var listener = function() {};
+      window.removeEventListener('message', listener);
+    }, 100);
+    
+    console.log("背景対応を適用しました");
+  });
+
+
+
+
+</script>
+
+</html>
