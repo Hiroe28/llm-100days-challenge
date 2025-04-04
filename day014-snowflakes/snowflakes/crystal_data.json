@@ -1,0 +1,2716 @@
+{
+  "types": {
+    "NEEDLE_THIN": {
+      "name": "細針状",
+      "description": "気温がやや高く湿度が適度な環境で形成される針のような細長い結晶です。"
+    },
+    "NEEDLE_THICK": {
+      "name": "太針状",
+      "description": "湿度が高く気温が適度な環境で形成される、太くて短い針状の結晶です。"
+    },
+    "COLUMN_SIMPLE": {
+      "name": "単柱状",
+      "description": "低湿度で適度に低い気温で形成される、シンプルな柱状の結晶です。"
+    },
+    "COLUMN_CAPPED": {
+      "name": "冠柱状",
+      "description": "柱の先端に小さな冠のような形が付いた結晶。中程度の湿度で形成されます。"
+    },
+    "PLATE_SIMPLE": {
+      "name": "単板状",
+      "description": "低い湿度でかなり低温の環境で形成される、シンプルな六角形の板状結晶です。"
+    },
+    "PLATE_SECTOR": {
+      "name": "扇板状",
+      "description": "扇形の模様が特徴的な六角形の板状結晶。中程度の湿度で形成されます。"
+    },
+    "STELLAR_SIMPLE": {
+      "name": "単星状",
+      "description": "シンプルな星型の結晶。高湿度で低温の環境で形成されます。"
+    },
+    "STELLAR_DENDRITE": {
+      "name": "星樹枝状",
+      "description": "星型から樹枝状に枝が伸びた美しい結晶。高湿度で形成されます。"
+    },
+    "DENDRITE_NORMAL": {
+      "name": "通常樹枝状",
+      "description": "クリスマスカードなどでよく見る典型的な樹枝状結晶。非常に低温で形成されます。"
+    },
+    "DENDRITE_COMPLEX": {
+      "name": "複雑樹枝状",
+      "description": "複雑に枝分かれした美しい樹枝状結晶。とても湿度が高い環境で形成されます。"
+    },
+    "FERNLIKE_SIMPLE": {
+      "name": "単羊歯状",
+      "description": "羊歯のような枝を持つ結晶。非常に低温で低湿度の環境で形成されます。"
+    },
+    "FERNLIKE_COMPLEX": {
+      "name": "複雑羊歯状",
+      "description": "複雑な羊歯のような美しい枝を持つ結晶。中程度の湿度で形成されます。"
+    },
+    "TRIANGULAR": {
+      "name": "三角板状",
+      "description": "珍しい三角形の要素を持つ結晶。比較的高い気温で形成されます。"
+    },
+    "SPLIT": {
+      "name": "分裂六花",
+      "description": "枝の先端が分裂したような複雑な形状を持つ非常に繊細な結晶です。"
+    },
+    "ASYMMETRIC": {
+      "name": "非対称結晶",
+      "description": "気流の影響などで成長過程が乱れ、均一でない形に成長した結晶です。"
+    },
+    "TWELVE_BRANCHED": {
+      "name": "十二花",
+      "description": "二つの六花が重なったような十二本の枝を持つ珍しい結晶です。"
+    }
+  },
+  "mappings": {
+    "t-20_h0": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h0.png",
+      "temp": -20,
+      "humidity": 0
+    },
+    "t-20_h5": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h5.png",
+      "temp": -20,
+      "humidity": 5
+    },
+    "t-20_h10": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h10.png",
+      "temp": -20,
+      "humidity": 10
+    },
+    "t-20_h15": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h15.png",
+      "temp": -20,
+      "humidity": 15
+    },
+    "t-20_h20": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h20.png",
+      "temp": -20,
+      "humidity": 20
+    },
+    "t-20_h25": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h25.png",
+      "temp": -20,
+      "humidity": 25
+    },
+    "t-20_h30": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h30.png",
+      "temp": -20,
+      "humidity": 30
+    },
+    "t-20_h35": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h35.png",
+      "temp": -20,
+      "humidity": 35
+    },
+    "t-20_h40": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-20_h40.png",
+      "temp": -20,
+      "humidity": 40
+    },
+    "t-20_h45": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-20_h45.png",
+      "temp": -20,
+      "humidity": 45
+    },
+    "t-20_h50": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-20_h50.png",
+      "temp": -20,
+      "humidity": 50
+    },
+    "t-20_h55": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-20_h55.png",
+      "temp": -20,
+      "humidity": 55
+    },
+    "t-20_h60": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-20_h60.png",
+      "temp": -20,
+      "humidity": 60
+    },
+    "t-20_h65": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-20_h65.png",
+      "temp": -20,
+      "humidity": 65
+    },
+    "t-20_h70": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-20_h70.png",
+      "temp": -20,
+      "humidity": 70
+    },
+    "t-20_h75": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-20_h75.png",
+      "temp": -20,
+      "humidity": 75
+    },
+    "t-20_h80": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-20_h80.png",
+      "temp": -20,
+      "humidity": 80
+    },
+    "t-20_h85": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-20_h85.png",
+      "temp": -20,
+      "humidity": 85
+    },
+    "t-20_h90": {
+      "type": "SPLIT",
+      "file": "crystal_t-20_h90.png",
+      "temp": -20,
+      "humidity": 90
+    },
+    "t-20_h95": {
+      "type": "SPLIT",
+      "file": "crystal_t-20_h95.png",
+      "temp": -20,
+      "humidity": 95
+    },
+    "t-20_h100": {
+      "type": "SPLIT",
+      "file": "crystal_t-20_h100.png",
+      "temp": -20,
+      "humidity": 100
+    },
+    "t-19_h0": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h0.png",
+      "temp": -19,
+      "humidity": 0
+    },
+    "t-19_h5": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h5.png",
+      "temp": -19,
+      "humidity": 5
+    },
+    "t-19_h10": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h10.png",
+      "temp": -19,
+      "humidity": 10
+    },
+    "t-19_h15": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h15.png",
+      "temp": -19,
+      "humidity": 15
+    },
+    "t-19_h20": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h20.png",
+      "temp": -19,
+      "humidity": 20
+    },
+    "t-19_h25": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h25.png",
+      "temp": -19,
+      "humidity": 25
+    },
+    "t-19_h30": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h30.png",
+      "temp": -19,
+      "humidity": 30
+    },
+    "t-19_h35": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h35.png",
+      "temp": -19,
+      "humidity": 35
+    },
+    "t-19_h40": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-19_h40.png",
+      "temp": -19,
+      "humidity": 40
+    },
+    "t-19_h45": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-19_h45.png",
+      "temp": -19,
+      "humidity": 45
+    },
+    "t-19_h50": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-19_h50.png",
+      "temp": -19,
+      "humidity": 50
+    },
+    "t-19_h55": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-19_h55.png",
+      "temp": -19,
+      "humidity": 55
+    },
+    "t-19_h60": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-19_h60.png",
+      "temp": -19,
+      "humidity": 60
+    },
+    "t-19_h65": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-19_h65.png",
+      "temp": -19,
+      "humidity": 65
+    },
+    "t-19_h70": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-19_h70.png",
+      "temp": -19,
+      "humidity": 70
+    },
+    "t-19_h75": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-19_h75.png",
+      "temp": -19,
+      "humidity": 75
+    },
+    "t-19_h80": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-19_h80.png",
+      "temp": -19,
+      "humidity": 80
+    },
+    "t-19_h85": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-19_h85.png",
+      "temp": -19,
+      "humidity": 85
+    },
+    "t-19_h90": {
+      "type": "SPLIT",
+      "file": "crystal_t-19_h90.png",
+      "temp": -19,
+      "humidity": 90
+    },
+    "t-19_h95": {
+      "type": "SPLIT",
+      "file": "crystal_t-19_h95.png",
+      "temp": -19,
+      "humidity": 95
+    },
+    "t-19_h100": {
+      "type": "SPLIT",
+      "file": "crystal_t-19_h100.png",
+      "temp": -19,
+      "humidity": 100
+    },
+    "t-18_h0": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h0.png",
+      "temp": -18,
+      "humidity": 0
+    },
+    "t-18_h5": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h5.png",
+      "temp": -18,
+      "humidity": 5
+    },
+    "t-18_h10": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h10.png",
+      "temp": -18,
+      "humidity": 10
+    },
+    "t-18_h15": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h15.png",
+      "temp": -18,
+      "humidity": 15
+    },
+    "t-18_h20": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h20.png",
+      "temp": -18,
+      "humidity": 20
+    },
+    "t-18_h25": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h25.png",
+      "temp": -18,
+      "humidity": 25
+    },
+    "t-18_h30": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h30.png",
+      "temp": -18,
+      "humidity": 30
+    },
+    "t-18_h35": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h35.png",
+      "temp": -18,
+      "humidity": 35
+    },
+    "t-18_h40": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-18_h40.png",
+      "temp": -18,
+      "humidity": 40
+    },
+    "t-18_h45": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-18_h45.png",
+      "temp": -18,
+      "humidity": 45
+    },
+    "t-18_h50": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-18_h50.png",
+      "temp": -18,
+      "humidity": 50
+    },
+    "t-18_h55": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-18_h55.png",
+      "temp": -18,
+      "humidity": 55
+    },
+    "t-18_h60": {
+      "type": "TWELVE_BRANCHED",
+      "file": "crystal_t-18_h60.png",
+      "temp": -18,
+      "humidity": 60
+    },
+    "t-18_h65": {
+      "type": "TWELVE_BRANCHED",
+      "file": "crystal_t-18_h65.png",
+      "temp": -18,
+      "humidity": 65
+    },
+    "t-18_h70": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-18_h70.png",
+      "temp": -18,
+      "humidity": 70
+    },
+    "t-18_h75": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-18_h75.png",
+      "temp": -18,
+      "humidity": 75
+    },
+    "t-18_h80": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-18_h80.png",
+      "temp": -18,
+      "humidity": 80
+    },
+    "t-18_h85": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-18_h85.png",
+      "temp": -18,
+      "humidity": 85
+    },
+    "t-18_h90": {
+      "type": "SPLIT",
+      "file": "crystal_t-18_h90.png",
+      "temp": -18,
+      "humidity": 90
+    },
+    "t-18_h95": {
+      "type": "SPLIT",
+      "file": "crystal_t-18_h95.png",
+      "temp": -18,
+      "humidity": 95
+    },
+    "t-18_h100": {
+      "type": "SPLIT",
+      "file": "crystal_t-18_h100.png",
+      "temp": -18,
+      "humidity": 100
+    },
+    "t-17_h0": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h0.png",
+      "temp": -17,
+      "humidity": 0
+    },
+    "t-17_h5": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h5.png",
+      "temp": -17,
+      "humidity": 5
+    },
+    "t-17_h10": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h10.png",
+      "temp": -17,
+      "humidity": 10
+    },
+    "t-17_h15": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h15.png",
+      "temp": -17,
+      "humidity": 15
+    },
+    "t-17_h20": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h20.png",
+      "temp": -17,
+      "humidity": 20
+    },
+    "t-17_h25": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h25.png",
+      "temp": -17,
+      "humidity": 25
+    },
+    "t-17_h30": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h30.png",
+      "temp": -17,
+      "humidity": 30
+    },
+    "t-17_h35": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h35.png",
+      "temp": -17,
+      "humidity": 35
+    },
+    "t-17_h40": {
+      "type": "FERNLIKE_SIMPLE",
+      "file": "crystal_t-17_h40.png",
+      "temp": -17,
+      "humidity": 40
+    },
+    "t-17_h45": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-17_h45.png",
+      "temp": -17,
+      "humidity": 45
+    },
+    "t-17_h50": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-17_h50.png",
+      "temp": -17,
+      "humidity": 50
+    },
+    "t-17_h55": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-17_h55.png",
+      "temp": -17,
+      "humidity": 55
+    },
+    "t-17_h60": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-17_h60.png",
+      "temp": -17,
+      "humidity": 60
+    },
+    "t-17_h65": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-17_h65.png",
+      "temp": -17,
+      "humidity": 65
+    },
+    "t-17_h70": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-17_h70.png",
+      "temp": -17,
+      "humidity": 70
+    },
+    "t-17_h75": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-17_h75.png",
+      "temp": -17,
+      "humidity": 75
+    },
+    "t-17_h80": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-17_h80.png",
+      "temp": -17,
+      "humidity": 80
+    },
+    "t-17_h85": {
+      "type": "DENDRITE_NORMAL",
+      "file": "crystal_t-17_h85.png",
+      "temp": -17,
+      "humidity": 85
+    },
+    "t-17_h90": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-17_h90.png",
+      "temp": -17,
+      "humidity": 90
+    },
+    "t-17_h95": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-17_h95.png",
+      "temp": -17,
+      "humidity": 95
+    },
+    "t-17_h100": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-17_h100.png",
+      "temp": -17,
+      "humidity": 100
+    },
+    "t-16_h0": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-16_h0.png",
+      "temp": -16,
+      "humidity": 0
+    },
+    "t-16_h5": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-16_h5.png",
+      "temp": -16,
+      "humidity": 5
+    },
+    "t-16_h10": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-16_h10.png",
+      "temp": -16,
+      "humidity": 10
+    },
+    "t-16_h15": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-16_h15.png",
+      "temp": -16,
+      "humidity": 15
+    },
+    "t-16_h20": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-16_h20.png",
+      "temp": -16,
+      "humidity": 20
+    },
+    "t-16_h25": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-16_h25.png",
+      "temp": -16,
+      "humidity": 25
+    },
+    "t-16_h30": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-16_h30.png",
+      "temp": -16,
+      "humidity": 30
+    },
+    "t-16_h35": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-16_h35.png",
+      "temp": -16,
+      "humidity": 35
+    },
+    "t-16_h40": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-16_h40.png",
+      "temp": -16,
+      "humidity": 40
+    },
+    "t-16_h45": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-16_h45.png",
+      "temp": -16,
+      "humidity": 45
+    },
+    "t-16_h50": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-16_h50.png",
+      "temp": -16,
+      "humidity": 50
+    },
+    "t-16_h55": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-16_h55.png",
+      "temp": -16,
+      "humidity": 55
+    },
+    "t-16_h60": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-16_h60.png",
+      "temp": -16,
+      "humidity": 60
+    },
+    "t-16_h65": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-16_h65.png",
+      "temp": -16,
+      "humidity": 65
+    },
+    "t-16_h70": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-16_h70.png",
+      "temp": -16,
+      "humidity": 70
+    },
+    "t-16_h75": {
+      "type": "TWELVE_BRANCHED",
+      "file": "crystal_t-16_h75.png",
+      "temp": -16,
+      "humidity": 75
+    },
+    "t-16_h80": {
+      "type": "TWELVE_BRANCHED",
+      "file": "crystal_t-16_h80.png",
+      "temp": -16,
+      "humidity": 80
+    },
+    "t-16_h85": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-16_h85.png",
+      "temp": -16,
+      "humidity": 85
+    },
+    "t-16_h90": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-16_h90.png",
+      "temp": -16,
+      "humidity": 90
+    },
+    "t-16_h95": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-16_h95.png",
+      "temp": -16,
+      "humidity": 95
+    },
+    "t-16_h100": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-16_h100.png",
+      "temp": -16,
+      "humidity": 100
+    },
+    "t-15_h0": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h0.png",
+      "temp": -15,
+      "humidity": 0
+    },
+    "t-15_h5": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h5.png",
+      "temp": -15,
+      "humidity": 5
+    },
+    "t-15_h10": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h10.png",
+      "temp": -15,
+      "humidity": 10
+    },
+    "t-15_h15": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h15.png",
+      "temp": -15,
+      "humidity": 15
+    },
+    "t-15_h20": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h20.png",
+      "temp": -15,
+      "humidity": 20
+    },
+    "t-15_h25": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h25.png",
+      "temp": -15,
+      "humidity": 25
+    },
+    "t-15_h30": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h30.png",
+      "temp": -15,
+      "humidity": 30
+    },
+    "t-15_h35": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h35.png",
+      "temp": -15,
+      "humidity": 35
+    },
+    "t-15_h40": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-15_h40.png",
+      "temp": -15,
+      "humidity": 40
+    },
+    "t-15_h45": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-15_h45.png",
+      "temp": -15,
+      "humidity": 45
+    },
+    "t-15_h50": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-15_h50.png",
+      "temp": -15,
+      "humidity": 50
+    },
+    "t-15_h55": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-15_h55.png",
+      "temp": -15,
+      "humidity": 55
+    },
+    "t-15_h60": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-15_h60.png",
+      "temp": -15,
+      "humidity": 60
+    },
+    "t-15_h65": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-15_h65.png",
+      "temp": -15,
+      "humidity": 65
+    },
+    "t-15_h70": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-15_h70.png",
+      "temp": -15,
+      "humidity": 70
+    },
+    "t-15_h75": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-15_h75.png",
+      "temp": -15,
+      "humidity": 75
+    },
+    "t-15_h80": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-15_h80.png",
+      "temp": -15,
+      "humidity": 80
+    },
+    "t-15_h85": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-15_h85.png",
+      "temp": -15,
+      "humidity": 85
+    },
+    "t-15_h90": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-15_h90.png",
+      "temp": -15,
+      "humidity": 90
+    },
+    "t-15_h95": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-15_h95.png",
+      "temp": -15,
+      "humidity": 95
+    },
+    "t-15_h100": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-15_h100.png",
+      "temp": -15,
+      "humidity": 100
+    },
+    "t-14_h0": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h0.png",
+      "temp": -14,
+      "humidity": 0
+    },
+    "t-14_h5": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h5.png",
+      "temp": -14,
+      "humidity": 5
+    },
+    "t-14_h10": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h10.png",
+      "temp": -14,
+      "humidity": 10
+    },
+    "t-14_h15": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h15.png",
+      "temp": -14,
+      "humidity": 15
+    },
+    "t-14_h20": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h20.png",
+      "temp": -14,
+      "humidity": 20
+    },
+    "t-14_h25": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h25.png",
+      "temp": -14,
+      "humidity": 25
+    },
+    "t-14_h30": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h30.png",
+      "temp": -14,
+      "humidity": 30
+    },
+    "t-14_h35": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h35.png",
+      "temp": -14,
+      "humidity": 35
+    },
+    "t-14_h40": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-14_h40.png",
+      "temp": -14,
+      "humidity": 40
+    },
+    "t-14_h45": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-14_h45.png",
+      "temp": -14,
+      "humidity": 45
+    },
+    "t-14_h50": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-14_h50.png",
+      "temp": -14,
+      "humidity": 50
+    },
+    "t-14_h55": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-14_h55.png",
+      "temp": -14,
+      "humidity": 55
+    },
+    "t-14_h60": {
+      "type": "FERNLIKE_COMPLEX",
+      "file": "crystal_t-14_h60.png",
+      "temp": -14,
+      "humidity": 60
+    },
+    "t-14_h65": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-14_h65.png",
+      "temp": -14,
+      "humidity": 65
+    },
+    "t-14_h70": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-14_h70.png",
+      "temp": -14,
+      "humidity": 70
+    },
+    "t-14_h75": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-14_h75.png",
+      "temp": -14,
+      "humidity": 75
+    },
+    "t-14_h80": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-14_h80.png",
+      "temp": -14,
+      "humidity": 80
+    },
+    "t-14_h85": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-14_h85.png",
+      "temp": -14,
+      "humidity": 85
+    },
+    "t-14_h90": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-14_h90.png",
+      "temp": -14,
+      "humidity": 90
+    },
+    "t-14_h95": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-14_h95.png",
+      "temp": -14,
+      "humidity": 95
+    },
+    "t-14_h100": {
+      "type": "DENDRITE_COMPLEX",
+      "file": "crystal_t-14_h100.png",
+      "temp": -14,
+      "humidity": 100
+    },
+    "t-13_h0": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h0.png",
+      "temp": -13,
+      "humidity": 0
+    },
+    "t-13_h5": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h5.png",
+      "temp": -13,
+      "humidity": 5
+    },
+    "t-13_h10": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h10.png",
+      "temp": -13,
+      "humidity": 10
+    },
+    "t-13_h15": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h15.png",
+      "temp": -13,
+      "humidity": 15
+    },
+    "t-13_h20": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h20.png",
+      "temp": -13,
+      "humidity": 20
+    },
+    "t-13_h25": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h25.png",
+      "temp": -13,
+      "humidity": 25
+    },
+    "t-13_h30": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h30.png",
+      "temp": -13,
+      "humidity": 30
+    },
+    "t-13_h35": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h35.png",
+      "temp": -13,
+      "humidity": 35
+    },
+    "t-13_h40": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-13_h40.png",
+      "temp": -13,
+      "humidity": 40
+    },
+    "t-13_h45": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-13_h45.png",
+      "temp": -13,
+      "humidity": 45
+    },
+    "t-13_h50": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-13_h50.png",
+      "temp": -13,
+      "humidity": 50
+    },
+    "t-13_h55": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-13_h55.png",
+      "temp": -13,
+      "humidity": 55
+    },
+    "t-13_h60": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-13_h60.png",
+      "temp": -13,
+      "humidity": 60
+    },
+    "t-13_h65": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-13_h65.png",
+      "temp": -13,
+      "humidity": 65
+    },
+    "t-13_h70": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-13_h70.png",
+      "temp": -13,
+      "humidity": 70
+    },
+    "t-13_h75": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-13_h75.png",
+      "temp": -13,
+      "humidity": 75
+    },
+    "t-13_h80": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-13_h80.png",
+      "temp": -13,
+      "humidity": 80
+    },
+    "t-13_h85": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-13_h85.png",
+      "temp": -13,
+      "humidity": 85
+    },
+    "t-13_h90": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-13_h90.png",
+      "temp": -13,
+      "humidity": 90
+    },
+    "t-13_h95": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-13_h95.png",
+      "temp": -13,
+      "humidity": 95
+    },
+    "t-13_h100": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-13_h100.png",
+      "temp": -13,
+      "humidity": 100
+    },
+    "t-12_h0": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h0.png",
+      "temp": -12,
+      "humidity": 0
+    },
+    "t-12_h5": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h5.png",
+      "temp": -12,
+      "humidity": 5
+    },
+    "t-12_h10": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h10.png",
+      "temp": -12,
+      "humidity": 10
+    },
+    "t-12_h15": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h15.png",
+      "temp": -12,
+      "humidity": 15
+    },
+    "t-12_h20": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h20.png",
+      "temp": -12,
+      "humidity": 20
+    },
+    "t-12_h25": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h25.png",
+      "temp": -12,
+      "humidity": 25
+    },
+    "t-12_h30": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h30.png",
+      "temp": -12,
+      "humidity": 30
+    },
+    "t-12_h35": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h35.png",
+      "temp": -12,
+      "humidity": 35
+    },
+    "t-12_h40": {
+      "type": "PLATE_SIMPLE",
+      "file": "crystal_t-12_h40.png",
+      "temp": -12,
+      "humidity": 40
+    },
+    "t-12_h45": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-12_h45.png",
+      "temp": -12,
+      "humidity": 45
+    },
+    "t-12_h50": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-12_h50.png",
+      "temp": -12,
+      "humidity": 50
+    },
+    "t-12_h55": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-12_h55.png",
+      "temp": -12,
+      "humidity": 55
+    },
+    "t-12_h60": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-12_h60.png",
+      "temp": -12,
+      "humidity": 60
+    },
+    "t-12_h65": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-12_h65.png",
+      "temp": -12,
+      "humidity": 65
+    },
+    "t-12_h70": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-12_h70.png",
+      "temp": -12,
+      "humidity": 70
+    },
+    "t-12_h75": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-12_h75.png",
+      "temp": -12,
+      "humidity": 75
+    },
+    "t-12_h80": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-12_h80.png",
+      "temp": -12,
+      "humidity": 80
+    },
+    "t-12_h85": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-12_h85.png",
+      "temp": -12,
+      "humidity": 85
+    },
+    "t-12_h90": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-12_h90.png",
+      "temp": -12,
+      "humidity": 90
+    },
+    "t-12_h95": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-12_h95.png",
+      "temp": -12,
+      "humidity": 95
+    },
+    "t-12_h100": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-12_h100.png",
+      "temp": -12,
+      "humidity": 100
+    },
+    "t-11_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-11_h0.png",
+      "temp": -11,
+      "humidity": 0
+    },
+    "t-11_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-11_h5.png",
+      "temp": -11,
+      "humidity": 5
+    },
+    "t-11_h10": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-11_h10.png",
+      "temp": -11,
+      "humidity": 10
+    },
+    "t-11_h15": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-11_h15.png",
+      "temp": -11,
+      "humidity": 15
+    },
+    "t-11_h20": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-11_h20.png",
+      "temp": -11,
+      "humidity": 20
+    },
+    "t-11_h25": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-11_h25.png",
+      "temp": -11,
+      "humidity": 25
+    },
+    "t-11_h30": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-11_h30.png",
+      "temp": -11,
+      "humidity": 30
+    },
+    "t-11_h35": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-11_h35.png",
+      "temp": -11,
+      "humidity": 35
+    },
+    "t-11_h40": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-11_h40.png",
+      "temp": -11,
+      "humidity": 40
+    },
+    "t-11_h45": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-11_h45.png",
+      "temp": -11,
+      "humidity": 45
+    },
+    "t-11_h50": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-11_h50.png",
+      "temp": -11,
+      "humidity": 50
+    },
+    "t-11_h55": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-11_h55.png",
+      "temp": -11,
+      "humidity": 55
+    },
+    "t-11_h60": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-11_h60.png",
+      "temp": -11,
+      "humidity": 60
+    },
+    "t-11_h65": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-11_h65.png",
+      "temp": -11,
+      "humidity": 65
+    },
+    "t-11_h70": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-11_h70.png",
+      "temp": -11,
+      "humidity": 70
+    },
+    "t-11_h75": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-11_h75.png",
+      "temp": -11,
+      "humidity": 75
+    },
+    "t-11_h80": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-11_h80.png",
+      "temp": -11,
+      "humidity": 80
+    },
+    "t-11_h85": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-11_h85.png",
+      "temp": -11,
+      "humidity": 85
+    },
+    "t-11_h90": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-11_h90.png",
+      "temp": -11,
+      "humidity": 90
+    },
+    "t-11_h95": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-11_h95.png",
+      "temp": -11,
+      "humidity": 95
+    },
+    "t-11_h100": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-11_h100.png",
+      "temp": -11,
+      "humidity": 100
+    },
+    "t-10_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h0.png",
+      "temp": -10,
+      "humidity": 0
+    },
+    "t-10_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h5.png",
+      "temp": -10,
+      "humidity": 5
+    },
+    "t-10_h10": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h10.png",
+      "temp": -10,
+      "humidity": 10
+    },
+    "t-10_h15": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h15.png",
+      "temp": -10,
+      "humidity": 15
+    },
+    "t-10_h20": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h20.png",
+      "temp": -10,
+      "humidity": 20
+    },
+    "t-10_h25": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h25.png",
+      "temp": -10,
+      "humidity": 25
+    },
+    "t-10_h30": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h30.png",
+      "temp": -10,
+      "humidity": 30
+    },
+    "t-10_h35": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h35.png",
+      "temp": -10,
+      "humidity": 35
+    },
+    "t-10_h40": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-10_h40.png",
+      "temp": -10,
+      "humidity": 40
+    },
+    "t-10_h45": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-10_h45.png",
+      "temp": -10,
+      "humidity": 45
+    },
+    "t-10_h50": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-10_h50.png",
+      "temp": -10,
+      "humidity": 50
+    },
+    "t-10_h55": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-10_h55.png",
+      "temp": -10,
+      "humidity": 55
+    },
+    "t-10_h60": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-10_h60.png",
+      "temp": -10,
+      "humidity": 60
+    },
+    "t-10_h65": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-10_h65.png",
+      "temp": -10,
+      "humidity": 65
+    },
+    "t-10_h70": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-10_h70.png",
+      "temp": -10,
+      "humidity": 70
+    },
+    "t-10_h75": {
+      "type": "STELLAR_SIMPLE",
+      "file": "crystal_t-10_h75.png",
+      "temp": -10,
+      "humidity": 75
+    },
+    "t-10_h80": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-10_h80.png",
+      "temp": -10,
+      "humidity": 80
+    },
+    "t-10_h85": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-10_h85.png",
+      "temp": -10,
+      "humidity": 85
+    },
+    "t-10_h90": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-10_h90.png",
+      "temp": -10,
+      "humidity": 90
+    },
+    "t-10_h95": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-10_h95.png",
+      "temp": -10,
+      "humidity": 95
+    },
+    "t-10_h100": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-10_h100.png",
+      "temp": -10,
+      "humidity": 100
+    },
+    "t-9_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h0.png",
+      "temp": -9,
+      "humidity": 0
+    },
+    "t-9_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h5.png",
+      "temp": -9,
+      "humidity": 5
+    },
+    "t-9_h10": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h10.png",
+      "temp": -9,
+      "humidity": 10
+    },
+    "t-9_h15": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h15.png",
+      "temp": -9,
+      "humidity": 15
+    },
+    "t-9_h20": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h20.png",
+      "temp": -9,
+      "humidity": 20
+    },
+    "t-9_h25": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h25.png",
+      "temp": -9,
+      "humidity": 25
+    },
+    "t-9_h30": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h30.png",
+      "temp": -9,
+      "humidity": 30
+    },
+    "t-9_h35": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h35.png",
+      "temp": -9,
+      "humidity": 35
+    },
+    "t-9_h40": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-9_h40.png",
+      "temp": -9,
+      "humidity": 40
+    },
+    "t-9_h45": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-9_h45.png",
+      "temp": -9,
+      "humidity": 45
+    },
+    "t-9_h50": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-9_h50.png",
+      "temp": -9,
+      "humidity": 50
+    },
+    "t-9_h55": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-9_h55.png",
+      "temp": -9,
+      "humidity": 55
+    },
+    "t-9_h60": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-9_h60.png",
+      "temp": -9,
+      "humidity": 60
+    },
+    "t-9_h65": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-9_h65.png",
+      "temp": -9,
+      "humidity": 65
+    },
+    "t-9_h70": {
+      "type": "PLATE_SECTOR",
+      "file": "crystal_t-9_h70.png",
+      "temp": -9,
+      "humidity": 70
+    },
+    "t-9_h75": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-9_h75.png",
+      "temp": -9,
+      "humidity": 75
+    },
+    "t-9_h80": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-9_h80.png",
+      "temp": -9,
+      "humidity": 80
+    },
+    "t-9_h85": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-9_h85.png",
+      "temp": -9,
+      "humidity": 85
+    },
+    "t-9_h90": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-9_h90.png",
+      "temp": -9,
+      "humidity": 90
+    },
+    "t-9_h95": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-9_h95.png",
+      "temp": -9,
+      "humidity": 95
+    },
+    "t-9_h100": {
+      "type": "STELLAR_DENDRITE",
+      "file": "crystal_t-9_h100.png",
+      "temp": -9,
+      "humidity": 100
+    },
+    "t-8_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h0.png",
+      "temp": -8,
+      "humidity": 0
+    },
+    "t-8_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h5.png",
+      "temp": -8,
+      "humidity": 5
+    },
+    "t-8_h10": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h10.png",
+      "temp": -8,
+      "humidity": 10
+    },
+    "t-8_h15": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h15.png",
+      "temp": -8,
+      "humidity": 15
+    },
+    "t-8_h20": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h20.png",
+      "temp": -8,
+      "humidity": 20
+    },
+    "t-8_h25": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h25.png",
+      "temp": -8,
+      "humidity": 25
+    },
+    "t-8_h30": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h30.png",
+      "temp": -8,
+      "humidity": 30
+    },
+    "t-8_h35": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h35.png",
+      "temp": -8,
+      "humidity": 35
+    },
+    "t-8_h40": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-8_h40.png",
+      "temp": -8,
+      "humidity": 40
+    },
+    "t-8_h45": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-8_h45.png",
+      "temp": -8,
+      "humidity": 45
+    },
+    "t-8_h50": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-8_h50.png",
+      "temp": -8,
+      "humidity": 50
+    },
+    "t-8_h55": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-8_h55.png",
+      "temp": -8,
+      "humidity": 55
+    },
+    "t-8_h60": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-8_h60.png",
+      "temp": -8,
+      "humidity": 60
+    },
+    "t-8_h65": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-8_h65.png",
+      "temp": -8,
+      "humidity": 65
+    },
+    "t-8_h70": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-8_h70.png",
+      "temp": -8,
+      "humidity": 70
+    },
+    "t-8_h75": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-8_h75.png",
+      "temp": -8,
+      "humidity": 75
+    },
+    "t-8_h80": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-8_h80.png",
+      "temp": -8,
+      "humidity": 80
+    },
+    "t-8_h85": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-8_h85.png",
+      "temp": -8,
+      "humidity": 85
+    },
+    "t-8_h90": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-8_h90.png",
+      "temp": -8,
+      "humidity": 90
+    },
+    "t-8_h95": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-8_h95.png",
+      "temp": -8,
+      "humidity": 95
+    },
+    "t-8_h100": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-8_h100.png",
+      "temp": -8,
+      "humidity": 100
+    },
+    "t-7_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-7_h0.png",
+      "temp": -7,
+      "humidity": 0
+    },
+    "t-7_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-7_h5.png",
+      "temp": -7,
+      "humidity": 5
+    },
+    "t-7_h10": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-7_h10.png",
+      "temp": -7,
+      "humidity": 10
+    },
+    "t-7_h15": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-7_h15.png",
+      "temp": -7,
+      "humidity": 15
+    },
+    "t-7_h20": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-7_h20.png",
+      "temp": -7,
+      "humidity": 20
+    },
+    "t-7_h25": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-7_h25.png",
+      "temp": -7,
+      "humidity": 25
+    },
+    "t-7_h30": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-7_h30.png",
+      "temp": -7,
+      "humidity": 30
+    },
+    "t-7_h35": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-7_h35.png",
+      "temp": -7,
+      "humidity": 35
+    },
+    "t-7_h40": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-7_h40.png",
+      "temp": -7,
+      "humidity": 40
+    },
+    "t-7_h45": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-7_h45.png",
+      "temp": -7,
+      "humidity": 45
+    },
+    "t-7_h50": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-7_h50.png",
+      "temp": -7,
+      "humidity": 50
+    },
+    "t-7_h55": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-7_h55.png",
+      "temp": -7,
+      "humidity": 55
+    },
+    "t-7_h60": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-7_h60.png",
+      "temp": -7,
+      "humidity": 60
+    },
+    "t-7_h65": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-7_h65.png",
+      "temp": -7,
+      "humidity": 65
+    },
+    "t-7_h70": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-7_h70.png",
+      "temp": -7,
+      "humidity": 70
+    },
+    "t-7_h75": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-7_h75.png",
+      "temp": -7,
+      "humidity": 75
+    },
+    "t-7_h80": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-7_h80.png",
+      "temp": -7,
+      "humidity": 80
+    },
+    "t-7_h85": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-7_h85.png",
+      "temp": -7,
+      "humidity": 85
+    },
+    "t-7_h90": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-7_h90.png",
+      "temp": -7,
+      "humidity": 90
+    },
+    "t-7_h95": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-7_h95.png",
+      "temp": -7,
+      "humidity": 95
+    },
+    "t-7_h100": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-7_h100.png",
+      "temp": -7,
+      "humidity": 100
+    },
+    "t-6_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-6_h0.png",
+      "temp": -6,
+      "humidity": 0
+    },
+    "t-6_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-6_h5.png",
+      "temp": -6,
+      "humidity": 5
+    },
+    "t-6_h10": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-6_h10.png",
+      "temp": -6,
+      "humidity": 10
+    },
+    "t-6_h15": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-6_h15.png",
+      "temp": -6,
+      "humidity": 15
+    },
+    "t-6_h20": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-6_h20.png",
+      "temp": -6,
+      "humidity": 20
+    },
+    "t-6_h25": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-6_h25.png",
+      "temp": -6,
+      "humidity": 25
+    },
+    "t-6_h30": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-6_h30.png",
+      "temp": -6,
+      "humidity": 30
+    },
+    "t-6_h35": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-6_h35.png",
+      "temp": -6,
+      "humidity": 35
+    },
+    "t-6_h40": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-6_h40.png",
+      "temp": -6,
+      "humidity": 40
+    },
+    "t-6_h45": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-6_h45.png",
+      "temp": -6,
+      "humidity": 45
+    },
+    "t-6_h50": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-6_h50.png",
+      "temp": -6,
+      "humidity": 50
+    },
+    "t-6_h55": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-6_h55.png",
+      "temp": -6,
+      "humidity": 55
+    },
+    "t-6_h60": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-6_h60.png",
+      "temp": -6,
+      "humidity": 60
+    },
+    "t-6_h65": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-6_h65.png",
+      "temp": -6,
+      "humidity": 65
+    },
+    "t-6_h70": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-6_h70.png",
+      "temp": -6,
+      "humidity": 70
+    },
+    "t-6_h75": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-6_h75.png",
+      "temp": -6,
+      "humidity": 75
+    },
+    "t-6_h80": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-6_h80.png",
+      "temp": -6,
+      "humidity": 80
+    },
+    "t-6_h85": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-6_h85.png",
+      "temp": -6,
+      "humidity": 85
+    },
+    "t-6_h90": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-6_h90.png",
+      "temp": -6,
+      "humidity": 90
+    },
+    "t-6_h95": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-6_h95.png",
+      "temp": -6,
+      "humidity": 95
+    },
+    "t-6_h100": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-6_h100.png",
+      "temp": -6,
+      "humidity": 100
+    },
+    "t-5_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-5_h0.png",
+      "temp": -5,
+      "humidity": 0
+    },
+    "t-5_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-5_h5.png",
+      "temp": -5,
+      "humidity": 5
+    },
+    "t-5_h10": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-5_h10.png",
+      "temp": -5,
+      "humidity": 10
+    },
+    "t-5_h15": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-5_h15.png",
+      "temp": -5,
+      "humidity": 15
+    },
+    "t-5_h20": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-5_h20.png",
+      "temp": -5,
+      "humidity": 20
+    },
+    "t-5_h25": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-5_h25.png",
+      "temp": -5,
+      "humidity": 25
+    },
+    "t-5_h30": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-5_h30.png",
+      "temp": -5,
+      "humidity": 30
+    },
+    "t-5_h35": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-5_h35.png",
+      "temp": -5,
+      "humidity": 35
+    },
+    "t-5_h40": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-5_h40.png",
+      "temp": -5,
+      "humidity": 40
+    },
+    "t-5_h45": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-5_h45.png",
+      "temp": -5,
+      "humidity": 45
+    },
+    "t-5_h50": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-5_h50.png",
+      "temp": -5,
+      "humidity": 50
+    },
+    "t-5_h55": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-5_h55.png",
+      "temp": -5,
+      "humidity": 55
+    },
+    "t-5_h60": {
+      "type": "COLUMN_CAPPED",
+      "file": "crystal_t-5_h60.png",
+      "temp": -5,
+      "humidity": 60
+    },
+    "t-5_h65": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-5_h65.png",
+      "temp": -5,
+      "humidity": 65
+    },
+    "t-5_h70": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-5_h70.png",
+      "temp": -5,
+      "humidity": 70
+    },
+    "t-5_h75": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-5_h75.png",
+      "temp": -5,
+      "humidity": 75
+    },
+    "t-5_h80": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-5_h80.png",
+      "temp": -5,
+      "humidity": 80
+    },
+    "t-5_h85": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-5_h85.png",
+      "temp": -5,
+      "humidity": 85
+    },
+    "t-5_h90": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-5_h90.png",
+      "temp": -5,
+      "humidity": 90
+    },
+    "t-5_h95": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-5_h95.png",
+      "temp": -5,
+      "humidity": 95
+    },
+    "t-5_h100": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-5_h100.png",
+      "temp": -5,
+      "humidity": 100
+    },
+    "t-4_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-4_h0.png",
+      "temp": -4,
+      "humidity": 0
+    },
+    "t-4_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-4_h5.png",
+      "temp": -4,
+      "humidity": 5
+    },
+    "t-4_h10": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-4_h10.png",
+      "temp": -4,
+      "humidity": 10
+    },
+    "t-4_h15": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-4_h15.png",
+      "temp": -4,
+      "humidity": 15
+    },
+    "t-4_h20": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-4_h20.png",
+      "temp": -4,
+      "humidity": 20
+    },
+    "t-4_h25": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-4_h25.png",
+      "temp": -4,
+      "humidity": 25
+    },
+    "t-4_h30": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-4_h30.png",
+      "temp": -4,
+      "humidity": 30
+    },
+    "t-4_h35": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-4_h35.png",
+      "temp": -4,
+      "humidity": 35
+    },
+    "t-4_h40": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-4_h40.png",
+      "temp": -4,
+      "humidity": 40
+    },
+    "t-4_h45": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-4_h45.png",
+      "temp": -4,
+      "humidity": 45
+    },
+    "t-4_h50": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-4_h50.png",
+      "temp": -4,
+      "humidity": 50
+    },
+    "t-4_h55": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-4_h55.png",
+      "temp": -4,
+      "humidity": 55
+    },
+    "t-4_h60": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-4_h60.png",
+      "temp": -4,
+      "humidity": 60
+    },
+    "t-4_h65": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-4_h65.png",
+      "temp": -4,
+      "humidity": 65
+    },
+    "t-4_h70": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-4_h70.png",
+      "temp": -4,
+      "humidity": 70
+    },
+    "t-4_h75": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-4_h75.png",
+      "temp": -4,
+      "humidity": 75
+    },
+    "t-4_h80": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-4_h80.png",
+      "temp": -4,
+      "humidity": 80
+    },
+    "t-4_h85": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-4_h85.png",
+      "temp": -4,
+      "humidity": 85
+    },
+    "t-4_h90": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-4_h90.png",
+      "temp": -4,
+      "humidity": 90
+    },
+    "t-4_h95": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-4_h95.png",
+      "temp": -4,
+      "humidity": 95
+    },
+    "t-4_h100": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-4_h100.png",
+      "temp": -4,
+      "humidity": 100
+    },
+    "t-3_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-3_h0.png",
+      "temp": -3,
+      "humidity": 0
+    },
+    "t-3_h5": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-3_h5.png",
+      "temp": -3,
+      "humidity": 5
+    },
+    "t-3_h10": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h10.png",
+      "temp": -3,
+      "humidity": 10
+    },
+    "t-3_h15": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h15.png",
+      "temp": -3,
+      "humidity": 15
+    },
+    "t-3_h20": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h20.png",
+      "temp": -3,
+      "humidity": 20
+    },
+    "t-3_h25": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h25.png",
+      "temp": -3,
+      "humidity": 25
+    },
+    "t-3_h30": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h30.png",
+      "temp": -3,
+      "humidity": 30
+    },
+    "t-3_h35": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h35.png",
+      "temp": -3,
+      "humidity": 35
+    },
+    "t-3_h40": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h40.png",
+      "temp": -3,
+      "humidity": 40
+    },
+    "t-3_h45": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h45.png",
+      "temp": -3,
+      "humidity": 45
+    },
+    "t-3_h50": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-3_h50.png",
+      "temp": -3,
+      "humidity": 50
+    },
+    "t-3_h55": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-3_h55.png",
+      "temp": -3,
+      "humidity": 55
+    },
+    "t-3_h60": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-3_h60.png",
+      "temp": -3,
+      "humidity": 60
+    },
+    "t-3_h65": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-3_h65.png",
+      "temp": -3,
+      "humidity": 65
+    },
+    "t-3_h70": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-3_h70.png",
+      "temp": -3,
+      "humidity": 70
+    },
+    "t-3_h75": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-3_h75.png",
+      "temp": -3,
+      "humidity": 75
+    },
+    "t-3_h80": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-3_h80.png",
+      "temp": -3,
+      "humidity": 80
+    },
+    "t-3_h85": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-3_h85.png",
+      "temp": -3,
+      "humidity": 85
+    },
+    "t-3_h90": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-3_h90.png",
+      "temp": -3,
+      "humidity": 90
+    },
+    "t-3_h95": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-3_h95.png",
+      "temp": -3,
+      "humidity": 95
+    },
+    "t-3_h100": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-3_h100.png",
+      "temp": -3,
+      "humidity": 100
+    },
+    "t-2_h0": {
+      "type": "COLUMN_SIMPLE",
+      "file": "crystal_t-2_h0.png",
+      "temp": -2,
+      "humidity": 0
+    },
+    "t-2_h5": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h5.png",
+      "temp": -2,
+      "humidity": 5
+    },
+    "t-2_h10": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h10.png",
+      "temp": -2,
+      "humidity": 10
+    },
+    "t-2_h15": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h15.png",
+      "temp": -2,
+      "humidity": 15
+    },
+    "t-2_h20": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h20.png",
+      "temp": -2,
+      "humidity": 20
+    },
+    "t-2_h25": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h25.png",
+      "temp": -2,
+      "humidity": 25
+    },
+    "t-2_h30": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h30.png",
+      "temp": -2,
+      "humidity": 30
+    },
+    "t-2_h35": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h35.png",
+      "temp": -2,
+      "humidity": 35
+    },
+    "t-2_h40": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h40.png",
+      "temp": -2,
+      "humidity": 40
+    },
+    "t-2_h45": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-2_h45.png",
+      "temp": -2,
+      "humidity": 45
+    },
+    "t-2_h50": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-2_h50.png",
+      "temp": -2,
+      "humidity": 50
+    },
+    "t-2_h55": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-2_h55.png",
+      "temp": -2,
+      "humidity": 55
+    },
+    "t-2_h60": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-2_h60.png",
+      "temp": -2,
+      "humidity": 60
+    },
+    "t-2_h65": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-2_h65.png",
+      "temp": -2,
+      "humidity": 65
+    },
+    "t-2_h70": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-2_h70.png",
+      "temp": -2,
+      "humidity": 70
+    },
+    "t-2_h75": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-2_h75.png",
+      "temp": -2,
+      "humidity": 75
+    },
+    "t-2_h80": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-2_h80.png",
+      "temp": -2,
+      "humidity": 80
+    },
+    "t-2_h85": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-2_h85.png",
+      "temp": -2,
+      "humidity": 85
+    },
+    "t-2_h90": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-2_h90.png",
+      "temp": -2,
+      "humidity": 90
+    },
+    "t-2_h95": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-2_h95.png",
+      "temp": -2,
+      "humidity": 95
+    },
+    "t-2_h100": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-2_h100.png",
+      "temp": -2,
+      "humidity": 100
+    },
+    "t-1_h0": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h0.png",
+      "temp": -1,
+      "humidity": 0
+    },
+    "t-1_h5": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h5.png",
+      "temp": -1,
+      "humidity": 5
+    },
+    "t-1_h10": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h10.png",
+      "temp": -1,
+      "humidity": 10
+    },
+    "t-1_h15": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h15.png",
+      "temp": -1,
+      "humidity": 15
+    },
+    "t-1_h20": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h20.png",
+      "temp": -1,
+      "humidity": 20
+    },
+    "t-1_h25": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h25.png",
+      "temp": -1,
+      "humidity": 25
+    },
+    "t-1_h30": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h30.png",
+      "temp": -1,
+      "humidity": 30
+    },
+    "t-1_h35": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h35.png",
+      "temp": -1,
+      "humidity": 35
+    },
+    "t-1_h40": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h40.png",
+      "temp": -1,
+      "humidity": 40
+    },
+    "t-1_h45": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t-1_h45.png",
+      "temp": -1,
+      "humidity": 45
+    },
+    "t-1_h50": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-1_h50.png",
+      "temp": -1,
+      "humidity": 50
+    },
+    "t-1_h55": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-1_h55.png",
+      "temp": -1,
+      "humidity": 55
+    },
+    "t-1_h60": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-1_h60.png",
+      "temp": -1,
+      "humidity": 60
+    },
+    "t-1_h65": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-1_h65.png",
+      "temp": -1,
+      "humidity": 65
+    },
+    "t-1_h70": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t-1_h70.png",
+      "temp": -1,
+      "humidity": 70
+    },
+    "t-1_h75": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-1_h75.png",
+      "temp": -1,
+      "humidity": 75
+    },
+    "t-1_h80": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-1_h80.png",
+      "temp": -1,
+      "humidity": 80
+    },
+    "t-1_h85": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-1_h85.png",
+      "temp": -1,
+      "humidity": 85
+    },
+    "t-1_h90": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-1_h90.png",
+      "temp": -1,
+      "humidity": 90
+    },
+    "t-1_h95": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t-1_h95.png",
+      "temp": -1,
+      "humidity": 95
+    },
+    "t-1_h100": {
+      "type": "NEEDLE_THICK",
+      "file": "crystal_t-1_h100.png",
+      "temp": -1,
+      "humidity": 100
+    },
+    "t0_h0": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h0.png",
+      "temp": 0,
+      "humidity": 0
+    },
+    "t0_h5": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h5.png",
+      "temp": 0,
+      "humidity": 5
+    },
+    "t0_h10": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h10.png",
+      "temp": 0,
+      "humidity": 10
+    },
+    "t0_h15": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h15.png",
+      "temp": 0,
+      "humidity": 15
+    },
+    "t0_h20": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h20.png",
+      "temp": 0,
+      "humidity": 20
+    },
+    "t0_h25": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h25.png",
+      "temp": 0,
+      "humidity": 25
+    },
+    "t0_h30": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h30.png",
+      "temp": 0,
+      "humidity": 30
+    },
+    "t0_h35": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h35.png",
+      "temp": 0,
+      "humidity": 35
+    },
+    "t0_h40": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h40.png",
+      "temp": 0,
+      "humidity": 40
+    },
+    "t0_h45": {
+      "type": "ASYMMETRIC",
+      "file": "crystal_t0_h45.png",
+      "temp": 0,
+      "humidity": 45
+    },
+    "t0_h50": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t0_h50.png",
+      "temp": 0,
+      "humidity": 50
+    },
+    "t0_h55": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t0_h55.png",
+      "temp": 0,
+      "humidity": 55
+    },
+    "t0_h60": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t0_h60.png",
+      "temp": 0,
+      "humidity": 60
+    },
+    "t0_h65": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t0_h65.png",
+      "temp": 0,
+      "humidity": 65
+    },
+    "t0_h70": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t0_h70.png",
+      "temp": 0,
+      "humidity": 70
+    },
+    "t0_h75": {
+      "type": "TRIANGULAR",
+      "file": "crystal_t0_h75.png",
+      "temp": 0,
+      "humidity": 75
+    },
+    "t0_h80": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t0_h80.png",
+      "temp": 0,
+      "humidity": 80
+    },
+    "t0_h85": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t0_h85.png",
+      "temp": 0,
+      "humidity": 85
+    },
+    "t0_h90": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t0_h90.png",
+      "temp": 0,
+      "humidity": 90
+    },
+    "t0_h95": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t0_h95.png",
+      "temp": 0,
+      "humidity": 95
+    },
+    "t0_h100": {
+      "type": "NEEDLE_THIN",
+      "file": "crystal_t0_h100.png",
+      "temp": 0,
+      "humidity": 100
+    }
+  }
+}

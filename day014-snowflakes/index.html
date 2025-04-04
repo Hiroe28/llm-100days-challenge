@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <meta property="og:title" content="雪の結晶ジェネレーター" />
+    <meta property="og:description" content="気温と湿度の設定に基づいて様々な種類の雪の結晶を生成し、美しい雪景色をシミュレーションするWeb アプリケーションです。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day014-snowflakes/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day014-snowflakes/index.html" />
+    <meta name="twitter:card" content="summary_large_image" />  
+  
+
+    <title>雪の結晶ジェネレーター</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: linear-gradient(135deg, #0b2545 0%, #13315c 100%);
+            color: #c2d8eb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            padding: 25px;
+            background-color: rgba(19, 49, 92, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 60, 120, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(120, 190, 255, 0.7);
+            font-weight: 700;
+            font-size: 32px;
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: rgba(7, 25, 54, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 40, 100, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .slider-container {
+            flex: 1;
+            margin-bottom: 15px;
+        }
+        
+        .preview-container {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, #1a427c 0%, #0a2045 100%);
+            border-radius: 60px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(65, 137, 230, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: glow 4s ease-in-out infinite alternate;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes glow {
+            0% { box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5), 0 0 10px rgba(65, 137, 230, 0.3); }
+            100% { box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5), 0 0 25px rgba(120, 190, 255, 0.5); }
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #a1c6ea;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #0c2d6a, #4189e6);
+            border-radius: 8px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            margin-bottom: 15px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(135deg, #ffffff, #a1c6ea);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 73, 141, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 20px 0 10px;
+            background: linear-gradient(to right, #0c4a94, #4189e6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 15px rgba(65, 137, 230, 0.4);
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            font-weight: 500;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            background: linear-gradient(to right, #0c5eb8, #59a0ff);
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(89, 160, 255, 0.6);
+        }
+        
+        button:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: transform 0.6s, opacity 0.6s;
+        }
+        
+        button:hover:after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .crystal-type {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(10, 40, 80, 0.5);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(65, 137, 230, 0.2);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .crystal-type::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.05) 50%, 
+                rgba(255,255,255,0) 100%);
+            transform: translateX(-100%);
+            animation: crystal-shine 8s infinite;
+        }
+        
+        @keyframes crystal-shine {
+            0% { transform: translateX(-100%); }
+            20% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        #crystal-type-label {
+            font-weight: 700;
+            color: #59a0ff;
+            text-shadow: 0 0 10px rgba(89, 160, 255, 0.7);
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            overflow: hidden;
+            border-radius: 15px;
+            background: radial-gradient(ellipse at bottom, #0c2d6a 0%, #061429 100%);
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(65, 137, 230, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(10, 30, 70, 0.85);
+            padding: 15px 30px;
+            border-radius: 30px;
+            color: #ffffff;
+            font-weight: 500;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(89, 160, 255, 0.5);
+            border: 1px solid rgba(89, 160, 255, 0.3);
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+        
+        #loading-indicator::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            margin-left: 5px;
+            text-align: left;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+        
+        .bg-snowflake {
+            position: absolute;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(1px);
+        }
+        
+        .value-display {
+            font-weight: 700;
+            color: #59a0ff;
+            text-shadow: 0 0 5px rgba(89, 160, 255, 0.7);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .crystal-description {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #a1c6ea;
+            line-height: 1.4;
+        }
+        
+        .sparkle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background-color: white;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+            animation: sparkle-anim 1.5s ease-in-out forwards;
+        }
+        
+        @keyframes sparkle-anim {
+            0% { transform: scale(0); opacity: 0; }
+            20% { transform: scale(1.5); opacity: 1; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .preview-img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
+        .snowflake-img {
+            position: absolute;
+            pointer-events: none;
+            will-change: transform;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景装飾用の雪の結晶 -->
+    <div id="bg-snowflakes"></div>
+    
+    <div class="container fade-in">
+        <h1>雪の結晶ジェネレーター</h1>
+        
+        <div class="controls">
+            <div class="control-row">
+                <div class="slider-container">
+                    <label for="temperature">気温: <span id="temp-value" class="value-display">-10°C</span></label>
+                    <input type="range" id="temperature" min="-20" max="0" value="-10" step="1">
+                
+                    <label for="humidity">湿度: <span id="humidity-value" class="value-display">50%</span></label>
+                    <input type="range" id="humidity" min="0" max="100" value="50" step="5">
+                </div>
+                <div class="preview-container">
+                    <img id="preview-image" class="preview-img" src="" alt="結晶プレビュー">
+                </div>
+            </div>
+            
+            <button id="generate-btn">この条件で結晶を生成</button>
+            
+            <div class="crystal-type">
+                <span>結晶タイプ: </span>
+                <span id="crystal-type-label">樹枝状</span>
+                <div id="crystal-description" class="crystal-description">
+                    気温と湿度によって結晶のタイプが変化します。
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="snowfall-canvas"></canvas>
+            <div id="loading-indicator">結晶読み込み中</div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM要素の取得
+        const temperatureSlider = document.getElementById('temperature');
+        const humiditySlider = document.getElementById('humidity');
+        const tempValueEl = document.getElementById('temp-value');
+        const humidityValueEl = document.getElementById('humidity-value');
+        const generateBtn = document.getElementById('generate-btn');
+        const crystalTypeLabel = document.getElementById('crystal-type-label');
+        const crystalDescription = document.getElementById('crystal-description');
+        const canvas = document.getElementById('snowfall-canvas');
+        const previewImage = document.getElementById('preview-image');
+        const ctx = canvas.getContext('2d');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const bgSnowflakes = document.getElementById('bg-snowflakes');
+
+        // 雪の結晶データとプリロードされた画像
+        let crystalData = null;
+        const crystalImages = {};
+
+        // キャンバスサイズの設定
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        // 初期設定
+        let snowflakes = [];
+        let animationId = null;
+        const SNOWFLAKE_COUNT = 20;
+        let lastFrameTime = 0;
+        const targetFPS = 30; // 目標FPS
+
+        // 初期化関数
+        async function init() {
+            // イベントリスナーの設定
+            window.addEventListener('resize', resizeCanvas);
+            
+            // 温度・湿度スライダーの変更イベント
+            temperatureSlider.addEventListener('input', () => {
+                updateTempValue();
+                updatePreview();
+            });
+            
+            humiditySlider.addEventListener('input', () => {
+                updateHumidityValue();
+                updatePreview();
+            });
+            
+            generateBtn.addEventListener('click', generateSnowflakes);
+            generateBtn.addEventListener('click', createSparkleEffect);
+            
+            // 初期化
+            resizeCanvas();
+            updateTempValue();
+            updateHumidityValue();
+            
+            // 背景の雪の結晶を生成
+            createBackgroundSnowflakes();
+            
+            // 結晶データを読み込む
+            await loadCrystalData();
+            
+            // プレビューを更新
+            updatePreview();
+            
+            // 最初の雪の結晶を生成
+            generateSnowflakes();
+        }
+        
+        // 結晶データを読み込む
+        async function loadCrystalData() {
+            try {
+                loadingIndicator.style.display = 'block';
+                
+                // 結晶データJSONを読み込む
+                const response = await fetch('snowflakes/crystal_data.json');
+                crystalData = await response.json();
+                
+                // プリロードする結晶画像（温度と湿度の各組み合わせの代表的なもの）
+                const preloadTemps = [-20, -15, -10, -5, 0];
+                const preloadHumidities = [0, 25, 50, 75, 100];
+                
+                const totalToPreload = preloadTemps.length * preloadHumidities.length;
+                let loaded = 0;
+                
+                for (const temp of preloadTemps) {
+                    for (const humidity of preloadHumidities) {
+                        const key = `t${temp}_h${humidity}`;
+                        if (crystalData.mappings[key]) {
+                            const img = new Image();
+                            img.src = `snowflakes/${crystalData.mappings[key].file}`;
+                            img.onload = () => {
+                                loaded++;
+                                if (loaded === totalToPreload) {
+                                    loadingIndicator.style.display = 'none';
+                                }
+                            };
+                            crystalImages[key] = img;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('結晶データの読み込みに失敗しました:', error);
+                loadingIndicator.style.display = 'none';
+            }
+        }
+        
+        // 必要な結晶画像を読み込む（必要時にのみ）
+        function loadCrystalImage(temp, humidity) {
+            return new Promise((resolve) => {
+                const key = `t${temp}_h${humidity}`;
+                
+                // 既に読み込み済みならそれを返す
+                if (crystalImages[key]) {
+                    resolve(crystalImages[key]);
+                    return;
+                }
+                
+                // 結晶データが見つからない場合
+                if (!crystalData || !crystalData.mappings[key]) {
+                    console.warn(`結晶データが見つかりません: ${key}`);
+                    resolve(null);
+                    return;
+                }
+                
+                // 画像を読み込む
+                const img = new Image();
+                img.onload = () => {
+                    crystalImages[key] = img;
+                    resolve(img);
+                };
+                img.onerror = () => {
+                    console.error(`画像の読み込みに失敗しました: ${key}`);
+                    resolve(null);
+                };
+                img.src = `snowflakes/${crystalData.mappings[key].file}`;
+            });
+        }
+
+        // 背景の雪の結晶を生成
+        function createBackgroundSnowflakes() {
+            bgSnowflakes.innerHTML = '';
+            const bgFlakeCount = 15;
+            
+            for (let i = 0; i < bgFlakeCount; i++) {
+                const size = Math.random() * 100 + 50;
+                const flake = document.createElement('div');
+                flake.className = 'bg-snowflake';
+                flake.style.width = `${size}px`;
+                flake.style.height = `${size}px`;
+                flake.style.top = `${Math.random() * 100}%`;
+                flake.style.left = `${Math.random() * 100}%`;
+                flake.style.opacity = `${Math.random() * 0.15 + 0.05}`;
+                flake.style.transform = `rotate(${Math.random() * 60}deg)`;
+                
+                // 背景の雪に SVG を使用
+                flake.innerHTML = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 0 L50 100 M0 50 L100 50 M15 15 L85 85 M15 85 L85 15" stroke="white" stroke-width="2" />
+                    <path d="M50 0 L40 20 L60 20 Z M50 100 L40 80 L60 80 Z M0 50 L20 40 L20 60 Z M100 50 L80 40 L80 60 Z" 
+                          stroke="white" fill="white" stroke-width="1" />
+                </svg>`;
+                
+                bgSnowflakes.appendChild(flake);
+            }
+        }
+        
+        // ボタンクリック時のキラキラエフェクト
+        function createSparkleEffect(e) {
+            const buttonRect = generateBtn.getBoundingClientRect();
+            const sparkleCount = 20;
+            
+            // 既存のスパークルをクリア
+            document.querySelectorAll('.sparkle').forEach(s => s.remove());
+            
+            for (let i = 0; i < sparkleCount; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                
+                // ボタンの位置からランダムな位置を計算
+                const x = buttonRect.left + Math.random() * buttonRect.width;
+                const y = buttonRect.top + Math.random() * buttonRect.height;
+                
+                // スタイルを設定
+                sparkle.style.left = `${x}px`;
+                sparkle.style.top = `${y}px`;
+                sparkle.style.width = `${Math.random() * 4 + 2}px`;
+                sparkle.style.height = sparkle.style.width;
+                sparkle.style.backgroundColor = `hsl(${Math.random() * 60 + 200}, 100%, 80%)`;
+                
+                // アニメーション遅延をランダムに設定
+                sparkle.style.animationDelay = `${Math.random() * 0.5}s`;
+                
+                // 体にスパークルを追加
+                document.body.appendChild(sparkle);
+                
+                // アニメーション終了後に要素を削除
+                setTimeout(() => {
+                    sparkle.remove();
+                }, 2000);
+            }
+        }
+
+        // 温度表示の更新
+        function updateTempValue() {
+            tempValueEl.textContent = `${temperatureSlider.value}°C`;
+            updateCrystalType();
+        }
+
+        // 湿度表示の更新
+        function updateHumidityValue() {
+            humidityValueEl.textContent = `${humiditySlider.value}%`;
+            updateCrystalType();
+        }
+        
+        // プレビュー更新
+        async function updatePreview() {
+            // 温度と湿度を取得
+            const tempValue = parseInt(temperatureSlider.value);
+            const humidityValue = parseInt(humiditySlider.value);
+            
+            // プレビュー用の画像を読み込む
+            const previewImg = await loadCrystalImage(tempValue, humidityValue);
+            
+            if (previewImg) {
+                previewImage.src = previewImg.src;
+            }
+        }
+
+        // 結晶タイプの更新
+        function updateCrystalType() {
+            if (!crystalData) return;
+            
+            const temp = parseInt(temperatureSlider.value);
+            const humidity = parseInt(humiditySlider.value);
+            
+            // 最も近いマッピングを探す
+            const key = `t${temp}_h${humidity}`;
+            if (crystalData.mappings[key]) {
+                const type = crystalData.mappings[key].type;
+                
+                if (crystalData.types[type]) {
+                    crystalTypeLabel.textContent = crystalData.types[type].name;
+                    crystalDescription.textContent = crystalData.types[type].description;
+                }
+            }
+        }
+
+        // 雪の結晶を生成
+        async function generateSnowflakes() {
+            if (!crystalData) return;
+            
+            loadingIndicator.style.display = 'block';
+            
+            // 現在のアニメーションを停止
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            // キャンバスをクリア
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 温度と湿度を取得
+            const tempValue = parseInt(temperatureSlider.value);
+            const humidityValue = parseInt(humiditySlider.value);
+            
+            // 結晶タイプを更新
+            updateCrystalType();
+            
+            // 結晶画像を読み込む
+            const crystalImg = await loadCrystalImage(tempValue, humidityValue);
+            
+            if (!crystalImg) {
+                loadingIndicator.style.display = 'none';
+                return;
+            }
+            
+            // HTML要素としての雪を削除
+            document.querySelectorAll('.snowflake-img').forEach(el => el.remove());
+            
+            // 新しい雪の結晶を生成
+            snowflakes = [];
+            for (let i = 0; i < SNOWFLAKE_COUNT; i++) {
+                snowflakes.push(createSnowflake(tempValue, humidityValue, crystalImg));
+            }
+            
+            loadingIndicator.style.display = 'none';
+            
+            // アニメーションを開始
+            animate();
+        }
+
+        // 雪の結晶オブジェクトを作成
+        function createSnowflake(temp, humidity, img) {
+            const size = Math.random() * 30 + 20; // 20~50px
+            const rotationSpeed = Math.random() * 0.01 - 0.005; // 回転速度（ランダム）
+            
+            return {
+                x: Math.random() * canvas.width,
+                y: Math.random() * -canvas.height * 0.5, // 画面上部から降り始める
+                size: size,
+                speed: size * 0.05 + 0.3, // 大きい雪はゆっくり落ちる
+                oscillationSpeed: Math.random() * 0.02 + 0.01,
+                oscillationDistance: Math.random() * 5 + 2,
+                angle: Math.random() * Math.PI * 2, // ランダムな角度から開始
+                rotationSpeed: rotationSpeed,
+                opacity: Math.random() * 0.3 + 0.7, // 透明度
+                temp: temp,
+                humidity: humidity,
+                img: img,
+                glowIntensity: Math.random() * 0.4 + 0.2, // 輝き具合（ランダム）
+                glowSize: Math.random() * 0.3 + 0.7 // 発光サイズ（ランダム）
+            };
+        }
+
+        // 雪の結晶を描画
+        function drawSnowflake(flake) {
+            ctx.save();
+            
+            // 中心位置に移動
+            ctx.translate(flake.x, flake.y);
+            
+            // 透明度の設定
+            ctx.globalAlpha = flake.opacity;
+            
+            // 輝き効果（グロー）を追加
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const glowSize = flake.size * flake.glowSize * 1.5;
+            const glowGradient = ctx.createRadialGradient(
+                0, 0, 0,
+                0, 0, glowSize
+            );
+            glowGradient.addColorStop(0, `rgba(180, 230, 255, ${flake.glowIntensity * 0.2})`);
+            glowGradient.addColorStop(0.6, `rgba(150, 220, 255, ${flake.glowIntensity * 0.05})`);
+            glowGradient.addColorStop(1, 'rgba(150, 220, 255, 0)');
+            
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            
+            // 画像を回転して描画
+            ctx.rotate(flake.angle);
+            ctx.drawImage(
+                flake.img, 
+                -flake.size, -flake.size, 
+                flake.size * 2, flake.size * 2
+            );
+            
+            ctx.restore();
+        }
+
+        // アニメーション関数（FPS制限付き）
+        function animate() {
+            // FPS制限
+            const now = performance.now();
+            const frameInterval = 1000 / targetFPS;
+            
+            if (now - lastFrameTime < frameInterval) {
+                animationId = requestAnimationFrame(animate);
+                return;
+            }
+            
+            lastFrameTime = now;
+            
+            // キャンバスをクリア
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 背景のグラデーションを描画
+            const bgGradient = ctx.createRadialGradient(
+                canvas.width/2, canvas.height/2, 0,
+                canvas.width/2, canvas.height/2, canvas.height
+            );
+            bgGradient.addColorStop(0, 'rgba(20, 60, 120, 1)');
+            bgGradient.addColorStop(0.7, 'rgba(10, 40, 90, 1)');
+            bgGradient.addColorStop(1, 'rgba(5, 20, 50, 1)');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 背景の星空効果（小さな点）を描画
+            if (Math.random() < 0.05) { // 時々新しい星を追加
+                for (let i = 0; i < 3; i++) {
+                    const starX = Math.random() * canvas.width;
+                    const starY = Math.random() * canvas.height * 0.7;
+                    const starSize = Math.random() * 1.5 + 0.5;
+                    const starOpacity = Math.random() * 0.5 + 0.3;
+                    
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.beginPath();
+                    const starGradient = ctx.createRadialGradient(
+                        starX, starY, 0,
+                        starX, starY, starSize * 2
+                    );
+                    starGradient.addColorStop(0, `rgba(255, 255, 255, ${starOpacity})`);
+                    starGradient.addColorStop(0.5, `rgba(200, 220, 255, ${starOpacity * 0.5})`);
+                    starGradient.addColorStop(1, 'rgba(200, 220, 255, 0)');
+                    
+                    ctx.fillStyle = starGradient;
+                    ctx.arc(starX, starY, starSize * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+
+// 結晶の解説モーダルを表示する関数
+function showCrystalInfo(crystalType) {
+    // モーダルコンテナを作成
+    const modal = document.createElement('div');
+    modal.className = 'crystal-modal';
+    
+    // 結晶タイプの情報を取得
+    const typeInfo = crystalData.types[crystalType];
+    
+    // モーダルの内容を作成
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>${typeInfo.name}について</h2>
+            <div class="modal-crystal-container">
+                <img src="snowflakes/${getCrystalImageByType(crystalType)}" alt="${typeInfo.name}" class="modal-crystal-image">
+            </div>
+            <p class="modal-description">${typeInfo.description}</p>
+            <div class="science-fact">
+                <h3>科学豆知識</h3>
+                <p>${getCrystalFactByType(crystalType)}</p>
+            </div>
+            <div class="fun-activity">
+                <h3>やってみよう！</h3>
+                <p>${getCrystalActivityByType(crystalType)}</p>
+            </div>
+        </div>
+    `;
+    
+    // モーダルを本体に追加
+    document.body.appendChild(modal);
+    
+    // 閉じるボタンの動作を設定
+    const closeButton = modal.querySelector('.close-button');
+    closeButton.addEventListener('click', () => {
+        modal.classList.add('modal-closing');
+        setTimeout(() => {
+            document.body.removeChild(modal);
+        }, 300);
+    });
+    
+    // モーダル外クリックで閉じる
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('modal-closing');
+            setTimeout(() => {
+                document.body.removeChild(modal);
+            }, 300);
+        }
+    });
+    
+    // モーダルを表示（アニメーション用に少し遅らせる）
+    setTimeout(() => {
+        modal.classList.add('modal-active');
+    }, 10);
+}
+
+// 結晶タイプに基づいて画像ファイル名を取得する関数
+function getCrystalImageByType(crystalType) {
+    // タイプに合わせた代表的な温度と湿度の組み合わせから画像を選択
+    const typeTempHumidity = {
+        'NEEDLE_THIN': {temp: -4, humidity: 75},
+        'NEEDLE_THICK': {temp: -6, humidity: 90},
+        'COLUMN_SIMPLE': {temp: -9, humidity: 20},
+        'COLUMN_CAPPED': {temp: -7, humidity: 55},
+        'PLATE_SIMPLE': {temp: -14, humidity: 20},
+        'PLATE_SECTOR': {temp: -10, humidity: 55},
+        'STELLAR_SIMPLE': {temp: -14, humidity: 75},
+        'STELLAR_DENDRITE': {temp: -10, humidity: 90},
+        'DENDRITE_NORMAL': {temp: -18, humidity: 75},
+        'DENDRITE_COMPLEX': {temp: -16, humidity: 90},
+        'FERNLIKE_SIMPLE': {temp: -18, humidity: 20},
+        'FERNLIKE_COMPLEX': {temp: -16, humidity: 55},
+        'TRIANGULAR': {temp: -2, humidity: 60},
+        'SPLIT': {temp: -17, humidity: 95},
+        'ASYMMETRIC': {temp: -3, humidity: 40},
+        'TWELVE_BRANCHED': {temp: -16, humidity: 70}
+    };
+    
+    const {temp, humidity} = typeTempHumidity[crystalType];
+    const key = `t${temp}_h${humidity}`;
+    
+    return crystalData.mappings[key].file;
+}
+
+// 結晶タイプに基づいた科学的な豆知識を返す関数
+function getCrystalFactByType(crystalType) {
+    const facts = {
+        'NEEDLE_THIN': '細い針状の結晶は、空気中の水分が少なく気温がマイナス3〜5度くらいのときにできやすいよ。飛行機から見ると、この結晶でできた雲は白くきらきら輝いて見えることがあるんだ。',
+        'NEEDLE_THICK': '太い針状の結晶はとても面白い形をしているね。実は、最初は六角形の板から成長して、気温が変わると針状に伸びていくんだよ。自然の中の変化の証拠なんだ。',
+        'COLUMN_SIMPLE': '柱状の結晶は氷菓子のような形をしているね。この形は水分子が六角形の柱状に積み重なってできるんだ。実は雪の結晶は全て六角形を基本にしているんだよ。',
+        'COLUMN_CAPPED': '冠のついた柱状結晶は、空を落ちる間に違う温度の層を通過するとできることがあるよ。上空では平たい結晶で、下降中に柱状に成長することもあるんだ。',
+        'PLATE_SIMPLE': 'シンプルな六角形の板状結晶は、冬の窓ガラスによくつくよね。これは水の分子が氷になるときに、特殊な角度（およそ120度）で結合するからなんだ。',
+        'PLATE_SECTOR': '扇状の模様がある板状結晶はとても美しいね。これは結晶の端の部分が速く成長するためにできる模様なんだ。結晶の成長速度は場所によって違うんだよ。',
+        'STELLAR_SIMPLE': '単純な星形の結晶は、みんなが「雪」をイメージするときの基本形だね。雪の結晶は水蒸気が氷に直接変わる「昇華」という現象でできるんだよ。',
+        'STELLAR_DENDRITE': '星樹枝状の結晶は、木の枝のように複雑に分かれるよ。実は、この形は結晶が成長するときの不安定さから生まれるんだ。自然の中のパターン形成の一例なんだよ。',
+        'DENDRITE_NORMAL': '通常の樹枝状結晶は、大気中のわずかな変化でも形が変わるよ。そのため、「同じ形の雪の結晶は二つとない」と言われているんだ。',
+        'DENDRITE_COMPLEX': '複雑な樹枝状結晶は、結晶学者のウィルソン・ベントレーが初めて写真に撮ったことで有名になったよ。彼は5000以上の雪の結晶を撮影したんだ！',
+        'FERNLIKE_SIMPLE': '羊歯（シダ）のような結晶は、水分子がある特定のパターンで集まるときにできるよ。氷の分子の並び方で、こんなに複雑な形ができるなんて不思議だね。',
+        'FERNLIKE_COMPLEX': '複雑な羊歯状結晶は、本物の植物の葉っぱにそっくりだね。このような形が自然界のさまざまな場所で見られるのは、数学的な原理が関係しているんだよ。',
+        'TRIANGULAR': '三角形の要素を持つ結晶はとても珍しいよ。通常の六角形の成長が何らかの理由で妨げられたときにできることがあるんだ。自然の中の「例外」とも言えるね。',
+        'SPLIT': '分裂した六花の結晶は、成長途中で環境が急に変わったときにできることが多いよ。空から降りてくる間に風や温度の変化を受けると、こんな風に複雑な形になるんだ。',
+        'ASYMMETRIC': '非対称な結晶は、気流の乱れや水蒸気の偏りによってできるよ。完璧な六角形にならない理由は、成長環境が均一ではないからなんだ。',
+        'TWELVE_BRANCHED': '12本の枝を持つ結晶は、2つの結晶が成長過程で合体したものだよ。2つの六角形が重なり合って、とても珍しい形になるんだ。'
+    };
+    
+    return facts[crystalType] || '雪の結晶は水分子が規則正しく並んでできています。気温や湿度によって様々な形になるんですよ。';
+}
+
+// 結晶タイプに基づいた楽しいアクティビティの提案を返す関数
+function getCrystalActivityByType(crystalType) {
+    const activities = {
+        'NEEDLE_THIN': '折り紙で細長い針のような形を作って、部屋に飾ってみよう！何本か束ねて立体的な雪の結晶を作ることもできるよ。',
+        'NEEDLE_THICK': '白い紙に青色の水彩絵の具で針状の結晶を描いてみよう。水の量を変えると、色の濃さが変わって面白いよ。',
+        'COLUMN_SIMPLE': 'ストローを短く切って組み合わせると、柱状の結晶の模型が作れるよ。透明なストローを使うとキラキラして素敵だね。',
+        'COLUMN_CAPPED': '粘土で柱状の結晶を作り、端に薄い円盤をつけて冠状にしてみよう。乾いたら銀色に塗るとキレイだよ！',
+        'PLATE_SIMPLE': '丸い紙を6回折りたたんで、端をハサミで切ると六角形の板状結晶ができるよ。開いたときの模様の変化を楽しもう！',
+        'PLATE_SECTOR': '白い紙を六角形に切って、扇形の模様を描いてみよう。たくさん作って窓に貼ると、雪景色のようになるよ。',
+        'STELLAR_SIMPLE': '割りばしやつまようじを組み合わせて、星型の結晶の形を作ってみよう。糸をつければ、クリスマスの飾りにもなるよ。',
+        'STELLAR_DENDRITE': '白い画用紙を折りたたんで切り抜くと、星形の雪の結晶ができるよ。細かく切るほど樹枝状の複雑な模様になるんだ。',
+        'DENDRITE_NORMAL': '木の枝のような形の雪の結晶をクレヨンで描いて、その上から青色の水彩絵の具を塗ってみよう。ろうそくの模様のような効果が出るよ。',
+        'DENDRITE_COMPLEX': '塩水を紙に塗って乾かすと、複雑な結晶模様ができるよ。本物の結晶と比べてみると、似ているところが見つかるかな？',
+        'FERNLIKE_SIMPLE': '羊歯（シダ）の葉っぱと雪の結晶の形を比べてみよう。自然の中のいろんな場所で見られる似たパターンを探してみるのも面白いよ。',
+        'FERNLIKE_COMPLEX': 'コンピュータで「フラクタル」という図形を描くプログラムを試してみよう。雪の結晶と同じように、繰り返しパターンでできた複雑な形が見られるよ。',
+        'TRIANGULAR': '三角形の形をいくつか組み合わせて、珍しい形の雪の結晶を作ってみよう。自分だけのオリジナル結晶を考えるのも楽しいね。',
+        'SPLIT': '紙を折りたたんで切るとき、端の部分を分岐するように切ってみよう。開くと分裂した枝を持つ特殊な結晶の形になるよ。',
+        'ASYMMETRIC': '普通の雪の結晶は左右対称だけど、あえて非対称な結晶を描いてみよう。なぜ自然界にはめったに存在しないか考えてみるのも面白いよ。',
+        'TWELVE_BRANCHED': '二つの雪の結晶の切り絵を少しずらして重ねてみよう。12本の枝を持つような複雑な模様ができるよ。光に当てると素敵なシルエットになるんだ。'
+    };
+    
+    return activities[crystalType] || '白い紙を折りたたんでハサミで切ると、素敵な雪の結晶の切り絵ができます。いろんな切り方を試してみてください！';
+}
+
+// 結晶の説明を聞くためのボタンを追加
+function addInfoButton() {
+    const infoButton = document.createElement('button');
+    infoButton.id = 'info-button';
+    infoButton.className = 'info-button';
+    infoButton.innerHTML = '結晶について<br>もっと知る';
+    
+    document.querySelector('.controls').appendChild(infoButton);
+    
+    infoButton.addEventListener('click', () => {
+        // 現在の温度と湿度から結晶タイプを特定
+        const temp = parseInt(temperatureSlider.value);
+        const humidity = parseInt(humiditySlider.value);
+        const key = `t${temp}_h${humidity}`;
+        
+        if (crystalData && crystalData.mappings[key]) {
+            const crystalType = crystalData.mappings[key].type;
+            showCrystalInfo(crystalType);
+        }
+    });
+}
+
+// 季節イベントの雪の結晶を表示する関数
+function showSeasonalCrystals() {
+    const seasonalContainer = document.createElement('div');
+    seasonalContainer.className = 'seasonal-container';
+    
+    seasonalContainer.innerHTML = `
+        <h3>季節の特別な結晶</h3>
+        <div class="seasonal-crystals">
+            <div class="seasonal-crystal" data-temp="-5" data-humidity="80">
+                <img src="snowflakes/crystal_t-5_h80.png" alt="春の結晶">
+                <span>春の雪</span>
+            </div>
+            <div class="seasonal-crystal" data-temp="-2" data-humidity="60">
+                <img src="snowflakes/crystal_t-2_h60.png" alt="夏の結晶">
+                <span>夏の山岳雪</span>
+            </div>
+            <div class="seasonal-crystal" data-temp="-10" data-humidity="85">
+                <img src="snowflakes/crystal_t-10_h85.png" alt="秋の結晶">
+                <span>秋の初雪</span>
+            </div>
+            <div class="seasonal-crystal" data-temp="-18" data-humidity="90">
+                <img src="snowflakes/crystal_t-18_h90.png" alt="冬の結晶">
+                <span>真冬の雪</span>
+            </div>
+            <div class="seasonal-crystal" data-temp="-15" data-humidity="70">
+                <img src="snowflakes/crystal_t-15_h70.png" alt="クリスマスの結晶">
+                <span>クリスマス</span>
+            </div>
+        </div>
+    `;
+    
+    document.querySelector('.container').appendChild(seasonalContainer);
+    
+    // 季節の結晶をクリックしたときの処理
+    const crystals = seasonalContainer.querySelectorAll('.seasonal-crystal');
+    crystals.forEach(crystal => {
+        crystal.addEventListener('click', () => {
+            const temp = parseInt(crystal.getAttribute('data-temp'));
+            const humidity = parseInt(crystal.getAttribute('data-humidity'));
+            
+            // スライダーの値を更新
+            temperatureSlider.value = temp;
+            humiditySlider.value = humidity;
+            
+            // 表示を更新
+            updateTempValue();
+            updateHumidityValue();
+            updatePreview();
+            
+            // 雪を生成
+            generateSnowflakes();
+        });
+    });
+}
+
+// 結晶生成履歴を記録する機能
+const crystalHistory = [];
+
+function addCrystalToHistory(temp, humidity) {
+    // 既に同じ条件がある場合はスキップ
+    const exists = crystalHistory.some(item => item.temp === temp && item.humidity === humidity);
+    if (exists) return;
+    
+    // 履歴に追加（最大5件）
+    crystalHistory.unshift({temp, humidity});
+    if (crystalHistory.length > 5) {
+        crystalHistory.pop();
+    }
+    
+    // 履歴表示を更新
+    updateHistoryDisplay();
+}
+
+function updateHistoryDisplay() {
+    let historyContainer = document.getElementById('history-container');
+    
+    // コンテナがなければ作成
+    if (!historyContainer) {
+        historyContainer = document.createElement('div');
+        historyContainer.id = 'history-container';
+        historyContainer.className = 'history-container';
+        historyContainer.innerHTML = '<h3>履歴</h3><div class="history-items"></div>';
+        document.querySelector('.container').appendChild(historyContainer);
+    }
+    
+    // 履歴アイテムを更新
+    const itemsContainer = historyContainer.querySelector('.history-items');
+    itemsContainer.innerHTML = '';
+    
+    crystalHistory.forEach(item => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        
+        const key = `t${item.temp}_h${item.humidity}`;
+        let imgSrc = '';
+        let typeName = '';
+        
+        if (crystalData && crystalData.mappings[key]) {
+            imgSrc = `snowflakes/${crystalData.mappings[key].file}`;
+            const type = crystalData.mappings[key].type;
+            typeName = crystalData.types[type].name;
+        }
+        
+        historyItem.innerHTML = `
+            <img src="${imgSrc}" alt="履歴の結晶">
+            <div class="history-info">
+                <span class="history-type">${typeName}</span>
+                <span class="history-params">${item.temp}°C, ${item.humidity}%</span>
+            </div>
+        `;
+        
+        historyItem.addEventListener('click', () => {
+            // スライダーの値を更新
+            temperatureSlider.value = item.temp;
+            humiditySlider.value = item.humidity;
+            
+            // 表示を更新
+            updateTempValue();
+            updateHumidityValue();
+            updatePreview();
+            
+            // 雪を生成
+            generateSnowflakes();
+        });
+        
+        itemsContainer.appendChild(historyItem);
+    });
+}
+
+// 結晶生成ボタンクリック時に履歴に追加
+function updateGenerateButtonHandler() {
+    const originalHandler = generateBtn.onclick;
+    
+    generateBtn.onclick = function() {
+        // 元のハンドラを実行
+        if (originalHandler) {
+            originalHandler.call(this);
+        }
+        
+        // 履歴に追加
+        const temp = parseInt(temperatureSlider.value);
+        const humidity = parseInt(humiditySlider.value);
+        addCrystalToHistory(temp, humidity);
+    };
+}
+
+// 拡張機能の初期化
+function initExtensions() {
+    // スタイルを追加
+    addExtensionStyles();
+    
+    // 情報ボタンを追加
+    addInfoButton();
+    
+    // 季節の結晶セクションを追加
+    showSeasonalCrystals();
+    
+    // 履歴機能の初期化
+    updateGenerateButtonHandler();
+}
+
+// 拡張機能用のスタイルを追加
+function addExtensionStyles() {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        /* 情報ボタンのスタイル */
+        .info-button {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: linear-gradient(to right, #0c5eb8, #4189e6);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1.3;
+        }
+        
+        .info-button:hover {
+            background: linear-gradient(to right, #0c4a94, #59a0ff);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(89, 160, 255, 0.5);
+        }
+        
+        /* モーダルのスタイル */
+        .crystal-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 10, 30, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-active {
+            opacity: 1;
+        }
+        
+        .modal-closing {
+            opacity: 0;
+        }
+        
+        .modal-content {
+            width: 80%;
+            max-width: 600px;
+            background: linear-gradient(135deg, #13315c 0%, #0b2545 100%);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 110, 220, 0.5);
+            border: 1px solid rgba(120, 200, 255, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-active .modal-content {
+            transform: scale(1);
+        }
+        
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 28px;
+            color: #a1c6ea;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .close-button:hover {
+            color: white;
+        }
+        
+        .modal-crystal-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .modal-crystal-image {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(120, 190, 255, 0.7));
+        }
+        
+        .modal-description {
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .science-fact, .fun-activity {
+            background-color: rgba(7, 25, 54, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .science-fact h3, .fun-activity h3 {
+            color: #59a0ff;
+            margin-bottom: 10px;
+        }
+        
+        /* 季節の結晶セクションのスタイル */
+        .seasonal-container {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: rgba(7, 25, 54, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 40, 100, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .seasonal-container h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #59a0ff;
+        }
+        
+        .seasonal-crystals {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .seasonal-crystal {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .seasonal-crystal:hover {
+            transform: scale(1.1);
+        }
+        
+        .seasonal-crystal img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(120, 190, 255, 0.5));
+        }
+        
+        .seasonal-crystal span {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #a1c6ea;
+        }
+        
+        /* 履歴セクションのスタイル */
+        .history-container {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: rgba(7, 25, 54, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 40, 100, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .history-container h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #59a0ff;
+        }
+        
+        .history-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background-color: rgba(10, 40, 80, 0.5);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .history-item:hover {
+            background-color: rgba(30, 60, 100, 0.5);
+        }
+        
+        .history-item img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            margin-right: 15px;
+        }
+        
+        .history-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .history-type {
+            font-weight: bold;
+            color: #59a0ff;
+        }
+        
+        .history-params {
+            font-size: 12px;
+            color: #a1c6ea;
+        }
+    `;
+    
+    document.head.appendChild(styleElement);
+}
+
+// ページ読み込み後に拡張機能を初期化
+window.addEventListener('load', () => {
+    // 元の初期化が完了したら拡張機能を初期化
+    setTimeout(initExtensions, 1000);
+});
+
+            
+            // 各雪の結晶を更新して描画
+            snowflakes.forEach((flake) => {
+                // 位置の更新
+                flake.y += flake.speed;
+                flake.x += Math.sin(flake.angle * 2) * flake.oscillationDistance;
+                flake.angle += flake.oscillationSpeed;
+                
+                // 結晶を回転（ランダムな方向と速度）
+                flake.angle += flake.rotationSpeed;
+                
+                // グロー効果のパルス（変動）
+                flake.glowIntensity = (flake.glowIntensity * 0.95) + (0.2 * 0.05 * (0.8 + Math.sin(now * 0.001 + flake.x) * 0.2));
+                
+                // 画面外に出たら上に戻す
+                if (flake.y > canvas.height + flake.size) {
+                    // 完全に画面外に出たら新しい雪を生成
+                    flake.y = -flake.size * 2;
+                    flake.x = Math.random() * canvas.width;
+                    
+                    // 不透明度をランダムに少し変える（バリエーション用）
+                    flake.opacity = Math.random() * 0.3 + 0.7;
+                }
+                
+                // 描画
+                drawSnowflake(flake);
+            });
+            
+            // アニメーションを継続
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // 初期化を実行
+        init();
+    </script>
+</body>
+</html>
