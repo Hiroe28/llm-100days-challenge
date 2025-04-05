@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta property="og:title" content="数式で描く図形館" />
+    <meta property="og:description" content="様々な数学的曲線を美しく可視化し、パラメータを調整して形状を変化させる教育的なWebアプリケーションです。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day015-fomula-shapes/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day015-fomula-shapes/index.html" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数式で描く図形館</title>
+    <style>
+        :root {
+            --primary-color: #3a86ff;
+            --secondary-color: #ff006e;
+            --background-color: #f5f7fa;
+            --button-color: #4361ee;
+            --button-hover: #3a0ca3;
+            --text-color: #2b2d42;
+            --card-background: #ffffff;
+            --param-highlight: #e0f2ff;
+        }
+
+        body {
+            font-family: "Noto Sans JP", "Hiragino Sans", "Meiryo", sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 0.8rem;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            letter-spacing: 0.05em;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .canvas-container {
+            position: relative;
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin: 0 auto 1.5rem;
+            padding: 1rem;
+            overflow: hidden;
+            height: 50vh;
+            min-height: 300px;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            height: 100%;
+            transition: all 0.3s;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            padding: 1.2rem;
+        }
+
+        .curve-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: center;
+        }
+
+        .category-title {
+            width: 100%;
+            font-weight: bold;
+            margin: 0.8rem 0 0.5rem;
+            padding: 0.4rem 0;
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .curve-btn {
+            background-color: white;
+            color: var(--button-color);
+            border: 1px solid var(--button-color);
+            border-radius: 6px;
+            padding: 0.7rem 1rem;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .curve-btn:hover {
+            background-color: var(--button-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .active-btn {
+            background-color: var(--button-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-label {
+            margin-bottom: 0.6rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .option-description {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.3rem;
+            line-height: 1.4;
+        }
+
+        .highlighted-param {
+            display: inline-block;
+            background-color: var(--param-highlight);
+            border-radius: 3px;
+            padding: 0 4px;
+            margin: 0 2px;
+            font-weight: bold;
+        }
+
+        .color-picker {
+            width: 100%;
+            border: 1px solid #ddd;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        select {
+            padding: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-label {
+            margin-left: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--secondary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 12px;
+            appearance: none; /* ← これを追加！ */
+            -webkit-appearance: none;
+            background: #eaeaea;
+            border-radius: 6px;
+            outline: none;
+            margin-top: 0.5rem;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--secondary-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .param-value {
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .footer-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
+            min-width: 160px;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        #saveButton {
+            background-color: #06d6a0;
+        }
+
+        #saveButton:hover {
+            background-color: #0ac18e;
+        }
+
+        #resetButton {
+            background-color: #ef476f;
+        }
+
+        #resetButton:hover {
+            background-color: #e63e66;
+        }
+
+        .formula-card {
+            margin-bottom: 1.5rem;
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: all 0.3s;
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .formula-card.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        .formula-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .formula-body {
+            padding: 1.2rem;
+        }
+
+        .formula-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            font-family: "Courier New", monospace;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .formula-description {
+            font-size: 0.95rem;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .param-description {
+            margin-top: 1rem;
+            background-color: var(--param-highlight);
+            padding: 0.8rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .param-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .curve-selector {
+                gap: 0.5rem;
+            }
+            
+            .curve-btn {
+                font-size: 0.9rem;
+                padding: 0.6rem 0.8rem;
+                flex: 1 1 calc(33.333% - 0.5rem);
+                min-width: 100px;
+            }
+            
+            .options-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 1rem;
+            }
+            
+            .canvas-container {
+                height: 40vh;
+            }
+            
+            .action-btn {
+                padding: 0.8rem 1.2rem;
+                font-size: 0.95rem;
+                min-width: 140px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .curve-btn {
+                flex: 1 1 calc(50% - 0.5rem);
+                min-width: 0;
+                font-size: 0.85rem;
+                padding: 0.8rem 0.5rem;
+            }
+            
+            .card-header, .formula-header {
+                padding: 0.8rem;
+                font-size: 1rem;
+            }
+            
+            .card-body, .formula-body {
+                padding: 1rem;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .option-label {
+                font-size: 0.9rem;
+            }
+            
+            .footer-buttons {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .formula-text {
+                font-size: 1rem;
+                padding: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>数式で描く図形館</h1>
+        <p class="subtitle">様々な数学的曲線を美しく可視化</p>
+    </header>
+
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="curveCanvas"></canvas>
+        </div>
+
+        <div class="card">
+            <div class="card-header">曲線の選択</div>
+            <div class="card-body">
+                <div class="curve-selector">
+                    <div class="category-title">基本曲線</div>
+                    <button class="curve-btn" data-curve="heart">ハート曲線</button>
+                    <button class="curve-btn" data-curve="rose">バラ曲線</button>
+                    <button class="curve-btn" data-curve="lemniscate">レムニスケート</button>
+                    <button class="curve-btn" data-curve="spiral">アルキメデス螺旋</button>
+                    <button class="curve-btn" data-curve="cardioid">カージオイド</button>
+                    
+                    <div class="category-title">高度な曲線</div>
+                    <button class="curve-btn" data-curve="butterfly">バタフライ曲線</button>
+                    <button class="curve-btn" data-curve="epicycloid">エピサイクロイド</button>
+                    <button class="curve-btn" data-curve="hypocycloid">ハイポサイクロイド</button>
+                    <button class="curve-btn" data-curve="limacon">リマソン</button>
+                    <button class="curve-btn" data-curve="logSpiral">対数螺旋</button>
+                    
+                    <div class="category-title">その他の図形</div>
+                    <button class="curve-btn" data-curve="astroid">アステロイド</button>
+                    <button class="curve-btn" data-curve="cycloid">サイクロイド</button>
+                    <button class="curve-btn" data-curve="torus">トーラスノット</button>
+                    <button class="curve-btn" data-curve="superellipse">超楕円</button>
+                    <button class="curve-btn" data-curve="folium">フォリウム</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">パラメータ設定</div>
+            <div class="card-body">
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label class="option-label">描画色</label>
+                        <input type="color" id="colorPicker" class="color-picker" value="#3a86ff">
+                    </div>
+                    <div class="option-group">
+                        <label class="option-label">線の太さ</label>
+                        <input type="range" id="lineWidth" min="1" max="10" value="2">
+                        <div class="param-value" id="lineWidthValue">2</div>
+                    </div>
+                    <div class="option-group">
+                        <label class="option-label">パラメータ A</label>
+                        <div class="option-description" id="paramADesc">形状の大きさを調整します</div>
+                        <input type="range" id="paramA" min="1" max="10" value="5">
+                        <div class="param-value" id="paramAValue">5</div>
+                    </div>
+                    <div class="option-group">
+                        <label class="option-label">パラメータ B</label>
+                        <div class="option-description" id="paramBDesc">形状の複雑さを調整します</div>
+                        <input type="range" id="paramB" min="1" max="10" value="5">
+                        <div class="param-value" id="paramBValue">5</div>
+                    </div>
+                    <div class="option-group">
+                        <label class="option-label">表示オプション</label>
+                        <div class="toggle-container">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showFormula">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="toggle-label">数式を表示</span>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <label class="option-label">アニメーション</label>
+                        <div class="toggle-container">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="animateShape">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="toggle-label">動きを有効化</span>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <label class="option-label">アニメーション速度</label>
+                        <input type="range" id="animationSpeed" min="1" max="10" value="3">
+                        <div class="param-value" id="speedValue">3</div>
+                    </div>
+                    <div class="option-group">
+                        <label class="option-label">対称性</label>
+                        <select id="symmetrySelect">
+                            <option value="1">なし</option>
+                            <option value="2">2方向</option>
+                            <option value="4">4方向</option>
+                            <option value="8">8方向</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="formulaDisplay" class="formula-card">
+            <div class="formula-header">
+                <span id="formulaTitle">数式情報</span>
+            </div>
+            <div class="formula-body">
+                <div class="formula-text" id="formulaText"></div>
+                <div class="formula-description" id="formulaDescription"></div>
+                <div class="param-description">
+                    <div class="param-title">パラメータの意味</div>
+                    <div id="paramsExplanation"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-buttons">
+            <button id="saveButton" class="action-btn">画像として保存</button>
+            <button id="resetButton" class="action-btn">リセット</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // キャンバスとコンテキストの設定
+            const canvas = document.getElementById('curveCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 変数の初期化
+            let currentCurve = null;
+            let animationId = null;
+            let phase = 0;
+            let curveColor = "#3a86ff";
+            let isAnimating = false;
+            let symmetry = 1;
+            let paramA = 5;
+            let paramB = 5;
+            let lineWidth = 2;
+            let animationSpeed = 3;
+            
+            // 数式と説明のマッピング
+            const formulas = {
+                heart: {
+                    formula: "x = 16sin³(t), y = 13cos(t) - 5cos(2t) - 2cos(3t) - cos(4t)",
+                    description: "ハート曲線はパラメトリック方程式で表現され、心臓のような形状を描きます。16世紀からの数学者によって研究されてきた美しい曲線です。",
+                    paramA: "大きさを調整します。大きいほど全体的に大きなハートになります。",
+                    paramB: "この曲線ではあまり使用しません。"
+                },
+                rose: {
+                    formula: "r = a·cos(n·θ)",
+                    description: "バラ曲線（ローズカーブ）は極座標で表される花のような形状です。パラメータnの値によって花びらの数が変わります。",
+                    paramA: "花の大きさを調整します。",
+                    paramB: "花びらの数を調整します。奇数なら花びらはその数、偶数なら花びらは2倍の数になります。"
+                },
+                lemniscate: {
+                    formula: "r² = a²·cos(2θ)",
+                    description: "レムニスケートはベルヌーイによって研究された∞の形をした曲線です。極座標方程式で表されます。",
+                    paramA: "曲線の大きさを調整します。値が大きいほど曲線全体が大きくなります。",
+                    paramB: "この曲線ではあまり使用しません。"
+                },
+                spiral: {
+                    formula: "r = a + b·θ",
+                    description: "アルキメデス螺旋は半径が角度に比例して増加する螺旋で、古代ギリシャの数学者アルキメデスによって研究されました。",
+                    paramA: "螺旋の初期半径を調整します。大きな値は螺旋の中心部分を大きくします。",
+                    paramB: "螺旋の巻き具合を調整します。大きな値はより密集した螺旋になります。"
+                },
+                cardioid: {
+                    formula: "r = a(1 + cos(θ))",
+                    description: "カージオイド（心臓形）は極座標でハート型を描く基本的な曲線で、円上の点から描かれる軌跡としても定義できます。",
+                    paramA: "曲線の全体的な大きさを調整します。",
+                    paramB: "この曲線ではあまり使用しません。"
+                },
+                butterfly: {
+                    formula: "r = e^sin(θ) - 2cos(4θ) + sin((2θ-π)/24)^5",
+                    description: "バタフライ曲線は複雑な極座標方程式で表される蝶の形をした曲線です。",
+                    paramA: "蝶の全体的な大きさを調整します。",
+                    paramB: "蝶の翼の形状を調整します。大きな値は翼の細部が変化します。"
+                },
+                epicycloid: {
+                    formula: "x = (a+b)cos(t) - b·cos((a+b)t/b), y = (a+b)sin(t) - b·sin((a+b)t/b)",
+                    description: "エピサイクロイドは、ある円の外側を別の円が転がるときに、転がる円上の点が描く軌跡です。",
+                    paramA: "固定円の半径を調整します。",
+                    paramB: "転がる円の半径を調整します。AとBの比率によって描かれる形状が大きく変わります。"
+                },
+                hypocycloid: {
+                    formula: "x = (a-b)cos(t) + b·cos((a-b)t/b), y = (a-b)sin(t) - b·sin((a-b)t/b)",
+                    description: "ハイポサイクロイドは、ある円の内側を別の円が転がるときに、転がる円上の点が描く軌跡です。例としてアステロイド（4尖点）やデルトイド（3尖点）があります。",
+                    paramA: "固定円の半径を調整します。",
+                    paramB: "転がる円の半径を調整します。AとBの比率が整数のとき、尖点の数はその整数値になります。"
+                },
+                limacon: {
+                    formula: "r = b + a·cos(θ)",
+                    description: "リマソンはカージオイドを一般化した曲線で、パスカルによって研究されました。パラメータ比率によって形状が変わります。",
+                    paramA: "余弦項の係数を調整します。Aの値によって曲線の形状が変わります。",
+                    paramB: "基本半径を調整します。大きな値は全体的な大きさと形状に影響します。"
+                },
+                logSpiral: {
+                    formula: "r = a·e^(b·θ)",
+                    description: "対数螺旋は半径が角度に対して指数関数的に増加する螺旋で、自然界のさまざまな現象（オウムガイの殻など）に見られます。",
+                    paramA: "螺旋の初期半径を調整します。",
+                    paramB: "成長率を調整します。大きな値はより急速に広がる螺旋になります。"
+                },
+                astroid: {
+                    formula: "x = a·cos³(t), y = a·sin³(t)",
+                    description: "アステロイドは4つの尖点を持つハイポサイクロイドの特殊な場合で、「星形」とも呼ばれます。",
+                    paramA: "曲線の大きさを調整します。大きな値は全体的に大きなアステロイドになります。",
+                    paramB: "この曲線ではあまり使用しません。"
+                },
+                cycloid: {
+                    formula: "x = a(t - sin(t)), y = a(1 - cos(t))",
+                    description: "サイクロイドは円が直線上を転がるときに、円周上の点が描く軌跡です。最速降下曲線としての性質を持ちます。",
+                    paramA: "転がる円の半径を調整します。大きな値は全体的に大きなサイクロイドになります。",
+                    paramB: "この曲線ではあまり使用しません。"
+                },
+                torus: {
+                    formula: "x = (a+b·cos(q·t))·cos(p·t), y = (a+b·cos(q·t))·sin(p·t)",
+                    description: "トーラスノットは3次元のトーラス（ドーナツ型）の表面上に描かれる閉じた曲線で、pとqが互いに素であるとき結び目になります。",
+                    paramA: "縦巻き数（パラメーターp）を調整します。",
+                    paramB: "横巻き数（パラメーターq）を調整します。AとBの比率が異なると複雑な結び目の形状が生まれます。"
+                },
+                superellipse: {
+                    formula: "|x/a|^n + |y/b|^n = 1",
+                    description: "超楕円は通常の楕円を一般化した図形で、指数nによって形状が変化します。n=2で通常の楕円、大きなnでは矩形に近づきます。",
+                    paramA: "x軸方向の半径と指数nを調整します。大きな値は楕円から矩形に近づきます。",
+                    paramB: "y軸方向の半径を調整します。"
+                },
+                folium: {
+                    formula: "x³ + y³ = 3axy",
+                    description: "フォリウム・デカルトは17世紀の数学者デカルトによって研究された葉の形をした曲線です。原点に自己交差を持ちます。",
+                    paramA: "曲線の全体的な大きさと形状を調整します。",
+                    paramB: "この曲線ではあまり使用しません。"
+                }
+            };
+            
+            // キャンバスのリサイズ
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth - 40;  // パディングを考慮
+                canvas.height = container.clientHeight - 40;  // パディングを考慮
+                
+                if (currentCurve) {
+                    drawCurve(currentCurve);
+                }
+            }
+            
+            // ウィンドウリサイズ時にキャンバスもリサイズ
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // 曲線ボタンのイベントリスナー
+            document.querySelectorAll('.curve-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const curve = this.getAttribute('data-curve');
+                    
+                    // アクティブなボタンのスタイルを更新
+                    document.querySelectorAll('.curve-btn').forEach(btn => {
+                        btn.classList.remove('active-btn');
+                    });
+                    this.classList.add('active-btn');
+                    
+                    // 現在のアニメーションを停止
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                        animationId = null;
+                    }
+                    
+                    // 新しい曲線を描画
+                    currentCurve = curve;
+
+                    // パラメータの説明を更新
+                    updateParamDescriptions(curve);
+                    
+                    // アニメーション設定を確認して適用
+                    isAnimating = document.getElementById('animateShape').checked;
+                    if (isAnimating) {
+                        animateCurve();
+                    } else {
+                        drawCurve(curve);
+                    }
+                    
+                    // 数式表示の更新
+                    updateFormulaDisplay();
+                });
+            });
+            
+            // 色の変更リスナー
+            document.getElementById('colorPicker').addEventListener('input', function() {
+                curveColor = this.value;
+                if (currentCurve) {
+                    if (isAnimating) {
+                        // アニメーション中なら続行
+                    } else {
+                        drawCurve(currentCurve);
+                    }
+                }
+            });
+
+            // 線の太さのリスナー
+            document.getElementById('lineWidth').addEventListener('input', function() {
+                lineWidth = parseInt(this.value);
+                document.getElementById('lineWidthValue').textContent = lineWidth;
+                if (currentCurve) {
+                    if (isAnimating) {
+                        // アニメーション中なら続行
+                    } else {
+                        drawCurve(currentCurve);
+                    }
+                }
+            });
+            
+            // 対称性のリスナー
+            document.getElementById('symmetrySelect').addEventListener('change', function() {
+                symmetry = parseInt(this.value);
+                if (currentCurve) {
+                    if (isAnimating) {
+                        if (animationId) {
+                            cancelAnimationFrame(animationId);
+                        }
+                        animateCurve();
+                    } else {
+                        drawCurve(currentCurve);
+                    }
+                }
+            });
+            
+            // パラメータAのリスナー
+            document.getElementById('paramA').addEventListener('input', function() {
+                paramA = parseInt(this.value);
+                document.getElementById('paramAValue').textContent = paramA;
+                if (currentCurve) {
+                    if (isAnimating) {
+                        // 更新は次のアニメーションフレームで行われる
+                    } else {
+                        drawCurve(currentCurve);
+                    }
+                }
+            });
+            
+            // パラメータBのリスナー
+            document.getElementById('paramB').addEventListener('input', function() {
+                paramB = parseInt(this.value);
+                document.getElementById('paramBValue').textContent = paramB;
+                if (currentCurve) {
+                    if (isAnimating) {
+                        // 更新は次のアニメーションフレームで行われる
+                    } else {
+                        drawCurve(currentCurve);
+                    }
+                }
+            });
+            
+            // アニメーション速度のリスナー
+            document.getElementById('animationSpeed').addEventListener('input', function() {
+                animationSpeed = parseInt(this.value);
+                document.getElementById('speedValue').textContent = animationSpeed;
+            });
+            
+            // 数式表示の切り替え
+            document.getElementById('showFormula').addEventListener('change', function() {
+                updateFormulaDisplay();
+            });
+            
+            // アニメーションの切り替え
+            document.getElementById('animateShape').addEventListener('change', function() {
+                isAnimating = this.checked;
+                if (currentCurve) {
+                    if (isAnimating) {
+                        animateCurve();
+                    } else {
+                        if (animationId) {
+                            cancelAnimationFrame(animationId);
+                            animationId = null;
+                        }
+                        drawCurve(currentCurve);
+                    }
+                }
+            });
+            
+            // リセットボタン
+            document.getElementById('resetButton').addEventListener('click', function() {
+                // アニメーションを停止
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                
+                // キャンバスをクリア
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 選択状態をリセット
+                document.querySelectorAll('.curve-btn').forEach(btn => {
+                    btn.classList.remove('active-btn');
+                });
+                
+                // 変数をリセット
+                currentCurve = null;
+                phase = 0;
+                
+                // 数式表示をクリア
+                const formulaDisplay = document.getElementById('formulaDisplay');
+                formulaDisplay.classList.remove('show');
+                
+                // パラメータの説明をリセット
+                document.getElementById('paramADesc').textContent = "形状の大きさを調整します";
+                document.getElementById('paramBDesc').textContent = "形状の複雑さを調整します";
+            });
+            
+            // 保存ボタン
+            document.getElementById('saveButton').addEventListener('click', function() {
+                if (!currentCurve) return;
+                
+                // 一時的にアニメーションを停止
+                const wasAnimating = isAnimating;
+                if (wasAnimating && animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+                
+                // 現在の曲線を静的に描画
+                drawCurve(currentCurve);
+                
+                // 現在の日時を取得してファイル名に組み込む
+                const now = new Date();
+                const timestamp = now.getFullYear() + "-" +
+                               String(now.getMonth() + 1).padStart(2, '0') + "-" +
+                               String(now.getDate()).padStart(2, '0') + "_" +
+                               String(now.getHours()).padStart(2, '0') + "-" +
+                               String(now.getMinutes()).padStart(2, '0');
+                
+                // キャンバスを画像として保存
+                const link = document.createElement('a');
+                link.download = `数式図形_${currentCurve}_${timestamp}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // アニメーションを再開（必要な場合）
+                if (wasAnimating) {
+                    animateCurve();
+                }
+            });
+
+            // パラメータの説明を更新
+            function updateParamDescriptions(curve) {
+                if (formulas[curve]) {
+                    const paramADesc = document.getElementById('paramADesc');
+                    const paramBDesc = document.getElementById('paramBDesc');
+                    
+                    paramADesc.textContent = formulas[curve].paramA || "形状の大きさを調整します";
+                    paramBDesc.textContent = formulas[curve].paramB || "形状の複雑さを調整します";
+                }
+            }
+            
+            // ハート曲線の描画
+            function drawHeart(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 複数の図形を描く場合（対称モード）
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleHeart(phase, angle);
+                }
+            }
+            
+            function drawSingleHeart(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const scale = Math.min(canvas.width, canvas.height) * 0.01 * paramA;
+                
+                // 回転の適用
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                ctx.fillStyle = curveColor;
+                
+                // パラメトリック方程式でハートを描く
+                const step = 0.01;
+                
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    const x = 16 * Math.pow(Math.sin(t), 3);
+                    const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                    
+                    // アニメーション効果（穏やかにする）
+                    const animX = x * (1 + 0.05 * Math.sin(phase));
+                    const animY = y * (1 + 0.05 * Math.sin(phase));
+                    
+                    if (t === 0) {
+                        ctx.moveTo(animX * scale, -animY * scale);
+                    } else {
+                        ctx.lineTo(animX * scale, -animY * scale);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+            
+            // バラ曲線
+            function drawRose(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleRose(phase, angle);
+                }
+            }
+            
+            function drawSingleRose(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const scale = Math.min(canvas.width, canvas.height) * 0.4 * (paramA / 10);
+                const petals = paramB;  // 花びらの数をパラメータBで制御
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.01;
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    const r = Math.cos(petals * t) * scale * (1 + 0.05 * Math.sin(phase));
+                    const x = r * Math.cos(t);
+                    const y = r * Math.sin(t);
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // レムニスケート
+            function drawLemniscate(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleLemniscate(phase, angle);
+                }
+            }
+            
+            function drawSingleLemniscate(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const scale = Math.min(canvas.width, canvas.height) * 0.2 * (paramA / 5);
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.01;
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    // レムニスケートの極座標方程式: r² = a²cos(2θ)
+                    const cos2t = Math.cos(2 * t);
+                    if (cos2t < 0) continue; // 負の値はスキップ
+                    
+                    const r = Math.sqrt(scale * scale * cos2t) * (1 + 0.05 * Math.sin(phase));
+                    const x = r * Math.cos(t);
+                    const y = r * Math.sin(t);
+                    
+                    if (t === 0 || isNaN(x) || isNaN(y)) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // アルキメデス螺旋
+            function drawSpiral(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleSpiral(phase, angle);
+                }
+            }
+            
+            function drawSingleSpiral(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 2; // 初期半径
+                const b = paramB / 20; // 増加率
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const maxRotations = 10;
+                const step = 0.1;
+                
+                for (let t = 0; t <= Math.PI * 2 * maxRotations; t += step) {
+                    const r = (a + b * t) * scale;
+                    const x = r * Math.cos(t + phase);
+                    const y = r * Math.sin(t + phase);
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // カージオイド
+            function drawCardioid(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleCardioid(phase, angle);
+                }
+            }
+            
+            function drawSingleCardioid(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 10;
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.01;
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    // カージオイドの極座標方程式: r = a(1 + cos(θ))
+                    const r = a * (1 + Math.cos(t)) * scale * (1 + 0.05 * Math.sin(phase));
+                    const x = r * Math.cos(t);
+                    const y = r * Math.sin(t);
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // バタフライ曲線
+            function drawButterfly(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleButterfly(phase, angle);
+                }
+            }
+            
+            function drawSingleButterfly(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const scale = Math.min(canvas.width, canvas.height) * paramA;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.02;
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    // バタフライ曲線の極座標方程式
+                    const r = Math.exp(Math.sin(t)) - 2 * Math.cos(4 * t) + 
+                             Math.pow(Math.sin((2 * t - Math.PI) / paramB), 5);
+                    
+                    const factor = r * scale * 0.03 * (1 + 0.05 * Math.sin(phase));
+                    const x = factor * Math.cos(t);
+                    const y = factor * Math.sin(t);
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // エピサイクロイド
+            function drawEpicycloid(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleEpicycloid(phase, angle);
+                }
+            }
+            
+            function drawSingleEpicycloid(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 10; // 固定円の半径
+                const b = paramB * 5;  // 動く円の半径
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.01;
+                for (let t = 0; t <= Math.PI * 2 * Math.max(1, Math.abs(a/b)); t += step) {
+                    // エピサイクロイドのパラメトリック方程式
+                    const factor = 1 + 0.05 * Math.sin(phase);
+                    const x = ((a + b) * Math.cos(t) - b * Math.cos((a + b) * t / b)) * scale * factor;
+                    const y = ((a + b) * Math.sin(t) - b * Math.sin((a + b) * t / b)) * scale * factor;
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // ハイポサイクロイド
+            function drawHypocycloid(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleHypocycloid(phase, angle);
+                }
+            }
+            
+            function drawSingleHypocycloid(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 10; // 固定円の半径
+                const b = paramB * 2;  // 動く円の半径
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.01;
+                for (let t = 0; t <= Math.PI * 2 * Math.max(1, Math.abs(a/b)); t += step) {
+                    // ハイポサイクロイドのパラメトリック方程式
+                    const factor = 1 + 0.05 * Math.sin(phase);
+                    const x = ((a - b) * Math.cos(t) + b * Math.cos((a - b) * t / b)) * scale * factor;
+                    const y = ((a - b) * Math.sin(t) - b * Math.sin((a - b) * t / b)) * scale * factor;
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // リマソン
+            function drawLimacon(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleLimacon(phase, angle);
+                }
+            }
+            
+            function drawSingleLimacon(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 5;   // 係数
+                const b = paramB * 5;   // 基本半径
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.01;
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    // リマソンの極座標方程式: r = b + a·cos(θ)
+                    const factor = 1 + 0.05 * Math.sin(phase);
+                    const r = (b + a * Math.cos(t)) * scale * factor;
+                    const x = r * Math.cos(t);
+                    const y = r * Math.sin(t);
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // 対数螺旋
+            function drawLogSpiral(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleLogSpiral(phase, angle);
+                }
+            }
+            
+            function drawSingleLogSpiral(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA;
+                const b = paramB / 20; // 成長率
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const maxRotations = 6;
+                const step = 0.05;
+                
+                for (let t = 0; t <= Math.PI * 2 * maxRotations; t += step) {
+                    // 対数螺旋の極座標方程式: r = a·e^(b·θ)
+                    const r = a * Math.exp(b * t) * scale;
+                    const x = r * Math.cos(t + phase);
+                    const y = r * Math.sin(t + phase);
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // アステロイド
+            function drawAstroid(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleAstroid(phase, angle);
+                }
+            }
+            
+            function drawSingleAstroid(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 10;
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.01;
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    // アステロイドのパラメトリック方程式: x = a·cos³(t), y = a·sin³(t)
+                    const factor = 1 + 0.05 * Math.sin(phase);
+                    const x = a * Math.pow(Math.cos(t), 3) * scale * factor;
+                    const y = a * Math.pow(Math.sin(t), 3) * scale * factor;
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // サイクロイド
+            function drawCycloid(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleCycloid(phase, angle);
+                }
+            }
+            
+            function drawSingleCycloid(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 5; // 円の半径
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const maxRotations = 2;
+                const step = 0.05;
+                
+                for (let t = -Math.PI; t <= Math.PI * maxRotations; t += step) {
+                    // サイクロイドのパラメトリック方程式: x = a(t - sin(t)), y = a(1 - cos(t))
+                    const factor = 1 + 0.05 * Math.sin(phase);
+                    const x = a * (t - Math.sin(t)) * scale * factor;
+                    const y = a * (1 - Math.cos(t)) * scale * factor;
+                    
+                    if (t === -Math.PI) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // トーラスノット
+            function drawTorus(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleTorus(phase, angle);
+                }
+            }
+            
+            function drawSingleTorus(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = 30; // 大円の半径
+                const b = 10; // 小円の半径
+                const p = paramA; // 縦巻き数
+                const q = paramB; // 横巻き数
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.05;
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    // トーラスノットのパラメトリック方程式
+                    const factor = 1 + 0.05 * Math.sin(phase);
+                    const x = (a + b * Math.cos(q * t)) * Math.cos(p * t) * scale * factor;
+                    const y = (a + b * Math.cos(q * t)) * Math.sin(p * t) * scale * factor;
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // 超楕円
+            function drawSuperellipse(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleSuperellipse(phase, angle);
+                }
+            }
+            
+            function drawSingleSuperellipse(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 10; // x軸の半径
+                const b = paramB * 10; // y軸の半径
+                const n = 2 + (paramA / 2); // 指数 (2で通常の楕円、大きいほど四角に近づく)
+                const scale = Math.min(canvas.width, canvas.height) * 0.01;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                const step = 0.01;
+                for (let t = 0; t <= Math.PI * 2; t += step) {
+                    // 超楕円のパラメトリック表現
+                    const factor = 1 + 0.05 * Math.sin(phase);
+                    const cost = Math.cos(t);
+                    const sint = Math.sin(t);
+                    const x = a * Math.sign(cost) * Math.pow(Math.abs(cost), 2/n) * scale * factor;
+                    const y = b * Math.sign(sint) * Math.pow(Math.abs(sint), 2/n) * scale * factor;
+                    
+                    if (t === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // フォリウム
+            function drawFolium(phase = 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = 0; i < symmetry; i++) {
+                    const angle = 360 / symmetry * i;
+                    drawSingleFolium(phase, angle);
+                }
+            }
+            
+            function drawSingleFolium(phase = 0, rotationAngle = 0) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const a = paramA * 5;
+                const scale = Math.min(canvas.width, canvas.height) * 0.02;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(rotationAngle * Math.PI / 180);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = curveColor;
+                ctx.lineWidth = lineWidth;
+                
+                // フォリウム・デカルトのパラメトリック表現
+                const step = 0.01;
+                for (let t = -Math.PI; t <= Math.PI; t += step) {
+                    if (Math.abs(t) < 0.01) continue; // t=0の特異点を避ける
+                    
+                    const factor = 1 + 0.05 * Math.sin(phase);
+                    const denominator = 1 + Math.pow(Math.tan(t), 3);
+                    if (Math.abs(denominator) < 0.001) continue;
+                    
+                    const x = (3 * a * Math.tan(t)) / denominator * scale * factor;
+                    const y = (3 * a * Math.tan(t) * Math.tan(t)) / denominator * scale * factor;
+                    
+                    if (t === -Math.PI || isNaN(x) || isNaN(y)) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            // 曲線描画のディスパッチャー
+            function drawCurve(curve, phaseValue = 0) {
+                switch(curve) {
+                    case 'heart':
+                        drawHeart(phaseValue);
+                        break;
+                    case 'rose':
+                        drawRose(phaseValue);
+                        break;
+                    case 'lemniscate':
+                        drawLemniscate(phaseValue);
+                        break;
+                    case 'spiral':
+                        drawSpiral(phaseValue);
+                        break;
+                    case 'cardioid':
+                        drawCardioid(phaseValue);
+                        break;
+                    case 'butterfly':
+                        drawButterfly(phaseValue);
+                        break;
+                    case 'epicycloid':
+                        drawEpicycloid(phaseValue);
+                        break;
+                    case 'hypocycloid':
+                        drawHypocycloid(phaseValue);
+                        break;
+                    case 'limacon':
+                        drawLimacon(phaseValue);
+                        break;
+                    case 'logSpiral':
+                        drawLogSpiral(phaseValue);
+                        break;
+                    case 'astroid':
+                        drawAstroid(phaseValue);
+                        break;
+                    case 'cycloid':
+                        drawCycloid(phaseValue);
+                        break;
+                    case 'torus':
+                        drawTorus(phaseValue);
+                        break;
+                    case 'superellipse':
+                        drawSuperellipse(phaseValue);
+                        break;
+                    case 'folium':
+                        drawFolium(phaseValue);
+                        break;
+                }
+            }
+            
+            // 曲線のアニメーション
+            function animateCurve() {
+                phase += 0.01 * animationSpeed;
+                drawCurve(currentCurve, phase);
+                animationId = requestAnimationFrame(animateCurve);
+            }
+            
+            // 数式表示の更新
+            function updateFormulaDisplay() {
+                const formulaDisplay = document.getElementById('formulaDisplay');
+                const formulaText = document.getElementById('formulaText');
+                const formulaDescription = document.getElementById('formulaDescription');
+                const paramsExplanation = document.getElementById('paramsExplanation');
+                const formulaTitle = document.getElementById('formulaTitle');
+                const showFormula = document.getElementById('showFormula').checked;
+                
+                if (showFormula && currentCurve && formulas[currentCurve]) {
+                    // 曲線名に応じたタイトルを設定
+                    const titles = {
+                        'heart': 'ハート曲線の数式',
+                        'rose': 'バラ曲線の数式',
+                        'lemniscate': 'レムニスケートの数式',
+                        'spiral': 'アルキメデス螺旋の数式',
+                        'cardioid': 'カージオイドの数式',
+                        'butterfly': 'バタフライ曲線の数式',
+                        'epicycloid': 'エピサイクロイドの数式',
+                        'hypocycloid': 'ハイポサイクロイドの数式',
+                        'limacon': 'リマソンの数式',
+                        'logSpiral': '対数螺旋の数式',
+                        'astroid': 'アステロイドの数式',
+                        'cycloid': 'サイクロイドの数式',
+                        'torus': 'トーラスノットの数式',
+                        'superellipse': '超楕円の数式',
+                        'folium': 'フォリウム・デカルトの数式'
+                    };
+                    
+                    formulaTitle.textContent = titles[currentCurve] || '数式情報';
+                    formulaText.textContent = formulas[currentCurve].formula || "";
+                    formulaDescription.textContent = formulas[currentCurve].description || "";
+
+                    // パラメータの説明を設定
+                    let paramsHTML = '';
+                    if (formulas[currentCurve].paramA) {
+                        paramsHTML += '<p><span class="highlighted-param">パラメータA</span>: ' + formulas[currentCurve].paramA + '</p>';
+                    }
+                    if (formulas[currentCurve].paramB) {
+                        paramsHTML += '<p><span class="highlighted-param">パラメータB</span>: ' + formulas[currentCurve].paramB + '</p>';
+                    }
+                    paramsExplanation.innerHTML = paramsHTML;
+                    
+                    formulaDisplay.classList.add('show');
+                } else {
+                    formulaDisplay.classList.remove('show');
+                }
+            }
+            
+            // 初期曲線としてハートを表示
+            setTimeout(() => {
+                document.querySelector('[data-curve="heart"]').click();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
