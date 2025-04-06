@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- OGP用メタタグ -->
+  <meta property="og:title" content="元素周期表 学習・クイズアプリ" />
+  <meta property="og:description" content="元素の詳細情報を学び、クイズで知識を試せる日本語対応の周期表アプリ。カテゴリや周期でフィルタリング、多様なクイズモードにも対応。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day016-periodic-table/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day016-periodic-table/index.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+
+  <title>元素周期表 学習・クイズアプリ</title>
+  <style>
+    :root {
+      --primary-color: #4a6fa5;
+      --secondary-color: #ff9800;
+      --accent-color: #e91e63;
+      --correct-color: #4caf50;
+      --incorrect-color: #f44336;
+      --background-color: #f5f7fa;
+      --card-color: #ffffff;
+      --text-color: #333333;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 10px;
+      
+      /* 元素カテゴリ色 */
+      --nonmetal-color: #a1d344;
+      --noble-gas-color: #7fbfff;
+      --alkali-metal-color: #ff6666;
+      --alkaline-earth-color: #ffdaad;
+      --metalloid-color: #cccc9a;
+      --halogen-color: #ffff99;
+      --metal-color: #bbbbbb;
+      --transition-metal-color: #ffc0c0;
+      --lanthanide-color: #ffbfff;
+      --actinide-color: #ff99cc;
+    }
+    
+    body {
+      font-family: 'Segoe UI', 'Meiryo', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 20px 0;
+      border-radius: var(--border-radius);
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    
+    .app-card {
+      background-color: var(--card-color);
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+    }
+    
+    .mode-selector {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      padding: 10px;
+      background-color: rgba(74, 111, 165, 0.05);
+      border-radius: var(--border-radius);
+    }
+    
+    .mode-selector label {
+      margin: 0 15px;
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .mode-selector input[type="radio"] {
+      display: none;
+    }
+    
+    .mode-selector input[type="radio"]:checked + label {
+      background-color: var(--primary-color);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+    
+    .filter-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .filter-select {
+      padding: 10px;
+      border-radius: var(--border-radius);
+      border: 1px solid #ddd;
+      background-color: white;
+      flex-grow: 1;
+      min-width: 150px;
+    }
+    
+    .question {
+      font-size: 22px;
+      font-weight: bold;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    /* 周期表レイアウト */
+    .periodic-table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin: 20px 0;
+      padding-bottom: 10px;
+    }
+    
+    .periodic-table {
+      display: grid;
+      grid-template-columns: repeat(18, minmax(50px, 1fr));
+      grid-gap: 3px;
+      min-width: 1000px; /* 最小幅を設定して小さい画面でもスクロールで全体を見られるようにする */
+    }
+    
+    .element {
+      position: relative;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 5px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      user-select: none;
+    }
+    
+    .element:hover {
+      transform: scale(1.1);
+      z-index: 2;
+      box-shadow: var(--shadow);
+    }
+    
+    .element.selected {
+      border: 2px solid var(--primary-color);
+      box-shadow: 0 0 10px rgba(74, 111, 165, 0.5);
+    }
+    
+    .element-symbol {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    
+    .element-number {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 10px;
+    }
+    
+    .element-name {
+      font-size: 8px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    
+    /* カテゴリ色 */
+    .category-nonmetal { background-color: var(--nonmetal-color); }
+    .category-noble-gas { background-color: var(--noble-gas-color); }
+    .category-alkali-metal { background-color: var(--alkali-metal-color); }
+    .category-alkaline-earth-metal { background-color: var(--alkaline-earth-color); }
+    .category-metalloid { background-color: var(--metalloid-color); }
+    .category-halogen { background-color: var(--halogen-color); }
+    .category-metal { background-color: var(--metal-color); }
+    .category-transition-metal { background-color: var(--transition-metal-color); }
+    .category-lanthanide { background-color: var(--lanthanide-color); }
+    .category-actinide { background-color: var(--actinide-color); }
+    
+    /* 元素詳細表示 */
+    .element-detail {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 30px;
+      align-items: flex-start;
+    }
+    
+    .element-image {
+      flex: 0 0 300px;
+      margin-right: 30px;
+      margin-bottom: 20px;
+    }
+    
+    .element-image img {
+      max-width: 100%;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+    }
+    
+    .element-info {
+      flex: 1;
+      min-width: 300px;
+    }
+    
+    .element-info h2 {
+      margin-top: 0;
+      color: var(--primary-color);
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .info-item {
+      padding: 10px;
+      background-color: rgba(74, 111, 165, 0.05);
+      border-radius: var(--border-radius);
+    }
+    
+    .info-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--primary-color);
+    }
+    
+    .element-summary {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: rgba(74, 111, 165, 0.05);
+      border-radius: var(--border-radius);
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    /* カテゴリ凡例 */
+    .category-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+    }
+    
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+    }
+    
+    /* クイズモード */
+    #quiz-section {
+      text-align: center;
+    }
+    
+    .score-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+    
+    .score {
+      background-color: rgba(74, 111, 165, 0.1);
+      padding: 5px 15px;
+      border-radius: var(--border-radius);
+      font-weight: bold;
+    }
+    
+    .quiz-question-container {
+      margin: 30px auto;
+      max-width: 600px;
+    }
+    
+    .quiz-image {
+      margin: 20px auto;
+      max-width: 200px;
+      height: auto;
+    }
+    
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 25px 0;
+    }
+    
+    .option-btn {
+      background-color: white;
+      color: var(--text-color);
+      border: 2px solid #e0e0e0;
+      border-radius: var(--border-radius);
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .option-btn:hover {
+      background-color: #f0f0f0;
+      transform: translateY(-2px);
+    }
+    
+    .option-btn.correct {
+      border-color: var(--correct-color);
+      background-color: rgba(76, 175, 80, 0.1);
+      color: var(--correct-color);
+      font-weight: bold;
+    }
+    
+    .option-btn.incorrect {
+      border-color: var(--incorrect-color);
+      background-color: rgba(244, 67, 54, 0.1);
+      color: var(--incorrect-color);
+      text-decoration: line-through;
+    }
+    
+    #result {
+      font-size: 22px;
+      font-weight: bold;
+      margin: 25px 0;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      transition: all 0.3s ease;
+    }
+    
+    #result.correct {
+      background-color: rgba(76, 175, 80, 0.1);
+      color: var(--correct-color);
+    }
+    
+    #result.incorrect {
+      background-color: rgba(244, 67, 54, 0.1);
+      color: var(--incorrect-color);
+    }
+    
+    .action-btn {
+      background-color: var(--secondary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      padding: 14px 30px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+      margin: 30px auto;
+      display: block;
+    }
+    
+    .action-btn:hover {
+      background-color: #e08600;
+      transform: translateY(-2px);
+    }
+    
+    /* 学習モード用のリスト */
+    .element-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      margin: 20px 0;
+    }
+    
+    .element-list-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .element-list-item:hover {
+      background-color: rgba(74, 111, 165, 0.05);
+    }
+    
+    .element-list-item.selected {
+      background-color: rgba(74, 111, 165, 0.1);
+    }
+    
+    .element-list-number {
+      width: 30px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .element-list-symbol {
+      width: 40px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    /* レスポンシブデザイン */
+    @media (max-width: 768px) {
+      .element-detail {
+        flex-direction: column;
+      }
+      
+      .element-image {
+        margin-right: 0;
+      }
+      
+      .filter-section {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>元素周期表 学習・クイズアプリ</h1>
+    </header>
+    
+    <div class="mode-selector">
+      <input type="radio" name="mode" id="learn-mode" value="learn" checked>
+      <label for="learn-mode">学習モード</label>
+      
+      <input type="radio" name="mode" id="quiz-mode" value="quiz">
+      <label for="quiz-mode">クイズモード</label>
+    </div>
+    
+    <!-- 学習モード -->
+    <div class="app-card" id="learn-section">
+      <div class="filter-section">
+        <select id="category-filter" class="filter-select">
+          <option value="all">すべてのカテゴリ</option>
+          <option value="nonmetal">非金属</option>
+          <option value="noble gas">貴ガス</option>
+          <option value="alkali metal">アルカリ金属</option>
+          <option value="alkaline earth metal">アルカリ土類金属</option>
+          <option value="metalloid">半金属</option>
+          <option value="halogen">ハロゲン</option>
+          <option value="post-transition metal">遷移後金属</option>
+          <option value="transition metal">遷移金属</option>
+          <option value="lanthanide">ランタノイド</option>
+          <option value="actinide">アクチノイド</option>
+        </select>
+        
+        <select id="period-filter" class="filter-select">
+          <option value="all">すべての周期</option>
+          <option value="1">第1周期</option>
+          <option value="2">第2周期</option>
+          <option value="3">第3周期</option>
+          <option value="4">第4周期</option>
+          <option value="5">第5周期</option>
+          <option value="6">第6周期</option>
+          <option value="7">第7周期</option>
+        </select>
+        
+        <select id="view-mode" class="filter-select">
+          <option value="table">周期表表示</option>
+          <option value="list">リスト表示</option>
+        </select>
+      </div>
+      
+      <div class="category-legend" id="category-legend"></div>
+      
+      <div class="periodic-table-container">
+        <div id="periodic-table" class="periodic-table"></div>
+      </div>
+      
+      <div id="element-list" class="element-list" style="display: none;"></div>
+      
+      <div id="element-detail" class="element-detail" style="display: none;"></div>
+    </div>
+    
+    <!-- クイズモード -->
+    <div class="app-card" id="quiz-section" style="display: none;">
+      <div class="filter-section">
+        <select id="quiz-category" class="filter-select">
+          <option value="all">すべてのカテゴリ</option>
+          <option value="nonmetal">非金属</option>
+          <option value="noble gas">貴ガス</option>
+          <option value="alkali metal">アルカリ金属</option>
+          <option value="alkaline earth metal">アルカリ土類金属</option>
+          <option value="metalloid">半金属</option>
+          <option value="halogen">ハロゲン</option>
+          <option value="transition metal">遷移金属</option>
+          <option value="lanthanide">ランタノイド</option>
+          <option value="actinide">アクチノイド</option>
+        </select>
+        
+        <select id="quiz-difficulty" class="filter-select">
+          <option value="easy">かんたん</option>
+          <option value="medium">ふつう</option>
+          <option value="hard">むずかしい</option>
+        </select>
+        
+        <select id="quiz-type" class="filter-select">
+          <option value="symbol-to-name">元素記号→元素名</option>
+          <option value="name-to-symbol">元素名→元素記号</option>
+          <option value="image-to-name">イメージ→元素名</option>
+        </select>
+      </div>
+      
+      <div class="score-container">
+        <div>問題: <span id="question-count">1</span></div>
+        <div>正解数: <span id="score" class="score">0</span></div>
+      </div>
+      
+      <div class="quiz-question-container">
+        <div id="quiz-question" class="question">この元素記号は何の元素？</div>
+        <div id="quiz-image-container">
+          <img id="quiz-image" class="quiz-image" src="" alt="" style="display: none;">
+        </div>
+        <div id="quiz-options" class="options"></div>
+        <div id="result"></div>
+      </div>
+      
+      <button id="next-btn" class="action-btn" style="display: none;">次の問題へ</button>
+    </div>
+  </div>
+
+  <script>
+    // グローバル変数
+    let allElements = [];
+    let currentElement = null;
+    let currentMode = 'learn';
+    
+    // クイズ用変数
+    let currentAnswer = null;
+    let score = 0;
+    let questionCount = 1;
+    
+    // 日本語カテゴリ名マッピング
+    const categoryMapping = {
+      'diatomic nonmetal': '非金属',
+      'polyatomic nonmetal': '非金属',
+      'nonmetal': '非金属',
+      'noble gas': '貴ガス',
+      'alkali metal': 'アルカリ金属',
+      'alkaline earth metal': 'アルカリ土類金属',
+      'metalloid': '半金属',
+      'halogen': 'ハロゲン',
+      'post-transition metal': '遷移後金属',
+      'metal': 'その他の金属',
+      'transition metal': '遷移金属',
+      'lanthanide': 'ランタノイド',
+      'actinide': 'アクチノイド',
+      'unknown': '不明'
+    };
+    
+    // カテゴリ別色クラスのマッピング
+    const categoryClasses = {
+      'diatomic nonmetal': 'category-nonmetal',
+      'polyatomic nonmetal': 'category-nonmetal',
+      'nonmetal': 'category-nonmetal',
+      'noble gas': 'category-noble-gas',
+      'alkali metal': 'category-alkali-metal',
+      'alkaline earth metal': 'category-alkaline-earth-metal',
+      'metalloid': 'category-metalloid',
+      'halogen': 'category-halogen',
+      'post-transition metal': 'category-metal',
+      'metal': 'category-metal',
+      'transition metal': 'category-transition-metal',
+      'lanthanide': 'category-lanthanide',
+      'actinide': 'category-actinide',
+      'unknown': ''
+    };
+
+    // ドキュメント読み込み完了時の処理
+    document.addEventListener('DOMContentLoaded', function() {
+      // 日本語説明のデータ
+      const japaneseSummaries = {};
+      
+      // CSVファイルを読み込む
+      fetch('processed_explanations.csv')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('CSV ファイルの読み込みに失敗しました');
+          }
+          return response.text();
+        })
+        .then(csvText => {
+          // CSVを行に分割
+          const lines = csvText.split('\n');
+          // ヘッダー行をスキップして各行を処理
+          for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line) {
+              try {
+                // CSVの各フィールドを取得
+                const fields = line.split(',');
+                // カンマを含む可能性のある説明文フィールドを正しく処理
+                const id = parseInt(fields[0]);
+                const enName = fields[1];
+                const jaName = fields[2];
+                
+                // 残りのフィールドは説明文として連結
+                const jaSummary = fields.slice(3).join(',');
+                
+                // ID をキーにして説明文を保存
+                japaneseSummaries[id] = {
+                  enName: enName,
+                  jaName: jaName,
+                  summary: jaSummary
+                };
+              } catch (e) {
+                console.warn(`CSV行の解析に失敗しました: ${line}`, e);
+              }
+            }
+          }
+          console.log(`${Object.keys(japaneseSummaries).length}個の元素説明を読み込みました`);
+          
+          // 元素データの読み込みを続行
+          return fetch('https://raw.githubusercontent.com/Bowserinator/Periodic-Table-JSON/master/PeriodicTableJSON.json');
+        })
+      
+        .then(response => response.json())
+        .catch(error => {
+          console.error('CSV読み込み後の元素データ取得に失敗しました:', error);
+          // CSV読み込みは成功したが元素データの取得に失敗した場合はここで直接元素データを取得
+          return fetch('https://raw.githubusercontent.com/Bowserinator/Periodic-Table-JSON/master/PeriodicTableJSON.json')
+            .then(response => response.json());
+        })
+        .then(data => {
+          allElements = data.elements;
+          
+          // 日本語名の追加
+          const japaneseNames = {
+            'Hydrogen': '水素', 'Helium': 'ヘリウム', 'Lithium': 'リチウム', 'Beryllium': 'ベリリウム',
+            'Boron': 'ホウ素', 'Carbon': '炭素', 'Nitrogen': '窒素', 'Oxygen': '酸素',
+            'Fluorine': 'フッ素', 'Neon': 'ネオン', 'Sodium': 'ナトリウム', 'Magnesium': 'マグネシウム',
+            'Aluminum': 'アルミニウム', 'Silicon': 'ケイ素', 'Phosphorus': 'リン', 'Sulfur': '硫黄',
+            'Chlorine': '塩素', 'Argon': 'アルゴン', 'Potassium': 'カリウム', 'Calcium': 'カルシウム',
+            'Scandium': 'スカンジウム', 'Titanium': 'チタン', 'Vanadium': 'バナジウム', 'Chromium': 'クロム',
+            'Manganese': 'マンガン', 'Iron': '鉄', 'Cobalt': 'コバルト', 'Nickel': 'ニッケル',
+            'Copper': '銅', 'Zinc': '亜鉛', 'Gallium': 'ガリウム', 'Germanium': 'ゲルマニウム',
+            'Arsenic': 'ヒ素', 'Selenium': 'セレン', 'Bromine': '臭素', 'Krypton': 'クリプトン',
+            'Rubidium': 'ルビジウム', 'Strontium': 'ストロンチウム', 'Yttrium': 'イットリウム', 'Zirconium': 'ジルコニウム',
+            'Niobium': 'ニオブ', 'Molybdenum': 'モリブデン', 'Technetium': 'テクネチウム', 'Ruthenium': 'ルテニウム',
+            'Rhodium': 'ロジウム', 'Palladium': 'パラジウム', 'Silver': '銀', 'Cadmium': 'カドミウム',
+            'Indium': 'インジウム', 'Tin': 'スズ', 'Antimony': 'アンチモン', 'Tellurium': 'テルル',
+            'Iodine': 'ヨウ素', 'Xenon': 'キセノン', 'Cesium': 'セシウム', 'Barium': 'バリウム',
+            'Lanthanum': 'ランタン', 'Cerium': 'セリウム', 'Praseodymium': 'プラセオジム', 'Neodymium': 'ネオジム',
+            'Promethium': 'プロメチウム', 'Samarium': 'サマリウム', 'Europium': 'ユウロピウム', 'Gadolinium': 'ガドリニウム',
+            'Terbium': 'テルビウム', 'Dysprosium': 'ジスプロシウム', 'Holmium': 'ホルミウム', 'Erbium': 'エルビウム',
+            'Thulium': 'ツリウム', 'Ytterbium': 'イッテルビウム', 'Lutetium': 'ルテチウム', 'Hafnium': 'ハフニウム',
+            'Tantalum': 'タンタル', 'Tungsten': 'タングステン', 'Rhenium': 'レニウム', 'Osmium': 'オスミウム',
+            'Iridium': 'イリジウム', 'Platinum': '白金', 'Gold': '金', 'Mercury': '水銀',
+            'Thallium': 'タリウム', 'Lead': '鉛', 'Bismuth': 'ビスマス', 'Polonium': 'ポロニウム',
+            'Astatine': 'アスタチン', 'Radon': 'ラドン', 'Francium': 'フランシウム', 'Radium': 'ラジウム',
+            'Actinium': 'アクチニウム', 'Thorium': 'トリウム', 'Protactinium': 'プロトアクチニウム', 'Uranium': 'ウラン',
+            'Neptunium': 'ネプツニウム', 'Plutonium': 'プルトニウム', 'Americium': 'アメリシウム', 'Curium': 'キュリウム',
+            'Berkelium': 'バークリウム', 'Californium': 'カリホルニウム', 'Einsteinium': 'アインスタイニウム', 'Fermium': 'フェルミウム',
+            'Mendelevium': 'メンデレビウム', 'Nobelium': 'ノーベリウム', 'Lawrencium': 'ローレンシウム', 'Rutherfordium': 'ラザホージウム',
+            'Dubnium': 'ドブニウム', 'Seaborgium': 'シーボーギウム', 'Bohrium': 'ボーリウム', 'Hassium': 'ハッシウム',
+            'Meitnerium': 'マイトネリウム', 'Darmstadtium': 'ダームスタチウム', 'Roentgenium': 'レントゲニウム', 'Copernicium': 'コペルニシウム',
+            'Nihonium': 'ニホニウム', 'Flerovium': 'フレロビウム', 'Moscovium': 'モスコビウム', 'Livermorium': 'リバモリウム',
+            'Tennessine': 'テネシン', 'Oganesson': 'オガネソン', 'Ununennium': 'ウンウンエンニウム'
+          };
+          
+          // すべての元素に日本語名と説明を追加
+          allElements.forEach(element => {
+            element.nameJa = japaneseNames[element.name] || element.name;
+            
+            // CSV から日本語の説明文を取得
+            if (japaneseSummaries[element.number]) {
+              element.summaryJa = japaneseSummaries[element.number].summary;
+            } else {
+              // CSV にない場合は生成した説明文を使用
+              element.summaryJa = getJapaneseSummary(element);
+            }
+          });
+          
+          // カテゴリ凡例の生成
+          createCategoryLegend();
+          
+          // 周期表の生成
+          createPeriodicTable();
+          
+          // リストの生成
+          createElementList();
+          
+          // 初期表示
+          updateElementDisplay();
+        })
+        .catch(error => {
+          console.error('エラーが発生しました:', error);
+          document.getElementById('periodic-table').innerHTML = '<p>元素データまたはCSVの読み込みに失敗しました。</p>';
+        });
+      
+      // CSVファイルの読み込みに失敗した場合のフォールバック処理
+      setTimeout(() => {
+        if (Object.keys(japaneseSummaries).length === 0) {
+          console.warn('CSVの読み込みに失敗したか、CSVが空でした。元素データのみを読み込みます。');
+          fetch('https://raw.githubusercontent.com/Bowserinator/Periodic-Table-JSON/master/PeriodicTableJSON.json')
+            .then(response => response.json())
+            .then(data => {
+              allElements = data.elements;
+              
+              // 日本語名の追加
+              const japaneseNames = {
+                'Hydrogen': '水素', 'Helium': 'ヘリウム', 'Lithium': 'リチウム', 'Beryllium': 'ベリリウム',
+                'Boron': 'ホウ素', 'Carbon': '炭素', 'Nitrogen': '窒素', 'Oxygen': '酸素',
+                'Fluorine': 'フッ素', 'Neon': 'ネオン', 'Sodium': 'ナトリウム', 'Magnesium': 'マグネシウム',
+                'Aluminum': 'アルミニウム', 'Silicon': 'ケイ素', 'Phosphorus': 'リン', 'Sulfur': '硫黄',
+                'Chlorine': '塩素', 'Argon': 'アルゴン', 'Potassium': 'カリウム', 'Calcium': 'カルシウム',
+                'Scandium': 'スカンジウム', 'Titanium': 'チタン', 'Vanadium': 'バナジウム', 'Chromium': 'クロム',
+                'Manganese': 'マンガン', 'Iron': '鉄', 'Cobalt': 'コバルト', 'Nickel': 'ニッケル',
+                'Copper': '銅', 'Zinc': '亜鉛', 'Gallium': 'ガリウム', 'Germanium': 'ゲルマニウム',
+                'Arsenic': 'ヒ素', 'Selenium': 'セレン', 'Bromine': '臭素', 'Krypton': 'クリプトン',
+                'Rubidium': 'ルビジウム', 'Strontium': 'ストロンチウム', 'Yttrium': 'イットリウム', 'Zirconium': 'ジルコニウム',
+                'Niobium': 'ニオブ', 'Molybdenum': 'モリブデン', 'Technetium': 'テクネチウム', 'Ruthenium': 'ルテニウム',
+                'Rhodium': 'ロジウム', 'Palladium': 'パラジウム', 'Silver': '銀', 'Cadmium': 'カドミウム',
+                'Indium': 'インジウム', 'Tin': 'スズ', 'Antimony': 'アンチモン', 'Tellurium': 'テルル',
+                'Iodine': 'ヨウ素', 'Xenon': 'キセノン', 'Cesium': 'セシウム', 'Barium': 'バリウム',
+                'Lanthanum': 'ランタン', 'Cerium': 'セリウム', 'Praseodymium': 'プラセオジム', 'Neodymium': 'ネオジム',
+                'Promethium': 'プロメチウム', 'Samarium': 'サマリウム', 'Europium': 'ユウロピウム', 'Gadolinium': 'ガドリニウム',
+                'Terbium': 'テルビウム', 'Dysprosium': 'ジスプロシウム', 'Holmium': 'ホルミウム', 'Erbium': 'エルビウム',
+                'Thulium': 'ツリウム', 'Ytterbium': 'イッテルビウム', 'Lutetium': 'ルテチウム', 'Hafnium': 'ハフニウム',
+                'Tantalum': 'タンタル', 'Tungsten': 'タングステン', 'Rhenium': 'レニウム', 'Osmium': 'オスミウム',
+                'Iridium': 'イリジウム', 'Platinum': '白金', 'Gold': '金', 'Mercury': '水銀',
+                'Thallium': 'タリウム', 'Lead': '鉛', 'Bismuth': 'ビスマス', 'Polonium': 'ポロニウム',
+                'Astatine': 'アスタチン', 'Radon': 'ラドン', 'Francium': 'フランシウム', 'Radium': 'ラジウム',
+                'Actinium': 'アクチニウム', 'Thorium': 'トリウム', 'Protactinium': 'プロトアクチニウム', 'Uranium': 'ウラン',
+                'Neptunium': 'ネプツニウム', 'Plutonium': 'プルトニウム', 'Americium': 'アメリシウム', 'Curium': 'キュリウム',
+                'Berkelium': 'バークリウム', 'Californium': 'カリホルニウム', 'Einsteinium': 'アインスタイニウム', 'Fermium': 'フェルミウム',
+                'Mendelevium': 'メンデレビウム', 'Nobelium': 'ノーベリウム', 'Lawrencium': 'ローレンシウム', 'Rutherfordium': 'ラザホージウム',
+                'Dubnium': 'ドブニウム', 'Seaborgium': 'シーボーギウム', 'Bohrium': 'ボーリウム', 'Hassium': 'ハッシウム',
+                'Meitnerium': 'マイトネリウム', 'Darmstadtium': 'ダームスタチウム', 'Roentgenium': 'レントゲニウム', 'Copernicium': 'コペルニシウム',
+                'Nihonium': 'ニホニウム', 'Flerovium': 'フレロビウム', 'Moscovium': 'モスコビウム', 'Livermorium': 'リバモリウム',
+                'Tennessine': 'テネシン', 'Oganesson': 'オガネソン', 'Ununennium': 'ウンウンエンニウム'
+              };
+              
+              // すべての元素に日本語名を追加
+              allElements.forEach(element => {
+                element.nameJa = japaneseNames[element.name] || element.name;
+                
+                // 日本語の説明文を追加
+                element.summaryJa = getJapaneseSummary(element);
+              });
+              
+              // カテゴリ凡例の生成
+              createCategoryLegend();
+              
+              // 周期表の生成
+              createPeriodicTable();
+              
+              // リストの生成
+              createElementList();
+              
+              // 初期表示
+              updateElementDisplay();
+            })
+            .catch(error => {
+              console.error('フォールバック処理でもエラーが発生しました:', error);
+              document.getElementById('periodic-table').innerHTML = '<p>元素データの読み込みに失敗しました。</p>';
+            });
+        }
+      }, 3000);
+
+      // モード切り替え処理
+      document.querySelectorAll('input[name="mode"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          currentMode = this.value;
+          if (currentMode === 'learn') {
+            document.getElementById('learn-section').style.display = 'block';
+            document.getElementById('quiz-section').style.display = 'none';
+          } else {
+            document.getElementById('learn-section').style.display = 'none';
+            document.getElementById('quiz-section').style.display = 'block';
+            startQuiz();
+          }
+        });
+      });
+      
+      // 学習モードのフィルター変更イベント
+      document.getElementById('category-filter').addEventListener('change', updateElementDisplay);
+      document.getElementById('period-filter').addEventListener('change', updateElementDisplay);
+      document.getElementById('view-mode').addEventListener('change', function() {
+        const viewMode = this.value;
+        if (viewMode === 'table') {
+          document.querySelector('.periodic-table-container').style.display = 'block';
+          document.getElementById('element-list').style.display = 'none';
+        } else {
+          document.querySelector('.periodic-table-container').style.display = 'none';
+          document.getElementById('element-list').style.display = 'block';
+        }
+      });
+      
+      // クイズフィルター変更イベント
+      document.getElementById('quiz-category').addEventListener('change', startQuiz);
+      document.getElementById('quiz-difficulty').addEventListener('change', startQuiz);
+      document.getElementById('quiz-type').addEventListener('change', startQuiz);
+      
+      // 次の問題ボタン
+      document.getElementById('next-btn').addEventListener('click', function() {
+        questionCount++;
+        document.getElementById('question-count').textContent = questionCount;
+        this.style.display = 'none';
+        document.getElementById('result').textContent = '';
+        document.getElementById('result').className = '';
+        startQuiz();
+      });
+    });
+
+    // 日本語の説明文を取得する関数
+    function getJapaneseSummary(element) {
+      // 主要な元素の日本語説明文
+      const elementDescriptions = {
+        'Hydrogen': '水素は原子番号1、元素記号Hの元素です。無色無臭の気体で、宇宙で最も豊富な元素です。水素は水の主成分であり、多くの有機化合物の構成要素でもあります。',
+        'Helium': 'ヘリウムは原子番号2、元素記号Heの希ガスです。無色無臭で化学的に不活性な気体です。太陽や他の恒星の核融合反応によって生成されます。',
+        'Lithium': 'リチウムは原子番号3、元素記号Liのアルカリ金属です。銀白色の軽い金属で、空気中で変色します。リチウムイオン電池に広く使用されています。',
+        'Carbon': '炭素は原子番号6、元素記号Cの非金属元素です。ダイヤモンドや黒鉛など多様な同素体を持ちます。すべての生命の基本的な構成要素です。',
+        'Oxygen': '酸素は原子番号8、元素記号Oの非金属元素です。無色無臭の気体で、地球の大気の約21%を占めています。ほとんどの生物の呼吸に必要です。',
+        'Iron': '鉄は原子番号26、元素記号Feの遷移金属です。銀白色の延性と展性のある金属で、地球上で最も一般的な元素の一つです。人類の発展に大きく貢献しました。',
+        'Copper': '銅は原子番号29、元素記号Cuの遷移金属です。赤褐色の高い電気伝導率を持つ金属で、電線や電子機器に広く使用されています。',
+        'Silver': '銀は原子番号47、元素記号Agの遷移金属です。光沢のある白い金属で、最も高い電気伝導率を持ちます。装飾品や貨幣に古くから使用されています。',
+        'Gold': '金は原子番号79、元素記号Auの遷移金属です。黄色の光沢を持ち、化学的に非常に安定しています。宝飾品や通貨として古代から価値が高く評価されています。'
+      };
+      
+      // 説明文があればそれを返し、なければデフォルトのメッセージを返す
+      return elementDescriptions[element.name] || 
+        `${element.nameJa}は原子番号${element.number}、元素記号${element.symbol}の元素です。詳細な日本語情報は現在準備中です。`;
+    }
+
+    // カテゴリ凡例の生成
+    function createCategoryLegend() {
+      const legend = document.getElementById('category-legend');
+      legend.innerHTML = '';
+      
+      const categories = [
+        { name: 'nonmetal', label: '非金属' },
+        { name: 'noble gas', label: '貴ガス' },
+        { name: 'alkali metal', label: 'アルカリ金属' },
+        { name: 'alkaline earth metal', label: 'アルカリ土類金属' },
+        { name: 'metalloid', label: '半金属' },
+        { name: 'halogen', label: 'ハロゲン' },
+        { name: 'post-transition metal', label: '遷移後金属' },
+        { name: 'transition metal', label: '遷移金属' },
+        { name: 'lanthanide', label: 'ランタノイド' },
+        { name: 'actinide', label: 'アクチノイド' }
+      ];
+      
+      categories.forEach(category => {
+        const legendItem = document.createElement('div');
+        legendItem.className = 'legend-item';
+        
+        const colorBox = document.createElement('span');
+        colorBox.className = 'legend-color ' + categoryClasses[category.name];
+        
+        const label = document.createElement('span');
+        label.textContent = category.label;
+        
+        legendItem.appendChild(colorBox);
+        legendItem.appendChild(label);
+        legend.appendChild(legendItem);
+      });
+    }
+
+    // 周期表の生成
+    function createPeriodicTable() {
+      const table = document.getElementById('periodic-table');
+      table.innerHTML = '';
+      
+      // 118個の空のセルを作成
+      for (let i = 0; i < 10; i++) {
+        for (let j = 0; j < 18; j++) {
+          const cell = document.createElement('div');
+          cell.style.gridRow = i + 1;
+          cell.style.gridColumn = j + 1;
+          cell.className = 'element empty';
+          cell.style.visibility = 'hidden'; // 空のセルは非表示
+          table.appendChild(cell);
+        }
+      }
+      
+      // 元素を配置
+      allElements.forEach(element => {
+        const cell = document.createElement('div');
+        cell.className = 'element';
+        
+        // カテゴリに応じたクラスを追加
+        if (element.category) {
+          // カテゴリのマッピング
+          let categoryLower = element.category.toLowerCase();
+          
+          // 'polyatomic nonmetal'や'diatomic nonmetal'は'nonmetal'として扱う
+          if (categoryLower.includes('nonmetal')) {
+            categoryLower = 'nonmetal';
+          }
+          
+          if (categoryClasses[categoryLower]) {
+            cell.classList.add(categoryClasses[categoryLower]);
+          }
+        }
+        
+        cell.style.gridRow = element.ypos;
+        cell.style.gridColumn = element.xpos;
+        cell.style.visibility = 'visible';
+        
+        const number = document.createElement('div');
+        number.className = 'element-number';
+        number.textContent = element.number;
+        
+        const symbol = document.createElement('div');
+        symbol.className = 'element-symbol';
+        symbol.textContent = element.symbol;
+        
+        const name = document.createElement('div');
+        name.className = 'element-name';
+        name.textContent = element.nameJa || element.name;
+        
+        cell.appendChild(number);
+        cell.appendChild(symbol);
+        cell.appendChild(name);
+        
+        cell.addEventListener('click', () => showElementDetails(element));
+        
+        table.appendChild(cell);
+      });
+    }
+
+    // 元素リストの生成
+    function createElementList() {
+      const listContainer = document.getElementById('element-list');
+      listContainer.innerHTML = '';
+      
+      allElements.sort((a, b) => a.number - b.number).forEach(element => {
+        const listItem = document.createElement('div');
+        listItem.className = 'element-list-item';
+        listItem.setAttribute('data-number', element.number);
+        
+        const number = document.createElement('span');
+        number.className = 'element-list-number';
+        number.textContent = element.number;
+        
+        const symbol = document.createElement('span');
+        symbol.className = 'element-list-symbol';
+        symbol.textContent = element.symbol;
+        
+        const name = document.createElement('span');
+        name.textContent = element.nameJa || element.name;
+        
+        listItem.appendChild(number);
+        listItem.appendChild(symbol);
+        listItem.appendChild(name);
+        
+        listItem.addEventListener('click', () => {
+          document.querySelectorAll('.element-list-item').forEach(item => {
+            item.classList.remove('selected');
+          });
+          listItem.classList.add('selected');
+          showElementDetails(element);
+        });
+        
+        listContainer.appendChild(listItem);
+      });
+    }
+
+    // 学習モードでの元素表示の更新
+    function updateElementDisplay() {
+      const categoryFilter = document.getElementById('category-filter').value;
+      const periodFilter = document.getElementById('period-filter').value;
+      
+      // 周期表の要素
+      document.querySelectorAll('#periodic-table .element:not(.empty)').forEach(el => {
+        const elementNumber = parseInt(el.querySelector('.element-number').textContent);
+        const element = allElements.find(e => e.number === elementNumber);
+        
+        if (!element) return;
+        
+        let visible = true;
+        
+        // カテゴリフィルター
+        if (categoryFilter !== 'all') {
+          let categoryMatches = false;
+          
+          if (element.category) {
+            const elementCategory = element.category.toLowerCase();
+            
+            // 非金属のカテゴリは複数あるため、特別に処理
+            if (categoryFilter === 'nonmetal') {
+              categoryMatches = elementCategory.includes('nonmetal');
+            } else {
+              categoryMatches = elementCategory.includes(categoryFilter.toLowerCase());
+            }
+          }
+          
+          visible = visible && categoryMatches;
+        }
+        
+        // 周期フィルター
+        if (periodFilter !== 'all') {
+          visible = visible && (element.period === parseInt(periodFilter));
+        }
+        
+        el.style.display = visible ? '' : 'none';
+      });
+      
+      // リストの要素
+      document.querySelectorAll('#element-list .element-list-item').forEach(el => {
+        const elementNumber = parseInt(el.getAttribute('data-number'));
+        const element = allElements.find(e => e.number === elementNumber);
+        
+        if (!element) return;
+        
+        let visible = true;
+        
+        // カテゴリフィルター
+        if (categoryFilter !== 'all') {
+          let categoryMatches = false;
+          
+          if (element.category) {
+            const elementCategory = element.category.toLowerCase();
+            
+            // 非金属のカテゴリは複数あるため、特別に処理
+            if (categoryFilter === 'nonmetal') {
+              categoryMatches = elementCategory.includes('nonmetal');
+            } else {
+              categoryMatches = elementCategory.includes(categoryFilter.toLowerCase());
+            }
+          }
+          
+          visible = visible && categoryMatches;
+        }
+        
+        // 周期フィルター
+        if (periodFilter !== 'all') {
+          visible = visible && (element.period === parseInt(periodFilter));
+        }
+        
+        el.style.display = visible ? '' : 'none';
+      });
+    }
+
+    // 元素詳細の表示
+    function showElementDetails(element) {
+      currentElement = element;
+      
+      const detailContainer = document.getElementById('element-detail');
+      detailContainer.style.display = 'flex';
+      
+      // ボーアモデルの画像があれば表示
+      let imageHtml = '';
+      if (element.bohr_model_image) {
+        imageHtml = `
+          <div class="element-image">
+            <img src="${element.bohr_model_image}" alt="${element.nameJa}のボーアモデル">
+          </div>
+        `;
+      }
+      
+      // 分類の日本語名を取得
+      const categoryJa = categoryMapping[element.category ? element.category.toLowerCase() : 'unknown'] || element.category;
+      
+      // 相の日本語名
+      const phaseMapping = {
+        'Gas': '気体',
+        'Liquid': '液体',
+        'Solid': '固体',
+        'Unknown': '不明'
+      };
+      const phaseJa = phaseMapping[element.phase] || element.phase;
+      
+      // 基本情報の表示
+      detailContainer.innerHTML = `
+        ${imageHtml}
+        <div class="element-info">
+          <h2>${element.nameJa || element.name} (${element.symbol})</h2>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <strong>原子番号</strong>
+              ${element.number}
+            </div>
+            
+            <div class="info-item">
+              <strong>原子量</strong>
+              ${element.atomic_mass}
+            </div>
+            
+            <div class="info-item">
+              <strong>分類</strong>
+              ${categoryJa}
+            </div>
+            
+            <div class="info-item">
+              <strong>周期</strong>
+              ${element.period}
+            </div>
+            
+            <div class="info-item">
+              <strong>族</strong>
+              ${element.group || '—'}
+            </div>
+            
+            <div class="info-item">
+              <strong>状態</strong>
+              ${phaseJa}
+            </div>
+            
+            <div class="info-item">
+              <strong>電子配置</strong>
+              ${element.electron_configuration || '—'}
+            </div>
+            
+            <div class="info-item">
+              <strong>融点</strong>
+              ${element.melt ? element.melt + ' K' : '—'}
+            </div>
+            
+            <div class="info-item">
+              <strong>沸点</strong>
+              ${element.boil ? element.boil + ' K' : '—'}
+            </div>
+            
+            <div class="info-item">
+              <strong>密度</strong>
+              ${element.density ? element.density + ' g/cm³' : '—'}
+            </div>
+            
+            <div class="info-item">
+              <strong>発見者</strong>
+              ${element.discovered_by || '—'}
+            </div>
+            
+            <div class="info-item">
+              <strong>命名者</strong>
+              ${element.named_by || '—'}
+            </div>
+          </div>
+          
+          <div class="element-summary">
+            ${element.summaryJa || '情報がありません。'}
+          </div>
+        </div>
+      `;
+    }
+
+    // クイズの開始
+    function startQuiz() {
+      const category = document.getElementById('quiz-category').value;
+      const difficulty = document.getElementById('quiz-difficulty').value;
+      const quizType = document.getElementById('quiz-type').value;
+      
+      // フィルターに基づいて元素を絞り込む
+      let availableElements = [...allElements];
+      
+      if (category !== 'all') {
+        availableElements = availableElements.filter(el => {
+          if (!el.category) return false;
+          
+          const elementCategory = el.category.toLowerCase();
+          
+          // 非金属のカテゴリは複数あるため、特別に処理
+          if (category === 'nonmetal') {
+            return elementCategory.includes('nonmetal');
+          } else {
+            return elementCategory.includes(category.toLowerCase());
+          }
+        });
+      }
+      
+      // 選択要素が少なすぎる場合は全要素を使用
+      if (availableElements.length < 4) {
+        availableElements = [...allElements];
+      }
+      
+      // 難易度で絞り込む（例：easyは最初の30要素のみ、mediumは60要素まで、hardは全要素）
+      if (difficulty === 'easy') {
+        availableElements = availableElements.filter(el => el.number <= 30);
+      } else if (difficulty === 'medium') {
+        availableElements = availableElements.filter(el => el.number <= 60);
+      }
+      
+      // 問題の生成
+      generateQuizQuestion(availableElements, quizType);
+    }
+
+    // クイズ問題の生成
+    function generateQuizQuestion(elements, quizType) {
+      // 4つのランダムな元素を選択
+      const shuffled = [...elements].sort(() => 0.5 - Math.random());
+      const quizElements = shuffled.slice(0, 4);
+      
+      // 正解の元素を選択
+      currentAnswer = quizElements[Math.floor(Math.random() * quizElements.length)];
+      
+      const questionDiv = document.getElementById('quiz-question');
+      const optionsDiv = document.getElementById('quiz-options');
+      const imageContainer = document.getElementById('quiz-image-container');
+      const quizImage = document.getElementById('quiz-image');
+      
+      optionsDiv.innerHTML = '';
+      
+      // 問題のタイプに応じた表示
+      if (quizType === 'symbol-to-name') {
+        questionDiv.textContent = `この元素記号 "${currentAnswer.symbol}" は何の元素？`;
+        quizImage.style.display = 'none';
+        
+        // 選択肢
+        quizElements.forEach(element => {
+          const btn = document.createElement('button');
+          btn.textContent = element.nameJa || element.name;
+          btn.className = 'option-btn';
+          btn.addEventListener('click', () => checkQuizAnswer(element));
+          optionsDiv.appendChild(btn);
+        });
+      } 
+      else if (quizType === 'name-to-symbol') {
+        questionDiv.textContent = `"${currentAnswer.nameJa || currentAnswer.name}" の元素記号は？`;
+        quizImage.style.display = 'none';
+        
+        // 選択肢
+        quizElements.forEach(element => {
+          const btn = document.createElement('button');
+          btn.textContent = element.symbol;
+          btn.className = 'option-btn';
+          btn.addEventListener('click', () => checkQuizAnswer(element));
+          optionsDiv.appendChild(btn);
+        });
+      }
+      else if (quizType === 'image-to-name') {
+        questionDiv.textContent = 'この元素のボーアモデルはどの元素？';
+        
+        // 画像がある元素で正解を更新
+        const elementsWithImages = quizElements.filter(el => el.bohr_model_image);
+        if (elementsWithImages.length > 0) {
+          currentAnswer = elementsWithImages[Math.floor(Math.random() * elementsWithImages.length)];
+          quizImage.src = currentAnswer.bohr_model_image;
+          quizImage.alt = currentAnswer.name + 'のボーアモデル';
+          quizImage.style.display = 'block';
+        } else {
+          // 画像がない場合は別の問題タイプに変更
+          quizImage.style.display = 'none';
+          questionDiv.textContent = `この元素記号 "${currentAnswer.symbol}" は何の元素？`;
+        }
+        
+        // 選択肢
+        quizElements.forEach(element => {
+          const btn = document.createElement('button');
+          btn.textContent = element.nameJa || element.name;
+          btn.className = 'option-btn';
+          btn.addEventListener('click', () => checkQuizAnswer(element));
+          optionsDiv.appendChild(btn);
+        });
+      }
+    }
+
+    // クイズの回答チェック
+    function checkQuizAnswer(selectedElement) {
+      const isCorrect = selectedElement.number === currentAnswer.number;
+      showQuizResult(isCorrect);
+      
+      // ボタンスタイルの更新
+      const buttons = document.querySelectorAll('#quiz-options .option-btn');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        
+        // 元素記号→元素名、イメージ→元素名の場合
+        if (document.getElementById('quiz-type').value === 'symbol-to-name' || 
+            document.getElementById('quiz-type').value === 'image-to-name') {
+          if (btn.textContent === (currentAnswer.nameJa || currentAnswer.name)) {
+            btn.classList.add('correct');
+          } else if (btn.textContent === (selectedElement.nameJa || selectedElement.name) && !isCorrect) {
+            btn.classList.add('incorrect');
+          }
+        } 
+        // 元素名→元素記号の場合
+        else if (document.getElementById('quiz-type').value === 'name-to-symbol') {
+          if (btn.textContent === currentAnswer.symbol) {
+            btn.classList.add('correct');
+          } else if (btn.textContent === selectedElement.symbol && !isCorrect) {
+            btn.classList.add('incorrect');
+          }
+        }
+      });
+    }
+
+    // クイズ結果の表示
+    function showQuizResult(isCorrect) {
+      const resultDiv = document.getElementById('result');
+      
+      if (isCorrect) {
+        score++;
+        document.getElementById('score').textContent = score;
+        resultDiv.textContent = '正解！';
+        resultDiv.className = 'correct';
+      } else {
+        resultDiv.textContent = '不正解！';
+        resultDiv.className = 'incorrect';
+      }
+      
+      document.getElementById('next-btn').style.display = 'block';
+      
+      // すべてのボタンを無効化
+      document.querySelectorAll('#quiz-options .option-btn').forEach(btn => {
+        btn.disabled = true;
+      });
+    }
+  </script>
+</body>
+</html>
