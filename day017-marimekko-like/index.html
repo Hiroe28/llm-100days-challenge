@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マリメッコ風お絵かきアプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>マリメッコ風お絵かきアプリ</h1>
+        
+        <div class="canvas-container">
+            <canvas id="drawing-canvas"></canvas>
+            <div id="flowers-container"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="clear-btn">キャンバスをクリア</button>
+            <button id="add-flower-btn">お花を追加</button>
+            
+            <div class="color-picker">
+                <label>お花の色:</label>
+                <select id="flower-color">
+                    <option value="random">ランダム</option>
+                    <option value="red">赤</option>
+                    <option value="pink">ピンク</option>
+                    <option value="blue">青</option>
+                    <option value="green">緑</option>
+                    <option value="yellow">黄色</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="info">
+            <p>💡 キャンバス上をなぞると、なぞった場所にお花が咲きます</p>
+            <p>💡 「お花を追加」ボタンを押すと、なぞった軌跡に沿ってさらにお花が咲きます</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
