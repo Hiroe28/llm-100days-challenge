@@ -152,3 +152,113 @@ label {
         gap: 0.8rem;
     }
 }
+
+.sound-controls {
+    margin: 1rem 0;
+    font-size: 0.9rem;
+}
+
+.tutorial-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.tutorial-overlay {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    max-width: 80%;
+    text-align: center;
+}
+
+.tutorial-steps {
+    margin: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.tutorial-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-align: left;
+}
+
+.step-number {
+    background-color: #e56b6f;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+#start-drawing-btn {
+    background-color: #32a852;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+#start-drawing-btn:hover {
+    background-color: #278842;
+}
+
+.help-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #5a7a94;
+    font-size: 1.2rem;
+    font-weight: bold;
+    z-index: 100;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.pop-animation {
+    animation: pop 0.3s ease;
+}
+
+.ripple {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: transparent;
+    border-radius: 50%;
+    border: 2px solid rgba(229, 107, 111, 0.7);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        width: 10px;
+        height: 10px;
+        opacity: 1;
+    }
+    100% {
+        width: 100px;
+        height: 100px;
+        opacity: 0;
+    }
+}
