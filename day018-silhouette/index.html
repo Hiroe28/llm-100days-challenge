@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シルエット抽出アプリ - LLMアプリ100日チャレンジ Day 18</title>
+    
+    <!-- OGPメタタグ -->
+    <meta property="og:title" content="シルエット抽出アプリ" />
+    <meta property="og:description" content="写真から人物のシルエットを高精度に抽出するAIアプリ。背景色・シルエット色のカスタマイズや輪郭の滑らかさ調整が可能です。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day018-silhouette/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day018-silhouette/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <!-- リダイレクト設定 -->
+    <meta http-equiv="refresh" content="0; URL=https://llm-100days-challenge-day018-silhouette.streamlit.app/" />
+    
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 600px;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .button {
+            display: inline-block;
+            background-color: white;
+            color: #6a11cb;
+            padding: 12px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>シルエット抽出アプリ</h1>
+        <p>Streamlitアプリに自動的にリダイレクトしています。リダイレクトされない場合は下のボタンをクリックしてください。</p>
+        <a href="https://llm-100days-challenge-day018-silhouette.streamlit.app/" class="button">アプリを開く</a>
+    </div>
+    
+    <!-- StreamlitアプリをPingするスクリプト -->
+    <script>
+        // Streamlit Cloudアプリを定期的にピングする関数
+        function pingStreamlitApp() {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = 'https://llm-100days-challenge-day018-silhouette.streamlit.app/?ping=' + Date.now();
+            
+            setTimeout(() => {
+                if (iframe && iframe.parentNode) {
+                    iframe.parentNode.removeChild(iframe);
+                }
+            }, 5000);
+            
+            document.body.appendChild(iframe);
+        }
+        
+        // ページ読み込み時に実行
+        window.addEventListener('load', pingStreamlitApp);
+    </script>
+</body>
+</html>
