@@ -1,0 +1,33 @@
+name: Keep Streamlit App Awake
+
+on:
+  schedule:
+    # 4時間おきに実行 (0時、4時、8時、12時、16時、20時)
+    - cron: '0 0,4,8,12,16,20 * * *'
+  
+  # リポジトリが更新されたときにも実行
+  push:
+    branches: [ main ]
+    paths:
+      - 'day018-silhouette/**'
+  
+  # 手動で実行するためのトリガーも追加
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Streamlit App
+        run: |
+          # タイムスタンプ付きでリクエスト送信
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://llm-100days-challenge-day018-silhouette.streamlit.app/?ping=$(date +%s)")
+          echo "Ping sent to Streamlit app at $(date)"
+          echo "Response status code: $RESPONSE"
+          
+          # 成功した場合のメッセージ
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "Successfully pinged the Streamlit app!"
+          else
+            echo "Ping may not have succeeded. Status code: $RESPONSE"
+          fi
