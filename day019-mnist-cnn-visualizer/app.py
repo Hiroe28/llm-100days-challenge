@@ -149,7 +149,9 @@ def load_mnist_model():
     except Exception as train_error:
         st.error(f"モデルの訓練にも失敗しました: {str(train_error)}")
         return None
-        
+
+model = load_mnist_model()
+
 # 特徴マップを取得する関数
 def get_feature_maps(model, img):
     # 代替アプローチ：中間層の出力を直接取得する代わりに、各層ごとに個別のモデルを作成
