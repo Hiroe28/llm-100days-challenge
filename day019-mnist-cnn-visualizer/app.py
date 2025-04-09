@@ -10,6 +10,58 @@ import japanize_matplotlib  # 日本語フォントのサポートを追加
 import cv2
 from PIL import Image
 import io
+import os
+
+# フォールバックモデル訓練用のモジュールを追加
+# train_mnist_model_fallback.pyがない場合は直接定義
+if not os.path.exists('train_mnist_model_fallback.py'):
+    def train_simple_mnist_model():
+        """
+        簡易版のMNISTモデルを訓練して返す関数
+        Streamlit Cloud環境用のフォールバックとして使用
+        """
+        st.info("モデルファイルが見つからないため、簡易版モデルを訓練しています。これには数分かかる場合があります...")
+        
+        # MNISTデータセットのロード
+        (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
+        
+        # データの前処理（正規化）
+        train_images = train_images / 255.0
+        test_images = test_images / 255.0
+        
+        # CNNは入力として3次元のテンソルを期待するので、チャネル次元を追加
+        train_images = train_images.reshape(train_images.shape[0], 28, 28, 1)
+        test_images = test_images.reshape(test_images.shape[0], 28, 28, 1)
+        
+        # 訓練データを減らして訓練を高速化（Streamlit Cloudでの初期ロード時間短縮のため）
+        train_images = train_images[:10000]
+        train_labels = train_labels[:10000]
+        
+        # 簡易版CNNモデルの構築（元のモデルよりもシンプルなアーキテクチャ）
+        model = tf.keras.models.Sequential()
+        
+        # 畳み込み層とプーリング層
+        model.add(tf.keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+        model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+        model.add(tf.keras.layers.Conv2D(32, (3, 3), activation='relu'))
+        model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+        model.add(tf.keras.layers.Flatten())
+        model.add(tf.keras.layers.Dense(64, activation='relu'))
+        model.add(tf.keras.layers.Dense(10, activation='softmax'))
+        
+        # モデルのコンパイル
+        model.compile(optimizer='adam',
+                    loss='sparse_categorical_crossentropy',
+                    metrics=['accuracy'])
+        
+        # モデルの訓練（少ないエポック数で訓練を高速化）
+        model.fit(train_images, train_labels, epochs=3, batch_size=64, verbose=1)
+        
+        # モデルの評価
+        test_loss, test_acc = model.evaluate(test_images, test_labels, verbose=0)
+        st.success(f"簡易版モデルの訓練が完了しました（精度: {test_acc:.4f}）")
+        
+        return model
 
 # ページ設定
 st.set_page_config(page_title="手書き数字認識アプリ - CNN学習ツール", layout="wide")
@@ -52,14 +104,22 @@ with st.sidebar:
 @st.cache_resource
 def load_mnist_model():
     try:
+        # 既存のモデルファイルを読み込む
         model = load_model('mnist_cnn_model.h5')
         # モデルを初期化するためにダミー入力で予測を実行
         dummy_input = np.zeros((1, 28, 28, 1), dtype=np.float32)
         model.predict(dummy_input)
+        st.success("既存のモデルを読み込みました")
         return model
     except Exception as e:
-        st.error(f"モデルファイル 'mnist_cnn_model.h5' の読み込みに問題が発生しました: {e}")
-        return None
+        st.warning(f"モデルファイル 'mnist_cnn_model.h5' の読み込みに問題が発生しました: {str(e)}")
+        try:
+            # フォールバック: 簡易版のモデルをその場で訓練
+            model = train_simple_mnist_model()
+            return model
+        except Exception as train_error:
+            st.error(f"モデルの訓練にも失敗しました: {str(train_error)}")
+            return None
 
 model = load_mnist_model()
 
