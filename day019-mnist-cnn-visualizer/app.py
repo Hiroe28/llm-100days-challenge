@@ -265,7 +265,11 @@ if canvas_result.image_data is not None and model is not None:
             # 特徴マップが取得できた場合のみ表示
             if feature_map_images:
                 for i, img_buf in enumerate(feature_map_images):
-                    st.image(img_buf, caption=f"畳み込み層 {i+1} の特徴マップ", use_container_width=True)
+                    try:
+                        st.image(img_buf, caption=f"畳み込み層 {i+1} の特徴マップ", use_container_width=True)
+                    except TypeError:
+                        # 古いバージョンのStreamlitでは use_column_widthを使用
+                        st.image(img_buf, caption=f"畳み込み層 {i+1} の特徴マップ", use_column_width=True)
             else:
                 st.warning("特徴マップを表示できません。モデルの構造を確認してください。")
         except Exception as e:
