@@ -1,0 +1,234 @@
+# ② Streamlitアプリ（手書き数字認識と CNN 説明用）
+
+import streamlit as st
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from streamlit_drawable_canvas import st_canvas
+import matplotlib.pyplot as plt
+import japanize_matplotlib  # 日本語フォントのサポートを追加
+import cv2
+from PIL import Image
+import io
+
+# ページ設定
+st.set_page_config(page_title="手書き数字認識アプリ - CNN学習ツール", layout="wide")
+
+# タイトルと紹介
+st.title("手書き数字認識アプリ")
+st.markdown("""
+## このアプリについて
+このアプリは、あなたが描いた数字（0〜9）をAIが認識します。
+AIの「目」がどのようにあなたの描いた数字を認識しているのかを、
+視覚的に理解することができます。
+""")
+
+# サイドバーにCNNの説明を追加
+with st.sidebar:
+    st.header("CNN（畳み込みニューラルネットワーク）とは？")
+    st.markdown("""
+    CNNは、**画像の中から特徴を自動で見つけて判断するAI**の一種です。
+    
+    人間が物を見るとき、無意識のうちに「形」「エッジ」「模様」などの特徴を捉えて認識しています。
+    CNNもこれと似た方法で画像を理解します。
+    
+    ### CNNの特徴
+    1. **畳み込み層**：画像の中の特徴（線、エッジ、模様など）を検出
+    2. **プーリング層**：重要な特徴を残しつつ、データを圧縮
+    3. **全結合層**：検出した特徴を組み合わせて最終的な判断を行う
+    
+    ### 特徴マップとは？
+    特徴マップは、CNNが「何を見ているか」を視覚化したものです。
+    明るい部分は、AIがその領域に注目していることを示しています。
+    
+    ### 画像前処理について
+    あなたが描いた画像は、AIが理解しやすいように以下の処理が行われています：
+    1. **サイズ変更**：28×28ピクセルにリサイズ
+    2. **反転**：MNISTデータセットの形式に合わせて色を反転
+    3. **正規化**：ピクセル値を0〜1の範囲に変換
+    """)
+
+# モデルの読み込み
+@st.cache_resource
+def load_mnist_model():
+    try:
+        model = load_model('mnist_cnn_model.h5')
+        # モデルを初期化するためにダミー入力で予測を実行
+        dummy_input = np.zeros((1, 28, 28, 1), dtype=np.float32)
+        model.predict(dummy_input)
+        return model
+    except Exception as e:
+        st.error(f"モデルファイル 'mnist_cnn_model.h5' の読み込みに問題が発生しました: {e}")
+        return None
+
+model = load_mnist_model()
+
+# 特徴マップを取得する関数
+def get_feature_maps(model, img):
+    # 代替アプローチ：中間層の出力を直接取得する代わりに、各層ごとに個別のモデルを作成
+    img_array = np.expand_dims(img, axis=0)  # バッチ次元を追加
+    
+    # 畳み込み層を特定
+    conv_layers = [i for i, layer in enumerate(model.layers) if 'conv' in layer.name.lower()]
+    
+    # 特徴マップのリスト
+    feature_maps = []
+    
+    # 各畳み込み層に対して処理
+    for layer_idx in conv_layers:
+        try:
+            # 現在の畳み込み層までの部分モデルを作成
+            temp_model = tf.keras.Sequential(model.layers[:layer_idx+1])
+            # 入力形状を設定
+            temp_model.build(input_shape=(None, 28, 28, 1))
+            # 特徴マップを取得
+            feature_map = temp_model.predict(img_array)
+            feature_maps.append(feature_map)
+        except Exception as e:
+            st.warning(f"レイヤー {layer_idx} からの特徴マップ抽出中にエラー: {e}")
+    
+    return feature_maps
+
+# 特徴マップを表示する関数
+def plot_feature_maps(feature_maps, max_features=8):
+    figures = []
+    
+    for i, feature_map in enumerate(feature_maps):
+        # エラー処理: 特徴マップが空の場合はスキップ
+        if feature_map is None or feature_map.size == 0:
+            continue
+            
+        # 最初のバッチの特徴マップのみを使用
+        feature_map = feature_map[0]
+        
+        # 表示する特徴マップの数を制限（多すぎると見にくいため）
+        n_features = min(max_features, feature_map.shape[-1])
+        
+        # 特徴マップの表示用の図を作成
+        fig, axes = plt.subplots(1, n_features, figsize=(2*n_features, 2))
+        fig.suptitle(f"畳み込み層 {i+1} の特徴マップ")
+        
+        # 1つの特徴マップの場合の処理
+        if n_features == 1:
+            axes.imshow(feature_map[:, :, 0], cmap='viridis')
+            axes.set_title(f"フィルタ 1")
+            axes.axis('off')
+        else:
+            # 複数の特徴マップの場合
+            for j in range(n_features):
+                axes[j].imshow(feature_map[:, :, j], cmap='viridis')
+                axes[j].set_title(f"フィルタ {j+1}")
+                axes[j].axis('off')
+        
+        plt.tight_layout()
+        
+        # 図をバイトデータに変換
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close(fig)
+        buf.seek(0)
+        figures.append(buf)
+    
+    return figures
+
+# メイン領域の構成
+col1, col2 = st.columns([1, 1])
+
+with col1:
+    st.subheader("ここに数字（0〜9）を描いてください")
+    
+    # キャンバスのサイズと背景色を設定
+    canvas_result = st_canvas(
+        fill_color="black",  # 描画色
+        stroke_width=20,     # 描画の太さ
+        stroke_color="white",  # 線の色
+        background_color="black",  # 背景色
+        width=280,
+        height=280,
+        drawing_mode="freedraw",
+        key="canvas",
+    )
+
+# 描画があれば処理を続行
+if canvas_result.image_data is not None and model is not None:
+    try:
+        # 描画した画像をグレースケールに変換し、MNIST形式に前処理
+        img = canvas_result.image_data.astype(np.uint8)
+        img_gray = cv2.cvtColor(img, cv2.COLOR_RGBA2GRAY)
+        img_resized = cv2.resize(img_gray, (28, 28), interpolation=cv2.INTER_AREA)
+        
+        # 画像の前処理（正規化）
+        img_normalized = img_resized / 255.0
+        
+        with col2:
+            st.subheader("処理された画像")
+            
+            # 処理後の画像を表示
+            fig, ax = plt.subplots()
+            ax.imshow(img_normalized, cmap='gray')
+            ax.set_title("MNISTフォーマット (28x28)")
+            ax.axis('off')
+            st.pyplot(fig)
+            
+            # 予測実行
+            img_input = img_normalized.reshape(1, 28, 28, 1)
+            predictions = model.predict(img_input)[0]
+            predicted_digit = np.argmax(predictions)
+            confidence = predictions[predicted_digit] * 100
+            
+            # 予測結果を表示
+            st.subheader(f"予測結果: {predicted_digit}")
+            st.write(f"確信度: {confidence:.2f}%")
+            
+            # 全クラスの予測確率をグラフで表示
+            st.subheader("各数字の予測確率")
+            fig, ax = plt.subplots(figsize=(10, 3))
+            bars = ax.bar(range(10), predictions * 100)
+            ax.set_xticks(range(10))
+            ax.set_ylabel('確率 (%)')
+            ax.set_xlabel('数字')
+            ax.set_title('予測確率分布')
+            
+            # 予測されたクラスのバーを強調表示
+            bars[predicted_digit].set_color('red')
+            st.pyplot(fig)
+        
+        # 特徴マップの表示
+        st.subheader("CNNの「目」- 特徴マップの可視化")
+        st.markdown("これらの画像は、AIがあなたの描いた数字のどの部分に注目しているかを示しています。")
+        
+        try:
+            # 特徴マップの取得と表示
+            feature_maps = get_feature_maps(model, img_normalized)
+            feature_map_images = plot_feature_maps(feature_maps)
+            
+            # 特徴マップが取得できた場合のみ表示
+            if feature_map_images:
+                for i, img_buf in enumerate(feature_map_images):
+                    st.image(img_buf, caption=f"畳み込み層 {i+1} の特徴マップ", use_container_width=True)
+            else:
+                st.warning("特徴マップを表示できません。モデルの構造を確認してください。")
+        except Exception as e:
+            st.error(f"特徴マップの生成中にエラーが発生しました: {str(e)}")
+            # フォールバック：特徴マップが表示できない場合の説明
+            st.markdown("""
+            ### CNNの動作原理
+            - 畳み込み層では基本的な線やエッジを検出します
+            - より深い層では複雑なパターンやテクスチャを検出します
+            
+            これらの特徴を組み合わせることで、AIは数字を認識しています。
+            """)
+    except Exception as e:
+        st.error(f"画像処理または予測中にエラーが発生しました: {str(e)}")
+        st.info("もう一度描画してみてください。")
+
+
+# その他の説明
+st.markdown("""
+## このアプリで学べること
+1. AIが画像をどのように「見て」いるのか
+2. CNNの基本的な仕組み
+3. 画像認識における特徴抽出の重要性
+
+いろいろな数字や形を描いて、AIの反応を観察してみましょう！
+""")
