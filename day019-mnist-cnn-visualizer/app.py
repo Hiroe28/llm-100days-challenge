@@ -120,25 +120,25 @@ def load_mnist_model():
         os.path.join('/mount/src/llm-100days-challenge/day019-mnist-cnn-visualizer', 'mnist_cnn_model.h5')  # 絶対パス
     ]
     
-    # デバッグ用に現在のパス情報を表示
-    st.write("現在のスクリプトディレクトリ:", script_dir)
-    st.write("推測されるベースディレクトリ:", base_dir)
+    # # デバッグ用に現在のパス情報を表示
+    # st.write("現在のスクリプトディレクトリ:", script_dir)
+    # st.write("推測されるベースディレクトリ:", base_dir)
     
     # 各パスを試行
     for model_path in possible_model_paths:
-        st.write(f"モデルファイルの検索: {model_path}")
+        # st.write(f"モデルファイルの検索: {model_path}")
         if os.path.exists(model_path):
-            st.write(f"モデルファイルが見つかりました: {model_path}")
-            try:
-                # 既存のモデルファイルを読み込む
-                model = load_model(model_path)
-                # モデルを初期化するためにダミー入力で予測を実行
-                dummy_input = np.zeros((1, 28, 28, 1), dtype=np.float32)
-                model.predict(dummy_input)
-                st.success(f"モデルを正常に読み込みました: {model_path}")
-                return model
-            except Exception as e:
-                st.warning(f"モデルファイルを読み込めませんでした: {str(e)}")
+            # st.write(f"モデルファイルが見つかりました: {model_path}")
+            # try:
+            # 既存のモデルファイルを読み込む
+            model = load_model(model_path)
+            # モデルを初期化するためにダミー入力で予測を実行
+            dummy_input = np.zeros((1, 28, 28, 1), dtype=np.float32)
+            model.predict(dummy_input)
+            # st.success(f"モデルを正常に読み込みました: {model_path}")
+            return model
+            # except Exception as e:
+            #     st.warning(f"モデルファイルを読み込めませんでした: {str(e)}")
     
     # どのパスでもモデルが見つからない場合はフォールバック
     st.warning("モデルファイルが見つからないため、その場でモデルを訓練します")
