@@ -112,7 +112,7 @@ def load_mnist_model():
         st.success("既存のモデルを読み込みました")
         return model
     except Exception as e:
-        st.warning(f"モデルファイル 'mnist_cnn_model.h5' の読み込みに問題が発生しました: {str(e)}")
+        # st.warning(f"モデルファイル 'mnist_cnn_model.h5' の読み込みに問題が発生しました: {str(e)}")
         try:
             # フォールバック: 簡易版のモデルをその場で訓練
             model = train_simple_mnist_model()
