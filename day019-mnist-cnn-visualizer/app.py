@@ -12,6 +12,10 @@ from PIL import Image
 import io
 import os
 
+# ファイル構造を確認するためのコード
+st.write("現在のディレクトリ:", os.getcwd())
+st.write("ディレクトリ内のファイル:", os.listdir())
+
 # フォールバックモデル訓練用のモジュールを追加
 # train_mnist_model_fallback.pyがない場合は直接定義
 if not os.path.exists('train_mnist_model_fallback.py'):
