@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手書き数字認識とCNN可視化アプリ - LLMアプリ100日チャレンジ Day 19</title>
+
+    <!-- 最適化されたOpen Graphタグ -->
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day019-mnist-cnn-visualizer/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="手書き数字認識とCNN可視化アプリ - LLMアプリ100日チャレンジ" />
+    <meta property="og:description" content="手書きの数字をAIが認識し、CNNの内部動作を可視化。AIがどこを見て判断しているかを直感的に理解できる教育用アプリです。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day019-mnist-cnn-visualizer/screenshot.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="LLMアプリ100日チャレンジ" />
+    <meta property="og:locale" content="ja_JP" />
+
+    <!-- Twitter Card タグ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="手書き数字認識とCNN可視化アプリ - LLMアプリ100日チャレンジ" />
+    <meta name="twitter:description" content="手書きの数字をAIが認識し、CNNの内部動作を可視化。AIがどこを見て判断しているかを直感的に理解できる教育用アプリです。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day019-mnist-cnn-visualizer/screenshot.png" />
+
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Arial Rounded MT Bold", "ヒラギノ丸ゴ ProN", sans-serif;
+            background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 20px;
+        }
+        
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .app-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .app-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+        
+        .feature-list li {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: white;
+            color: #2193b0;
+            font-size: 20px;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        }
+        
+        .back-link {
+            margin-top: 20px;
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .back-link:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .subtitle {
+                font-size: 18px;
+            }
+            
+            .feature-list li {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 手書き数字認識とCNN可視化アプリ 🔢</h1>
+        <div class="subtitle">LLMアプリ100日チャレンジ - Day 19</div>
+        
+        <div class="app-preview">
+            <img src="app-image.png" alt="手書き数字認識アプリのプレビュー" class="app-image">
+        </div>
+        
+        <div class="feature-list">
+            <ul>
+                <li>✏️ 直感的なキャンバスで数字を自由に描画</li>
+                <li>🧠 畳み込みニューラルネットワーク（CNN）による高精度認識</li>
+                <li>👁️ AIの「目」を可視化する特徴マップ表示機能</li>
+                <li>📊 各数字の予測確率をリアルタイムでグラフ表示</li>
+                <li>🎓 初心者にもわかりやすいCNN解説付き</li>
+            </ul>
+        </div>
+        
+        <a href="https://llm-100days-challenge-day019-mnist-cnn-visualizer.streamlit.app/" class="cta-button">アプリを開く</a>
+        
+        <p style="margin-top: 30px;">TensorFlow/Kerasで訓練された精度98%以上のCNNモデルを使用。<br>AIがどのように画像を「見て」判断しているかを、特徴マップを通じて直感的に理解できます。</p>
+        
+        <a href="https://hiroe28.github.io/llm-100days-challenge/" class="back-link">← LLMアプリ100日チャレンジに戻る</a>
+    </div>
+
+</body>
+</html>
