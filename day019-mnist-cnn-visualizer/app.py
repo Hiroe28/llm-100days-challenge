@@ -12,9 +12,7 @@ from PIL import Image
 import io
 import os
 
-# ファイル構造を確認するためのコード
-st.write("現在のディレクトリ:", os.getcwd())
-st.write("ディレクトリ内のファイル:", os.listdir())
+
 
 # フォールバックモデル訓練用のモジュールを追加
 # train_mnist_model_fallback.pyがない場合は直接定義
@@ -105,28 +103,53 @@ with st.sidebar:
     """)
 
 # モデルの読み込み
+# モデルのロード関数を修正
 @st.cache_resource
 def load_mnist_model():
+    import os
+    
+    # 現在のスクリプトのディレクトリパスを取得
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # スクリプトが特定のディレクトリ内にある場合（day019-mnist-cnn-visualizer）
+    base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "day019-mnist-cnn-visualizer")
+    
+    # 可能性のあるモデルファイルパスのリスト
+    possible_model_paths = [
+        os.path.join(script_dir, 'mnist_cnn_model.h5'),               # 同じディレクトリ
+        os.path.join(base_dir, 'mnist_cnn_model.h5'),                 # サブディレクトリ
+        os.path.join('/mount/src/llm-100days-challenge/day019-mnist-cnn-visualizer', 'mnist_cnn_model.h5')  # 絶対パス
+    ]
+    
+    # デバッグ用に現在のパス情報を表示
+    st.write("現在のスクリプトディレクトリ:", script_dir)
+    st.write("推測されるベースディレクトリ:", base_dir)
+    
+    # 各パスを試行
+    for model_path in possible_model_paths:
+        st.write(f"モデルファイルの検索: {model_path}")
+        if os.path.exists(model_path):
+            st.write(f"モデルファイルが見つかりました: {model_path}")
+            try:
+                # 既存のモデルファイルを読み込む
+                model = load_model(model_path)
+                # モデルを初期化するためにダミー入力で予測を実行
+                dummy_input = np.zeros((1, 28, 28, 1), dtype=np.float32)
+                model.predict(dummy_input)
+                st.success(f"モデルを正常に読み込みました: {model_path}")
+                return model
+            except Exception as e:
+                st.warning(f"モデルファイルを読み込めませんでした: {str(e)}")
+    
+    # どのパスでもモデルが見つからない場合はフォールバック
+    st.warning("モデルファイルが見つからないため、その場でモデルを訓練します")
     try:
-        # 既存のモデルファイルを読み込む
-        model = load_model('mnist_cnn_model.h5')
-        # モデルを初期化するためにダミー入力で予測を実行
-        dummy_input = np.zeros((1, 28, 28, 1), dtype=np.float32)
-        model.predict(dummy_input)
-        st.success("既存のモデルを読み込みました")
+        # フォールバック: 簡易版のモデルをその場で訓練
+        model = train_simple_mnist_model()
         return model
-    except Exception as e:
-        # st.warning(f"モデルファイル 'mnist_cnn_model.h5' の読み込みに問題が発生しました: {str(e)}")
-        try:
-            # フォールバック: 簡易版のモデルをその場で訓練
-            model = train_simple_mnist_model()
-            return model
-        except Exception as train_error:
-            st.error(f"モデルの訓練にも失敗しました: {str(train_error)}")
-            return None
-
-model = load_mnist_model()
-
+    except Exception as train_error:
+        st.error(f"モデルの訓練にも失敗しました: {str(train_error)}")
+        return None
+        
 # 特徴マップを取得する関数
 def get_feature_maps(model, img):
     # 代替アプローチ：中間層の出力を直接取得する代わりに、各層ごとに個別のモデルを作成
