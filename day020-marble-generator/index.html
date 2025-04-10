@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マーブル模様ジェネレーター - LLMアプリ100日チャレンジ Day 20</title>
+
+    <!-- 最適化されたOpen Graphタグ -->
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day020-marble-generator/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="マーブル模様ジェネレーター - LLMアプリ100日チャレンジ" />
+    <meta property="og:description" content="流体シミュレーションで美しいマーブル模様を生成するアプリ。カラーパレットの選択や渦の数・強さなど、多彩なパラメータで自分だけの芸術作品を作れます。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day020-marble-generator/screenshot.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="LLMアプリ100日チャレンジ" />
+    <meta property="og:locale" content="ja_JP" />
+
+    <!-- Twitter Card タグ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="マーブル模様ジェネレーター - LLMアプリ100日チャレンジ" />
+    <meta name="twitter:description" content="流体シミュレーションで美しいマーブル模様を生成するアプリ。カラーパレットの選択や渦の数・強さなど、多彩なパラメータで自分だけの芸術作品を作れます。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day020-marble-generator/screenshot.png" />
+
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Arial Rounded MT Bold", "ヒラギノ丸ゴ ProN", sans-serif;
+            background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 20px;
+        }
+        
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .app-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .app-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+        
+        .feature-list li {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: white;
+            color: #4e4376;
+            font-size: 20px;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        }
+        
+        .back-link {
+            margin-top: 20px;
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .back-link:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .subtitle {
+                font-size: 18px;
+            }
+            
+            .feature-list li {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌀 マーブル模様ジェネレーター 🌀</h1>
+        <div class="subtitle">LLMアプリ100日チャレンジ - Day 20</div>
+        
+        <div class="app-preview">
+            <img src="app-image.png" alt="マーブル模様ジェネレーターのプレビュー" class="app-image">
+        </div>
+        
+        <div class="feature-list">
+            <ul>
+                <li>🎨 流体シミュレーションで美しいマーブル模様を生成</li>
+                <li>🌈 多彩なカラーパレットとカスタムカラー機能</li>
+                <li>🌀 渦の数や強さ、拡散率など詳細パラメータを調整可能</li>
+                <li>✨ 彩度やコントラストで色の鮮やかさをカスタマイズ</li>
+                <li>👶 子どもでも簡単に使えるプリセットモード搭載</li>
+                <li>💾 作成した模様を高画質画像としてダウンロード</li>
+            </ul>
+        </div>
+        
+        <a href="https://llm-100days-challenge-day020-marble-generator.streamlit.app/" class="cta-button">アプリを開く</a>
+        
+        <p style="margin-top: 30px;">NumPyとSciPyを使った流体シミュレーションで、本物のような有機的なマーブル模様を生成できます。<br>色や渦のパラメータを調整して、世界に一つだけのアート作品を作りましょう。</p>
+        
+        <a href="https://hiroe28.github.io/llm-100days-challenge/" class="back-link">← LLMアプリ100日チャレンジに戻る</a>
+    </div>
+
+</body>
+</html>
