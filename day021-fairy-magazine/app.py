@@ -824,6 +824,29 @@ def update_background():
 # 他の関数はそのまま使用できます
 
 def main():
+
+    # デバッグ情報（フォント関連）
+    with st.expander("フォント情報", expanded=False):
+        # システムフォントディレクトリの確認
+        font_dirs = [
+            "/usr/share/fonts",
+            "/usr/local/share/fonts"
+        ]
+        
+        for font_dir in font_dirs:
+            if os.path.exists(font_dir):
+                st.write(f"フォントディレクトリ {font_dir} が存在します")
+                # サブディレクトリを走査して日本語フォントを探す
+                try:
+                    for root, dirs, files in os.walk(font_dir):
+                        font_files = [f for f in files if f.endswith(('.ttf', '.otf', '.ttc'))]
+                        if font_files:
+                            st.write(f"{root}: {font_files}")
+                except Exception as e:
+                    st.write(f"フォントディレクトリの走査中にエラー: {e}")
+            else:
+                st.write(f"フォントディレクトリ {font_dir} が存在しません")
+
     """Streamlitアプリのメイン関数"""
     st.title("🧚VICE FAIRY風 画像ジェネレーター")
     st.write("画像をアップロードして、VICE FAIRY雑誌風キャッチコピーを追加しましょう！")
