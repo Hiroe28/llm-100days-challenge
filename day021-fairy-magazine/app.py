@@ -257,8 +257,8 @@ def get_best_font(font_size, is_vertical=False, is_artist=False, is_title=False)
     # プロジェクト内のフォントファイルを最優先で確認
     script_dir = os.path.dirname(os.path.abspath(__file__))
     local_font_paths = [
-        os.path.join(script_dir, "NotoSansJP-VariableFont_wght.ttf"), 
-        os.path.join(script_dir, "fonts", "NotoSansJP-VariableFont_wght.ttf"),  
+        os.path.join(script_dir, "NotoSansJP-ExtraBold.ttf"), 
+        os.path.join(script_dir, "fonts", "NotoSansJP-ExtraBold.ttf"),  
         # os.path.join(script_dir, "ipaexg.ttf"),  # プロジェクトディレクトリに配置したIPAゴシック
         # os.path.join(script_dir, "fonts", "ipaexg.ttf"),  # プロジェクト内のfontsディレクトリ
     ]
@@ -772,8 +772,9 @@ def create_magazine_layout(bg_removed_image, caption_lines, artist_name, templat
                 draw.text(
                     (x, char_y),
                     char,
-                    fill=(0, 0, 0, 255),  # 黒色
-                    font=catch_font
+                    fill=(0, 0, 0),            # メイン文字色
+                    font=catch_font,
+                    stroke_fill=(0, 0, 0)     # ストロークの色も同色に
                 )
         
         # RGBモードに変換
