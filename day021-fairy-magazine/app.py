@@ -257,8 +257,10 @@ def get_best_font(font_size, is_vertical=False, is_artist=False, is_title=False)
     # プロジェクト内のフォントファイルを最優先で確認
     script_dir = os.path.dirname(os.path.abspath(__file__))
     local_font_paths = [
-        os.path.join(script_dir, "NotoSansJP-VariableFont_wght.ttf"),  # プロジェクトディレクトリに配置したIPAゴシック
-        os.path.join(script_dir, "fonts", "NotoSansJP-VariableFont_wght.ttf"),  # プロジェクト内のfontsディレクトリ
+        os.path.join(script_dir, "NotoSansJP-VariableFont_wght.ttf"), 
+        os.path.join(script_dir, "fonts", "NotoSansJP-VariableFont_wght.ttf"),  
+        # os.path.join(script_dir, "ipaexg.ttf"),  # プロジェクトディレクトリに配置したIPAゴシック
+        # os.path.join(script_dir, "fonts", "ipaexg.ttf"),  # プロジェクト内のfontsディレクトリ
     ]
     
     # システムフォントパスのリスト
