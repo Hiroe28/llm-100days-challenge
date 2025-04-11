@@ -6,3 +6,4 @@ rembg==2.0.65
 Requests==2.32.3
 streamlit==1.44.1
 onnxruntime==1.21.0
+japanize-matplotlib==1.1.3
