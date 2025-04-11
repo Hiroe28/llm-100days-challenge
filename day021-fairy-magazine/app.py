@@ -828,6 +828,46 @@ def main():
     st.title("🧚VICE FAIRY風 画像ジェネレーター")
     st.write("画像をアップロードして、VICE FAIRY雑誌風キャッチコピーを追加しましょう！")
     
+    # デバッグ情報（パス関連）
+    with st.expander("デバッグ情報（開発者用）", expanded=False):
+        # 現在のスクリプトのディレクトリパス
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        st.write(f"スクリプトディレクトリ: {script_dir}")
+        
+        # カレントワーキングディレクトリ
+        cwd = os.getcwd()
+        st.write(f"カレントワーキングディレクトリ: {cwd}")
+        
+        # 親ディレクトリ
+        parent_dir = os.path.dirname(script_dir)
+        st.write(f"親ディレクトリ: {parent_dir}")
+        
+        # 親の親ディレクトリ
+        grandparent_dir = os.path.dirname(parent_dir)
+        st.write(f"親の親ディレクトリ: {grandparent_dir}")
+        
+        # 存在するファイルとディレクトリを表示
+        st.write("スクリプトディレクトリの中身:")
+        try:
+            files_in_script_dir = os.listdir(script_dir)
+            st.write(files_in_script_dir)
+        except Exception as e:
+            st.write(f"ディレクトリの読み取りエラー: {e}")
+            
+        # 検索しているテンプレートファイルのパス候補
+        template_paths = [
+            os.path.join(script_dir, "template.png"),
+            os.path.join(cwd, "template.png"),
+            os.path.join(parent_dir, "template.png"),
+            os.path.join(parent_dir, "day021-fairy-magazine", "template.png"),
+            os.path.join(parent_dir, "day021-vice-fairy-magazine", "template.png"),
+            os.path.join('/mount/src/llm-100days-challenge/day021-fairy-magazine', "template.png")
+        ]
+        st.write("テンプレートファイルの検索パス:")
+        for path in template_paths:
+            exists = "✅" if os.path.exists(path) else "❌"
+            st.write(f"{exists} {path}")
+    
     # CSV読み込み
     captions = load_captions()
     if not captions:
@@ -937,7 +977,7 @@ def main():
             
             # ダウンロードリンク
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-            filename = f"vicefairy_{timestamp}.jpg"
+            filename = f"fairy_{timestamp}.jpg"
             st.markdown(get_image_download_link(final_image, filename, "画像をダウンロード"), unsafe_allow_html=True)
         else:
             st.error("画像作成に失敗しました。")
@@ -1147,7 +1187,7 @@ def main():
                         
                         # ダウンロードリンク
                         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                        filename = f"vicefairy_{timestamp}.jpg"
+                        filename = f"fairy_{timestamp}.jpg"
                         st.markdown(get_image_download_link(final_image, filename, "画像をダウンロード"), unsafe_allow_html=True)
                         
                         # 操作ボタン
