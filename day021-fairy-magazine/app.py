@@ -75,6 +75,59 @@ if 'immediate_caption_change' not in st.session_state:
 if 'need_update_caption' not in st.session_state:
     st.session_state.need_update_caption = False
 
+# ファイルパス解決のためのヘルパー関数
+def resolve_file_path(file_name, sub_dir=None):
+    """様々な環境で動作するファイルパスを解決する関数"""
+    # 現在のスクリプトのディレクトリパスを取得
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # プロジェクトのベースディレクトリを取得
+    base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "day021-fairy-magazine")
+    
+    # サブディレクトリがある場合
+    if sub_dir:
+        possible_paths = [
+            os.path.join(script_dir, sub_dir, file_name),                    # 同じディレクトリ内のサブディレクトリ
+            os.path.join(base_dir, sub_dir, file_name),                      # ベースディレクトリ内のサブディレクトリ
+            os.path.join('/mount/src/llm-100days-challenge/day021-fairy-magazine', sub_dir, file_name)  # 絶対パス
+        ]
+    else:
+        possible_paths = [
+            os.path.join(script_dir, file_name),                             # 同じディレクトリ
+            os.path.join(base_dir, file_name),                               # ベースディレクトリ
+            os.path.join('/mount/src/llm-100days-challenge/day021-fairy-magazine', file_name)  # 絶対パス
+        ]
+    
+    # 存在するパスを返す
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    
+    # 見つからない場合はNoneを返す
+    return None
+
+def resolve_dir_path(dir_name):
+    """ディレクトリパスを解決する関数"""
+    # 現在のスクリプトのディレクトリパスを取得
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # プロジェクトのベースディレクトリを取得
+    base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "day021-fairy-magazine")
+    
+    possible_paths = [
+        os.path.join(script_dir, dir_name),                          # 同じディレクトリ内
+        os.path.join(base_dir, dir_name),                            # ベースディレクトリ内
+        os.path.join('/mount/src/llm-100days-challenge/day021-fairy-magazine', dir_name)  # 絶対パス
+    ]
+    
+    # 存在するパスを返す
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    
+    # 存在しない場合は最初のパスを返し、必要に応じて作成
+    return possible_paths[0]
+
 
 def get_vertical_text_map():
     """縦書き用の文字変換マップを返す関数（句読点対応版）"""
@@ -105,19 +158,21 @@ def get_vertical_text_map():
 def load_captions(csv_file='captions.csv'):
     """CSVファイルからキャッチコピーを読み込む関数"""
     try:
-        # CSVファイルが存在するか確認
-        if not os.path.exists(csv_file):
+        # CSVファイルパスを解決
+        resolved_path = resolve_file_path(csv_file)
+        
+        if not resolved_path:
             st.error(f"CSVファイルが見つかりません: {csv_file}")
             return []
         
         # CSVファイルを読み込む（エンコーディングを自動検出）
         try:
-            df = pd.read_csv(csv_file, encoding='utf-8', header=None)
+            df = pd.read_csv(resolved_path, encoding='utf-8', header=None)
         except UnicodeDecodeError:
             try:
-                df = pd.read_csv(csv_file, encoding='cp932', header=None)  # Windows日本語
+                df = pd.read_csv(resolved_path, encoding='cp932', header=None)  # Windows日本語
             except UnicodeDecodeError:
-                df = pd.read_csv(csv_file, encoding='latin1', header=None)  # フォールバック
+                df = pd.read_csv(resolved_path, encoding='latin1', header=None)  # フォールバック
         
         # データを取得し、空の値を除外
         if len(df) > 0:
@@ -291,35 +346,53 @@ def generate_random_english_text():
 
 def load_template_image():
     """テンプレート画像を読み込む関数"""
-    # 同じディレクトリ内のtemplate.pngを読み込む
-    try:
-        with open("template.png", "rb") as f:
-            template_data = f.read()
-            return template_data
-    except FileNotFoundError:
-        # ファイルが見つからない場合はアップロードを促す
-        st.warning("template.pngが見つかりません。テンプレート画像をアップロードしてください。")
-        uploaded_template = st.file_uploader("テンプレート画像をアップロード", type=["png", "jpg", "jpeg"], help="破れた紙の効果のあるテンプレート")
+    # template.pngのパスを解決
+    template_path = resolve_file_path("template.png")
+    
+    if template_path:
+        try:
+            with open(template_path, "rb") as f:
+                template_data = f.read()
+                return template_data
+        except Exception as e:
+            st.error(f"テンプレート画像の読み込みに失敗しました: {e}")
+    
+    # ファイルが見つからない場合はアップロードを促す
+    st.warning("template.pngが見つかりません。テンプレート画像をアップロードしてください。")
+    uploaded_template = st.file_uploader("テンプレート画像をアップロード", type=["png", "jpg", "jpeg"], help="破れた紙の効果のあるテンプレート")
+    
+    if uploaded_template is not None:
+        # アップロードされたテンプレートを使用
+        template_data = uploaded_template.getvalue()
         
-        if uploaded_template is not None:
-            # アップロードされたテンプレートを使用
-            template_data = uploaded_template.getvalue()
-            # 今後使用するためにファイルとして保存
-            with open("template.png", "wb") as f:
+        # 今後使用するためにファイルとして保存
+        # 書き込み可能なパスを特定
+        save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template.png")
+        try:
+            with open(save_path, "wb") as f:
                 f.write(template_data)
-            return template_data
-        return None
+        except Exception as e:
+            st.warning(f"テンプレート画像の保存に失敗しました: {e}")
+        
+        return template_data
+    return None
 
 def get_local_backgrounds(backgrounds_dir="backgrounds"):
     """ローカルに保存された背景画像のパスリストを取得する関数"""
-    if not os.path.exists(backgrounds_dir):
-        os.makedirs(backgrounds_dir)
+    # バックグラウンドディレクトリのパスを解決
+    bg_dir_path = resolve_dir_path(backgrounds_dir)
+    
+    if not os.path.exists(bg_dir_path):
+        try:
+            os.makedirs(bg_dir_path)
+        except Exception as e:
+            st.warning(f"背景ディレクトリの作成に失敗しました: {e}")
         return []
     
     # 画像ファイルを検索
-    background_files = glob.glob(f"{backgrounds_dir}/*.jpg") + \
-                       glob.glob(f"{backgrounds_dir}/*.jpeg") + \
-                       glob.glob(f"{backgrounds_dir}/*.png")
+    background_files = glob.glob(f"{bg_dir_path}/*.jpg") + \
+                       glob.glob(f"{bg_dir_path}/*.jpeg") + \
+                       glob.glob(f"{bg_dir_path}/*.png")
     
     return sorted(background_files)  # ソートして返す
 
@@ -724,9 +797,17 @@ def save_sample_csv():
         "あなたと対う　最後に。：赫影",
         "誰かに愛されたくて　ここまで来たわけじゃない　。：臥牙"
     ]
-    df = pd.DataFrame(sample_captions)
-    df.to_csv("captions.csv", index=False, header=False, encoding="utf-8")
-    return "captions.csv"
+    
+    # 書き込み可能なディレクトリにファイルを保存
+    save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "captions.csv")
+    
+    try:
+        df = pd.DataFrame(sample_captions)
+        df.to_csv(save_path, index=False, header=False, encoding="utf-8")
+        return save_path
+    except Exception as e:
+        st.error(f"CSVファイルの保存に失敗しました: {e}")
+        return None
 
 # 関数の重複を解消 - ユーティリティ関数を1つにまとめる
 def update_caption():
