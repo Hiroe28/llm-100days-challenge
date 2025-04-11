@@ -253,21 +253,11 @@ def remove_background(image):
         return None
 
 def get_best_font(font_size, is_vertical=False, is_artist=False, is_title=False):
-    """使用可能な最適なフォントを取得する関数（Streamlit Cloud対応版）"""
-    # プロジェクト内のフォントファイルを最優先で確認
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    local_font_paths = [
-        os.path.join(script_dir, "ipaexg.ttf"),  # プロジェクトディレクトリに配置したIPAゴシック
-        os.path.join(script_dir, "fonts", "ipaexg.ttf"),  # プロジェクト内のfontsディレクトリ
-    ]
-    
-    # システムフォントパスのリスト
-    system_font_paths = []
-    
-    # フォントタイプに基づいて適切なシステムフォントを追加
+    """使用可能な最適なフォントを取得する関数（修正版）"""
+    # 可能性のあるフォントパスのリスト（日本語フォント優先）
     if is_title:
         # タイトル用フォント（極太）
-        system_font_paths = [
+        possible_fonts = [
             "/usr/share/fonts/truetype/noto/NotoSansCJK-Black.ttc",
             "/usr/share/fonts/truetype/noto/NotoSansCJKjp-Black.otf",
             "C:\\Windows\\Fonts\\meiryob.ttc",  # Windows
@@ -277,7 +267,7 @@ def get_best_font(font_size, is_vertical=False, is_artist=False, is_title=False)
         ]
     elif is_artist:
         # アーティスト名用フォント（中間）
-        system_font_paths = [
+        possible_fonts = [
             "/usr/share/fonts/truetype/noto/NotoSansCJK-Medium.ttc",
             "/usr/share/fonts/truetype/noto/NotoSansCJKjp-Medium.otf",
             "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",  # macOS
@@ -287,8 +277,8 @@ def get_best_font(font_size, is_vertical=False, is_artist=False, is_title=False)
         ]
     else:
         if is_vertical:
-            # 縦書き用フォント（極太）
-            system_font_paths = [
+            # 縦書き用フォント（極太）- 修正: より太いフォントを上位に配置
+            possible_fonts = [
                 "/usr/share/fonts/truetype/noto/NotoSansCJK-Black.ttc",  # 最優先
                 "/usr/share/fonts/truetype/noto/NotoSansCJKjp-Black.otf",
                 "C:\\Windows\\Fonts\\meiryob.ttc",  # Windows 太字
@@ -304,7 +294,7 @@ def get_best_font(font_size, is_vertical=False, is_artist=False, is_title=False)
             ]
         else:
             # メインキャッチコピー用フォント（太め）
-            system_font_paths = [
+            possible_fonts = [
                 "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
                 "/usr/share/fonts/truetype/noto/NotoSansCJKjp-Bold.otf",
                 "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
@@ -315,26 +305,12 @@ def get_best_font(font_size, is_vertical=False, is_artist=False, is_title=False)
                 "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  # フォールバック
             ]
     
-    # Streamlit Cloudの追加フォントパス
-    cloud_font_paths = [
-        "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
-        "/usr/share/fonts/truetype/ipafont/ipagp.ttf",
-        "/usr/share/fonts/truetype/ipafont/ipag.ttf",
-        "/usr/share/fonts/truetype/ipafont/ipam.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-    ]
-    
-    # 全ての候補パスをローカル優先、次にクラウド、最後にシステムの順に結合
-    all_font_paths = local_font_paths + cloud_font_paths + system_font_paths
-    
     # 使用可能なフォントを探す
-    for font_path in all_font_paths:
+    for font_path in possible_fonts:
         if os.path.exists(font_path):
             try:
                 return ImageFont.truetype(font_path, font_size)
-            except Exception as e:
-                # エラーは無視して次へ
+            except Exception:
                 continue
     
     # どのフォントも利用できない場合はデフォルトフォント
