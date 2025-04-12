@@ -1,19 +1,13 @@
-try:
-    import streamlit as st
-    import mediapipe as mp
-    import cv2
-    import numpy as np
-    from PIL import Image
-    import io
-    import os
-    os.environ['MEDIAPIPE_DISABLE_GPU'] = '1'
-    import math
-    import random
-except ImportError as e:
-    import streamlit as st
-    st.error(f"依存関係のインポートエラー: {e}")
-    st.info("このアプリはMediaPipeとOpenCVが必要です。インストールを確認してください。")
-    st.stop()
+import streamlit as st
+import mediapipe as mp
+import cv2
+import numpy as np
+from PIL import Image
+import io
+import os
+import math
+import random
+
 
 
 # ページ設定
@@ -22,6 +16,14 @@ st.set_page_config(
     page_icon="🧍",
     layout="wide"
 )
+
+# アプリ起動前にモデルパスを設定
+model_path = os.path.join(os.path.dirname(__file__), 'models')
+if os.path.exists(model_path):
+    # モデルファイルのパスをMediaPipeに設定
+    os.environ["MEDIAPIPE_MODEL_PATH"] = model_path
+    # st.sidebar.success("ローカルモデルを使用します")
+
 
 # タイトル
 st.title("MediaPipeポーズ推定デモアプリ")
