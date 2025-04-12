@@ -1,4 +1,6 @@
 import streamlit as st
+import mediapipe as mp
+import cv2
 import numpy as np
 from PIL import Image
 import io
@@ -6,48 +8,7 @@ import os
 import math
 import random
 
-# 事前にインポート問題を確認
-try:
-    import cv2
-    cv2_import_successful = True
-    cv2_status = "✅ OpenCV: 正常"
-except ImportError as e:
-    cv2_import_successful = False
-    cv2_status = f"❌ OpenCV: インポートエラー ({e})"
 
-# 様々なパスでモデルフォルダを探す
-script_dir = os.path.dirname(os.path.abspath(__file__))
-base_dir = os.path.dirname(script_dir)  # llm-100days-challenge ディレクトリ
-
-# 可能性のあるモデルフォルダパスのリスト
-possible_model_paths = [
-    os.path.join(script_dir, 'models'),  # 同じディレクトリ内の models フォルダ
-    os.path.join(base_dir, 'day022-pose-estimation', 'models'),  # リポジトリパス指定
-    '/mount/src/llm-100days-challenge/day022-pose-estimation/models',  # Streamlit Cloud での絶対パス
-]
-
-# モデルフォルダを探す
-model_path = None
-for path in possible_model_paths:
-    if os.path.exists(path):
-        model_path = path
-        break
-
-# モデルパスの設定
-if model_path:
-    os.environ["MEDIAPIPE_MODEL_PATH"] = model_path
-    model_status = f"✅ ローカルモデルを使用します: {model_path}"
-else:
-    model_status = "⚠️ ローカルモデルフォルダが見つかりません。オンラインモデルを使用します。"
-
-# MediaPipeをインポート (モデルパス設定後)
-try:
-    import mediapipe as mp
-    mp_import_successful = True
-    mp_status = "✅ MediaPipe: 正常"
-except ImportError as e:
-    mp_import_successful = False
-    mp_status = f"❌ MediaPipe: インポートエラー ({e})"
 
 # ページ設定
 st.set_page_config(
@@ -55,6 +16,7 @@ st.set_page_config(
     page_icon="🧍",
     layout="wide"
 )
+
 
 # 様々なパスでモデルフォルダを探す
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -117,6 +79,10 @@ with st.sidebar:
         "表示モード",
         ["標準表示", "カラフルスケルトン", "アバター表示"]
     )
+
+# MediaPipeの初期化
+mp_pose = mp.solutions.pose
+mp_drawing = mp.solutions.drawing_utils
 
 # カスタム描画スタイルの定義
 def get_custom_drawing_styles(landmark_color, landmark_size, connection_color, connection_thickness):
@@ -343,59 +309,75 @@ def draw_avatar(image, landmarks):
 
 # ポーズ検出関数
 def detect_pose(image_bytes, display_mode):
-    # PILイメージをOpenCVイメージに変換
-    img = Image.open(io.BytesIO(image_bytes))
-    img_array = np.array(img)
-    
-    # RGB変換（MediaPipeはRGBを想定）
-    img_rgb = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
-    
-    # 検出実行
-    with mp_pose.Pose(
-        static_image_mode=True,
-        # model_complexity=2,
-        model_complexity=0,  # 2から0に変更（軽量モデルを使用）
-        enable_segmentation=True,
-        min_detection_confidence=0.5
-    ) as pose:
-        results = pose.process(img_rgb)
-    
-    # 描画スタイルを設定
-    landmark_spec, connection_spec = get_custom_drawing_styles(
-        landmark_color, landmark_size, connection_color, connection_thickness
-    )
-    
-    colorful_landmark_specs, colorful_connection_specs = generate_colorful_specs()
-    
-    # 結果を描画
-    annotated_image = img_array.copy()
-    if results.pose_landmarks:
-        if display_mode == "標準表示":
-            # カスタム描画
-            annotated_image = draw_custom_landmarks(
-                annotated_image, 
-                results.pose_landmarks, 
-                mp_pose.POSE_CONNECTIONS,
-                landmark_spec,
-                connection_spec
-            )
-        elif display_mode == "カラフルスケルトン":
-            # カラフル描画
-            annotated_image = draw_colorful_landmarks(
-                annotated_image, 
-                results.pose_landmarks, 
-                mp_pose.POSE_CONNECTIONS,
-                colorful_landmark_specs,
-                colorful_connection_specs
-            )
-        elif display_mode == "アバター表示":
-            # アバター描画
-            annotated_image = draw_avatar(
-                annotated_image,
-                results.pose_landmarks
-            )
-    
-    return annotated_image, results.pose_landmarks
+    try:
+        # PILイメージをOpenCVイメージに変換
+        img = Image.open(io.BytesIO(image_bytes))
+        img_array = np.array(img)
+        
+        # 画像がRGBかどうかをチェック
+        if len(img_array.shape) == 3 and img_array.shape[2] == 3:
+            # RGBとBGRの変換
+            img_rgb = img_array.copy()  # PILはRGBなのでそのまま使用
+        elif len(img_array.shape) == 3 and img_array.shape[2] == 4:
+            # RGBA画像の場合
+            img_rgb = cv2.cvtColor(img_array, cv2.COLOR_RGBA2RGB)
+        elif len(img_array.shape) == 2:
+            # グレースケール画像の場合
+            img_rgb = cv2.cvtColor(img_array, cv2.COLOR_GRAY2RGB)
+        else:
+            # その他の場合はそのまま使用
+            img_rgb = img_array
+        
+        # 検出実行
+        with mp_pose.Pose(
+            static_image_mode=True,
+            model_complexity=0,  # 軽量モデルを使用
+            enable_segmentation=True,
+            min_detection_confidence=0.5
+        ) as pose:
+            results = pose.process(img_rgb)
+        
+        # 描画スタイルを設定
+        landmark_spec, connection_spec = get_custom_drawing_styles(
+            landmark_color, landmark_size, connection_color, connection_thickness
+        )
+        
+        colorful_landmark_specs, colorful_connection_specs = generate_colorful_specs()
+        
+        # 結果を描画
+        annotated_image = img_array.copy()
+        if results.pose_landmarks:
+            if display_mode == "標準表示":
+                # カスタム描画
+                annotated_image = draw_custom_landmarks(
+                    annotated_image, 
+                    results.pose_landmarks, 
+                    mp_pose.POSE_CONNECTIONS,
+                    landmark_spec,
+                    connection_spec
+                )
+            elif display_mode == "カラフルスケルトン":
+                # カラフル描画
+                annotated_image = draw_colorful_landmarks(
+                    annotated_image, 
+                    results.pose_landmarks, 
+                    mp_pose.POSE_CONNECTIONS,
+                    colorful_landmark_specs,
+                    colorful_connection_specs
+                )
+            elif display_mode == "アバター表示":
+                # アバター描画
+                annotated_image = draw_avatar(
+                    annotated_image,
+                    results.pose_landmarks
+                )
+        
+        return annotated_image, results.pose_landmarks
+    except Exception as e:
+        st.error(f"画像処理エラー: {str(e)}")
+        import traceback
+        st.error(traceback.format_exc())  # デバッグ用に詳細なエラーを表示
+        return None, None
 
     # シンプルな姿勢判定機能
 with st.sidebar:
