@@ -3,3 +3,4 @@ opencv-python-headless==4.7.0.72
 numpy<2.0.0
 streamlit>=1.20.0
 pillow
+protobuf>=3.11.0, <4.0.0
