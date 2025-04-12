@@ -17,13 +17,31 @@ st.set_page_config(
     layout="wide"
 )
 
-# アプリ起動前にモデルパスを設定
-model_path = os.path.join(os.path.dirname(__file__), 'models')
-if os.path.exists(model_path):
-    # モデルファイルのパスをMediaPipeに設定
-    os.environ["MEDIAPIPE_MODEL_PATH"] = model_path
-    # st.sidebar.success("ローカルモデルを使用します")
 
+# 様々なパスでモデルフォルダを探す
+script_dir = os.path.dirname(os.path.abspath(__file__))
+base_dir = os.path.dirname(script_dir)  # llm-100days-challenge ディレクトリ
+
+# 可能性のあるモデルフォルダパスのリスト
+possible_model_paths = [
+    os.path.join(script_dir, 'models'),  # 同じディレクトリ内の models フォルダ
+    os.path.join(base_dir, 'day022-pose-estimation', 'models'),  # リポジトリパス指定
+    '/mount/src/llm-100days-challenge/day022-pose-estimation/models',  # Streamlit Cloud での絶対パス
+]
+
+# モデルフォルダを探す
+model_path = None
+for path in possible_model_paths:
+    if os.path.exists(path):
+        model_path = path
+        break
+
+# モデルパスの設定
+if model_path:
+    os.environ["MEDIAPIPE_MODEL_PATH"] = model_path
+    model_status = f"ローカルモデルを使用します: {model_path}"
+else:
+    model_status = "ローカルモデルフォルダが見つかりません。オンラインモデルを使用します。"
 
 # タイトル
 st.title("MediaPipeポーズ推定デモアプリ")
