@@ -14,151 +14,56 @@ st.set_page_config(
 temp_dir = tempfile.mkdtemp()
 st.write(f"一時ディレクトリを作成: {temp_dir}")
 
-# MediaPipe内部構造を検査
-import mediapipe as mp
-import inspect
-
-# MediaPipeのモジュール構造を検査
-def inspect_mediapipe():
-    # パッケージの内容を確認
-    mp_modules = dir(mp)
-    resource_modules = [m for m in mp_modules if 'resource' in m.lower()]
-    st.write(f"MediaPipeのリソース関連モジュール: {resource_modules}")
+# モデルファイルを事前にダウンロードする関数
+def ensure_pose_models():
+    """必要なすべてのポーズモデルを確実にダウンロード"""
+    models = {
+        "pose_landmark_lite.tflite": "https://storage.googleapis.com/mediapipe-assets/pose_landmark_lite.tflite",
+        "pose_landmark_full.tflite": "https://storage.googleapis.com/mediapipe-assets/pose_landmark_full.tflite",
+        "pose_landmark_heavy.tflite": "https://storage.googleapis.com/mediapipe-assets/pose_landmark_heavy.tflite"
+    }
     
-    # resource_utilが存在する場合はその内容を調査
-    if hasattr(mp, 'resource_util'):
-        util_funcs = dir(mp.resource_util)
-        st.write(f"resource_utilの関数: {util_funcs}")
-    
-    # 内部でファイルパスの解決に関わる可能性のある部分を調査
-    import mediapipe.python.solutions.pose as pose_module
-    st.write(f"Poseモジュールのパス: {pose_module.__file__}")
-    
-    # 様々なモジュールの探索
-    for mod_name in ['framework', '_framework_bindings', 'python']:
-        if hasattr(mp, mod_name):
-            mod = getattr(mp, mod_name)
-            st.write(f"モジュール {mod_name} が存在します")
-            if hasattr(mod, 'resource_util'):
-                st.write(f"{mod_name}.resource_utilの関数: {dir(mod.resource_util)}")
-
-# MediaPipeの内部構造を検査（オプション）
-# inspect_mediapipe()
-
-# 代替パッチ方法：直接pose.pyをパッチする
-import types
-from mediapipe.python.solutions import pose
-from mediapipe.python.solutions import download_utils
-
-# オリジナルの関数を保存
-original_download = download_utils.download_oss_model
-
-# カスタムダウンロード関数
-def custom_download_oss_model(model_path):
-    """カスタムダウンロード関数（一時ディレクトリを使用）"""
-    filename = os.path.basename(model_path)
-    new_path = os.path.join(temp_dir, filename)
-    st.write(f"モデルパス要求: {model_path} → 変更先: {new_path}")
-    
-    # 複数の可能性のあるURLを試す
-    possible_urls = []
-    
-    # 標準のMediaPipe URLフォーマット (最近のバージョン)
-    if 'pose_landmark_lite.tflite' in model_path:
-        possible_urls = [
-            'https://storage.googleapis.com/mediapipe-assets/pose_landmark_lite.tflite',
-            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'
-        ]
-    elif 'pose_landmark_full.tflite' in model_path:
-        possible_urls = [
-            'https://storage.googleapis.com/mediapipe-assets/pose_landmark_full.tflite',
-            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task'
-        ]
-    elif 'pose_landmark_heavy.tflite' in model_path:
-        possible_urls = [
-            'https://storage.googleapis.com/mediapipe-assets/pose_landmark_heavy.tflite',
-            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task'
-        ]
-    else:
-        st.error(f"未知のモデルタイプ: {model_path}")
-        return model_path
-    
-    # 各URLを順番に試す
-    for model_url in possible_urls:
-        try:
-            st.write(f"モデルをダウンロード試行中: {model_url}")
-            import urllib.request
-            with urllib.request.urlopen(model_url) as response:
-                model_data = response.read()
-                
-            # ディレクトリ作成
-            os.makedirs(os.path.dirname(new_path), exist_ok=True)
-            
-            # ファイル書き込み
-            with open(new_path, 'wb') as out_file:
-                out_file.write(model_data)
-                
-            st.success(f"モデルダウンロード成功: {new_path}")
-            return new_path
-        except Exception as e:
-            st.warning(f"URL {model_url} からのダウンロード失敗: {str(e)}")
-            # 次のURLを試す
-            continue
-    
-    # すべてのURLが失敗した場合
-    st.error("すべてのモデルURLからのダウンロードが失敗しました。")
-    return model_path
-
-# ダウンロード関数のパッチ適用
-download_utils.download_oss_model = custom_download_oss_model
-
-# pose.pyの_download_oss_pose_landmark_model関数を直接書き換え
-def patch_pose_model_loader():
-    try:
-        # 元の関数を保存
-        original_download_func = pose._download_oss_pose_landmark_model
-        
-        # オーバーライド関数
-        def custom_download_pose_model(model_complexity):
-            """MediaPipeのポーズモデルダウンロード関数のカスタム版"""
+    for filename, url in models.items():
+        output_path = os.path.join(temp_dir, filename)
+        if not os.path.exists(output_path):
             try:
-                # モデル複雑度に基づいてファイル名を選択
-                file_name = ""
-                if model_complexity == 0:
-                    file_name = "pose_landmark_lite.tflite"
-                elif model_complexity == 1:
-                    file_name = "pose_landmark_full.tflite"
-                elif model_complexity == 2:
-                    file_name = "pose_landmark_heavy.tflite"
-                else:
-                    raise ValueError(f"不明なモデル複雑度: {model_complexity}")
+                st.write(f"モデル {filename} をダウンロード中...")
+                import urllib.request
+                urllib.request.urlretrieve(url, output_path)
+                st.success(f"モデル {filename} のダウンロード成功")
                 
-                # カスタムパスを返す
-                custom_path = os.path.join(temp_dir, file_name)
-                
-                # まだダウンロードされていない場合はダウンロード
-                if not os.path.exists(custom_path):
-                    # download_oss_modelはすでにパッチ済み
-                    download_utils.download_oss_model(
-                        f"mediapipe/modules/pose_landmark/{file_name}")
-                
-                st.success(f"カスタムモデルパスを使用: {custom_path}")
-                return custom_path
+                # 重要: ハードコードされたパスディレクトリも用意
+                try:
+                    system_path = f"/home/adminuser/venv/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/{filename}"
+                    system_dir = os.path.dirname(system_path)
+                    
+                    # モデルフォルダにアクセス権があるか確認する
+                    if not os.path.exists(system_dir):
+                        try:
+                            os.makedirs(system_dir, exist_ok=True)
+                            st.success(f"システムディレクトリを作成: {system_dir}")
+                        except PermissionError:
+                            st.warning(f"システムディレクトリを作成できません（権限なし）: {system_dir}")
+                    
+                    # シンボリックリンクを試す
+                    try:
+                        if os.path.exists(system_path):
+                            os.remove(system_path)
+                        os.symlink(output_path, system_path)
+                        st.success(f"シンボリックリンク作成: {output_path} → {system_path}")
+                    except:
+                        st.warning("シンボリックリンク作成に失敗しました")
+                except Exception as e:
+                    st.warning(f"システムパスへのリンク作成失敗: {str(e)}")
+                    
             except Exception as e:
-                st.error(f"カスタムポーズモデルロード中にエラー: {str(e)}")
-                # エラーが発生した場合は元の関数を呼び出す
-                return original_download_func(model_complexity)
-        
-        # モンキーパッチ適用
-        pose._download_oss_pose_landmark_model = custom_download_pose_model
-        st.success("MediaPipeポーズモデルローダーのパッチ適用完了")
-    except Exception as e:
-        st.error(f"MediaPipeパッチ適用エラー: {str(e)}")
+                st.error(f"モデル {filename} のダウンロード失敗: {e}")
 
-# MediaPipeポーズモジュールにパッチを適用
-patch_pose_model_loader()
+# モデルを事前準備
+ensure_pose_models()
 
-# 通常のインポート
+# ここからMediaPipeのインポートなど...
+import mediapipe as mp
 import cv2
 import numpy as np
 from PIL import Image
