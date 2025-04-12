@@ -1,5 +1,7 @@
 import os
 import sys
+import tempfile
+
 # OpenCVのエラーを防ぐための環境設定
 os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 os.environ["OPENCV_LOG_LEVEL"] = "ERROR"
@@ -13,6 +15,51 @@ except Exception as e:
     print(f"libGL.so.1のロードに失敗しましたが、続行します: {e}")
 
 import streamlit as st
+# 一時ディレクトリを作成
+temp_dir = tempfile.mkdtemp()
+st.write(f"一時ディレクトリを作成: {temp_dir}")
+
+# 環境変数設定
+os.environ["MEDIAPIPE_MODEL_PATH"] = temp_dir
+os.environ["MEDIAPIPE_RESOURCE_DIR"] = temp_dir
+
+# ここで重要: MediaPipeをインポートする前にダウンロード処理をモンキーパッチ
+import mediapipe as mp
+from mediapipe.python.solutions import download_utils
+import types
+
+# オリジナルの関数を保存
+original_download = download_utils.download_oss_model
+
+# カスタムダウンロード関数
+def custom_download_model(model_url, model_abspath):
+    """一時ディレクトリにモデルをダウンロードする"""
+    # 元のパスではなく一時ディレクトリ内のパスを使用
+    filename = os.path.basename(model_abspath)
+    new_path = os.path.join(temp_dir, filename)
+    st.write(f"モデルを一時ディレクトリにダウンロード: {new_path}")
+    
+    try:
+        # ディレクトリ作成
+        os.makedirs(os.path.dirname(new_path), exist_ok=True)
+        
+        # ダウンロード処理
+        import urllib.request
+        with urllib.request.urlopen(model_url) as response:
+            model_data = response.read()
+            
+        # ファイル書き込み
+        with open(new_path, 'wb') as out_file:
+            out_file.write(model_data)
+            
+        return new_path
+    except Exception as e:
+        st.error(f"モデルダウンロードエラー: {str(e)}")
+        return None
+
+# モンキーパッチ適用
+download_utils.download_oss_model = custom_download_model
+
 import mediapipe as mp
 import cv2
 import numpy as np
@@ -354,13 +401,25 @@ def detect_pose(image_bytes, display_mode):
             img_rgb = img_array
         
         # 検出実行
-        with mp_pose.Pose(
-            static_image_mode=True,
-            model_complexity=0,  # 軽量モデルを使用
-            enable_segmentation=True,
-            min_detection_confidence=0.5
-        ) as pose:
-            results = pose.process(img_rgb)
+        try:
+            with mp_pose.Pose(
+                static_image_mode=True,
+                model_complexity=0,  # 軽量モデルを使用
+                enable_segmentation=True,
+                min_detection_confidence=0.5
+            ) as pose:
+                results = pose.process(img_rgb)
+            
+            if results is None or not hasattr(results, 'pose_landmarks'):
+                st.warning("ポーズ検出に失敗しました。別の画像を試してください。")
+                return img_array, None
+                
+        except Exception as e:
+            st.error(f"ポーズ検出エラー: {str(e)}")
+            import traceback
+            st.error(traceback.format_exc())
+            return img_array, None
+
         
         # 描画スタイルを設定
         landmark_spec, connection_spec = get_custom_drawing_styles(
