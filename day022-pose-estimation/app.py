@@ -1,116 +1,23 @@
-import os
-import sys
-import tempfile
-import streamlit as st
 
-# 最初のStreamlit命令としてset_page_configを呼び出す
+import streamlit as st
+import mediapipe as mp
+import cv2
+import numpy as np
+from PIL import Image
+import io
+import os
+import math
+import random
+
+# ページ設定
 st.set_page_config(
     page_title="ポーズ推定デモアプリ",
     page_icon="🧍",
     layout="wide"
 )
 
-# 一時ディレクトリを作成
-temp_dir = tempfile.mkdtemp()
-st.write(f"一時ディレクトリを作成: {temp_dir}")
+mp_pose = mp.solutions.pose
 
-# モデルファイルを事前にダウンロードする関数
-def ensure_pose_models():
-    """必要なすべてのポーズモデルを確実にダウンロード"""
-    models = {
-        "pose_landmark_lite.tflite": "https://storage.googleapis.com/mediapipe-assets/pose_landmark_lite.tflite",
-        "pose_landmark_full.tflite": "https://storage.googleapis.com/mediapipe-assets/pose_landmark_full.tflite",
-        "pose_landmark_heavy.tflite": "https://storage.googleapis.com/mediapipe-assets/pose_landmark_heavy.tflite"
-    }
-    
-    for filename, url in models.items():
-        output_path = os.path.join(temp_dir, filename)
-        if not os.path.exists(output_path):
-            try:
-                st.write(f"モデル {filename} をダウンロード中...")
-                import urllib.request
-                urllib.request.urlretrieve(url, output_path)
-                st.success(f"モデル {filename} のダウンロード成功")
-                
-                # 重要: ハードコードされたパスディレクトリも用意
-                try:
-                    system_path = f"/home/adminuser/venv/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/{filename}"
-                    system_dir = os.path.dirname(system_path)
-                    
-                    # モデルフォルダにアクセス権があるか確認する
-                    if not os.path.exists(system_dir):
-                        try:
-                            os.makedirs(system_dir, exist_ok=True)
-                            st.success(f"システムディレクトリを作成: {system_dir}")
-                        except PermissionError:
-                            st.warning(f"システムディレクトリを作成できません（権限なし）: {system_dir}")
-                    
-                    # シンボリックリンクを試す
-                    try:
-                        if os.path.exists(system_path):
-                            os.remove(system_path)
-                        os.symlink(output_path, system_path)
-                        st.success(f"シンボリックリンク作成: {output_path} → {system_path}")
-                    except:
-                        st.warning("シンボリックリンク作成に失敗しました")
-                except Exception as e:
-                    st.warning(f"システムパスへのリンク作成失敗: {str(e)}")
-                    
-            except Exception as e:
-                st.error(f"モデル {filename} のダウンロード失敗: {e}")
-
-# モデルを事前準備
-ensure_pose_models()
-
-# ここからMediaPipeのインポートなど...
-import mediapipe as mp
-import cv2
-import numpy as np
-from PIL import Image
-import io
-import math
-import random
-
-
-
-
-
-
-# 様々なパスでモデルフォルダを探す
-script_dir = os.path.dirname(os.path.abspath(__file__))
-base_dir = os.path.dirname(script_dir)  # llm-100days-challenge ディレクトリ
-
-# 可能性のあるモデルフォルダパスのリスト
-possible_model_paths = [
-    os.path.join(script_dir, 'models'),  # 同じディレクトリ内の models フォルダ
-    os.path.join(base_dir, 'day022-pose-estimation', 'models'),  # リポジトリパス指定
-    '/mount/src/llm-100days-challenge/day022-pose-estimation/models',  # Streamlit Cloud での絶対パス
-]
-
-# モデルフォルダを探す
-model_path = None
-for path in possible_model_paths:
-    if os.path.exists(path):
-        model_path = path
-        break
-
-if model_path:
-    # MediaPipeが期待するディレクトリ構造を作成
-    modules_dir = os.path.join(model_path, 'modules', 'pose_landmark')
-    os.makedirs(modules_dir, exist_ok=True)
-    
-    # 既存のモデルファイルをMediaPipeが期待する場所にコピー
-    for model_file in ['pose_landmark_lite.tflite', 'pose_landmark_full.tflite', 'pose_landmark_heavy.tflite']:
-        source_path = os.path.join(model_path, model_file)
-        target_path = os.path.join(modules_dir, model_file)
-        
-        if os.path.exists(source_path) and not os.path.exists(target_path):
-            try:
-                import shutil
-                shutil.copy2(source_path, target_path)
-                st.write(f"モデルをコピーしました: {target_path}")
-            except Exception as e:
-                st.error(f"モデルコピーエラー: {str(e)}")
 
 # タイトル
 st.title("MediaPipeポーズ推定デモアプリ")
@@ -378,95 +285,58 @@ def draw_avatar(image, landmarks):
 
 # ポーズ検出関数
 def detect_pose(image_bytes, display_mode):
-    try:
-        # PILイメージをOpenCVイメージに変換
-        img = Image.open(io.BytesIO(image_bytes))
-        img_array = np.array(img)
-        
-        # 画像がRGBかどうかをチェック
-        if len(img_array.shape) == 3 and img_array.shape[2] == 3:
-            # RGBとBGRの変換
-            img_rgb = img_array.copy()  # PILはRGBなのでそのまま使用
-        elif len(img_array.shape) == 3 and img_array.shape[2] == 4:
-            # RGBA画像の場合
-            img_rgb = cv2.cvtColor(img_array, cv2.COLOR_RGBA2RGB)
-        elif len(img_array.shape) == 2:
-            # グレースケール画像の場合
-            img_rgb = cv2.cvtColor(img_array, cv2.COLOR_GRAY2RGB)
-        else:
-            # その他の場合はそのまま使用
-            img_rgb = img_array
-        
-
-        # 検出実行
-        try:
-            st.write("ポーズ検出モデルを初期化中...")
-            # カスタム環境変数を追加（ファイルシステムアクセス先を変更）
-            os.environ["MEDIAPIPE_BASE_PATH"] = temp_dir
-            os.environ["MEDIAPIPE_FILE_PREFIX"] = temp_dir
-            
-            with mp_pose.Pose(
-                static_image_mode=True,
-                model_complexity=0,  # 軽量モデルを使用
-                enable_segmentation=True,
-                min_detection_confidence=0.5
-            ) as pose:
-                st.write("モデル処理開始...")
-                results = pose.process(img_rgb)
-                st.write("モデル処理完了！")
-            
-            if results is None or not hasattr(results, 'pose_landmarks'):
-                st.warning("ポーズ検出に失敗しました。別の画像を試してください。")
-                return img_array, None
-                
-        except Exception as e:
-            st.error(f"ポーズ検出エラー: {str(e)}")
-            import traceback
-            st.error(traceback.format_exc())
-            return img_array, None
-
-        
-        # 描画スタイルを設定
-        landmark_spec, connection_spec = get_custom_drawing_styles(
-            landmark_color, landmark_size, connection_color, connection_thickness
-        )
-        
-        colorful_landmark_specs, colorful_connection_specs = generate_colorful_specs()
-        
-        # 結果を描画
-        annotated_image = img_array.copy()
-        if results.pose_landmarks:
-            if display_mode == "標準表示":
-                # カスタム描画
-                annotated_image = draw_custom_landmarks(
-                    annotated_image, 
-                    results.pose_landmarks, 
-                    mp_pose.POSE_CONNECTIONS,
-                    landmark_spec,
-                    connection_spec
-                )
-            elif display_mode == "カラフルスケルトン":
-                # カラフル描画
-                annotated_image = draw_colorful_landmarks(
-                    annotated_image, 
-                    results.pose_landmarks, 
-                    mp_pose.POSE_CONNECTIONS,
-                    colorful_landmark_specs,
-                    colorful_connection_specs
-                )
-            elif display_mode == "アバター表示":
-                # アバター描画
-                annotated_image = draw_avatar(
-                    annotated_image,
-                    results.pose_landmarks
-                )
-        
-        return annotated_image, results.pose_landmarks
-    except Exception as e:
-        st.error(f"画像処理エラー: {str(e)}")
-        import traceback
-        st.error(traceback.format_exc())  # デバッグ用に詳細なエラーを表示
-        return None, None
+    # PILイメージをOpenCVイメージに変換
+    img = Image.open(io.BytesIO(image_bytes))
+    img_array = np.array(img)
+    
+    # RGB変換（MediaPipeはRGBを想定）
+    img_rgb = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+    
+    # 検出実行
+    with mp_pose.Pose(
+        static_image_mode=True,
+        model_complexity=2,
+        enable_segmentation=True,
+        min_detection_confidence=0.5
+    ) as pose:
+        results = pose.process(img_rgb)
+    
+    # 描画スタイルを設定
+    landmark_spec, connection_spec = get_custom_drawing_styles(
+        landmark_color, landmark_size, connection_color, connection_thickness
+    )
+    
+    colorful_landmark_specs, colorful_connection_specs = generate_colorful_specs()
+    
+    # 結果を描画
+    annotated_image = img_array.copy()
+    if results.pose_landmarks:
+        if display_mode == "標準表示":
+            # カスタム描画
+            annotated_image = draw_custom_landmarks(
+                annotated_image, 
+                results.pose_landmarks, 
+                mp_pose.POSE_CONNECTIONS,
+                landmark_spec,
+                connection_spec
+            )
+        elif display_mode == "カラフルスケルトン":
+            # カラフル描画
+            annotated_image = draw_colorful_landmarks(
+                annotated_image, 
+                results.pose_landmarks, 
+                mp_pose.POSE_CONNECTIONS,
+                colorful_landmark_specs,
+                colorful_connection_specs
+            )
+        elif display_mode == "アバター表示":
+            # アバター描画
+            annotated_image = draw_avatar(
+                annotated_image,
+                results.pose_landmarks
+            )
+    
+    return annotated_image, results.pose_landmarks
 
     # シンプルな姿勢判定機能
 with st.sidebar:
