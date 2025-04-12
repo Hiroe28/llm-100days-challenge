@@ -1,65 +1,28 @@
 import os
 import sys
-import tempfile
+# OpenCVのエラーを防ぐための環境設定
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
+os.environ["OPENCV_LOG_LEVEL"] = "ERROR"
+os.environ["OPENCV_IO_ENABLE_OPENGL"] = "0"
+os.environ["DISPLAY"] = ":99"
+# OpenCVのロード問題対策
+try:
+    import ctypes
+    libGL = ctypes.cdll.LoadLibrary('libGL.so.1')
+except Exception as e:
+    print(f"libGL.so.1のロードに失敗しましたが、続行します: {e}")
+
 import streamlit as st
-
-# 最初のStreamlit命令としてset_page_configを呼び出す
-st.set_page_config(
-    page_title="ポーズ推定デモアプリ",
-    page_icon="🧍",
-    layout="wide"
-)
-
-
-# ここからMediaPipeのインポートなど...
 import mediapipe as mp
 import cv2
 import numpy as np
 from PIL import Image
 import io
+
 import math
 import random
 
 mp_pose = mp.solutions.pose
-
-
-
-
-# 様々なパスでモデルフォルダを探す
-script_dir = os.path.dirname(os.path.abspath(__file__))
-base_dir = os.path.dirname(script_dir)  # llm-100days-challenge ディレクトリ
-
-# 可能性のあるモデルフォルダパスのリスト
-possible_model_paths = [
-    os.path.join(script_dir, 'models'),  # 同じディレクトリ内の models フォルダ
-    os.path.join(base_dir, 'day022-pose-estimation', 'models'),  # リポジトリパス指定
-    '/mount/src/llm-100days-challenge/day022-pose-estimation/models',  # Streamlit Cloud での絶対パス
-]
-
-# モデルフォルダを探す
-model_path = None
-for path in possible_model_paths:
-    if os.path.exists(path):
-        model_path = path
-        break
-
-if model_path:
-    # MediaPipeが期待するディレクトリ構造を作成
-    modules_dir = os.path.join(model_path, 'modules', 'pose_landmark')
-    os.makedirs(modules_dir, exist_ok=True)
-    
-    # 既存のモデルファイルをMediaPipeが期待する場所にコピー
-    for model_file in ['pose_landmark_lite.tflite', 'pose_landmark_full.tflite', 'pose_landmark_heavy.tflite']:
-        source_path = os.path.join(model_path, model_file)
-        target_path = os.path.join(modules_dir, model_file)
-        
-        if os.path.exists(source_path) and not os.path.exists(target_path):
-            try:
-                import shutil
-                shutil.copy2(source_path, target_path)
-                st.write(f"モデルをコピーしました: {target_path}")
-            except Exception as e:
-                st.error(f"モデルコピーエラー: {str(e)}")
 
 # タイトル
 st.title("MediaPipeポーズ推定デモアプリ")
