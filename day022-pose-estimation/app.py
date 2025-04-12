@@ -3,6 +3,14 @@ import sys
 # OpenCVのエラーを防ぐための環境設定
 os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 os.environ["OPENCV_LOG_LEVEL"] = "ERROR"
+os.environ["OPENCV_IO_ENABLE_OPENGL"] = "0"
+os.environ["DISPLAY"] = ":99"
+# OpenCVのロード問題対策
+try:
+    import ctypes
+    libGL = ctypes.cdll.LoadLibrary('libGL.so.1')
+except Exception as e:
+    print(f"libGL.so.1のロードに失敗しましたが、続行します: {e}")
 
 import streamlit as st
 import mediapipe as mp
