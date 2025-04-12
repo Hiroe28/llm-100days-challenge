@@ -1,10 +1,16 @@
+import os
+import sys
+# OpenCVのエラーを防ぐための環境設定
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
+os.environ["OPENCV_LOG_LEVEL"] = "ERROR"
+
 import streamlit as st
 import mediapipe as mp
 import cv2
 import numpy as np
 from PIL import Image
 import io
-import os
+
 import math
 import random
 
