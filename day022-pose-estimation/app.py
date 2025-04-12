@@ -14,7 +14,7 @@ except ImportError as e:
     st.info("このアプリはMediaPipeとOpenCVが必要です。インストールを確認してください。")
     st.stop()
 
-    
+
 # ページ設定
 st.set_page_config(
     page_title="ポーズ推定デモアプリ",
@@ -298,7 +298,8 @@ def detect_pose(image_bytes, display_mode):
     # 検出実行
     with mp_pose.Pose(
         static_image_mode=True,
-        model_complexity=2,
+        # model_complexity=2,
+        model_complexity=0,  # 2から0に変更（軽量モデルを使用）
         enable_segmentation=True,
         min_detection_confidence=0.5
     ) as pose:
