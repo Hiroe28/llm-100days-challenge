@@ -118,10 +118,6 @@ with st.sidebar:
         ["標準表示", "カラフルスケルトン", "アバター表示"]
     )
 
-# MediaPipeの初期化
-mp_pose = mp.solutions.pose
-mp_drawing = mp.solutions.drawing_utils
-
 # カスタム描画スタイルの定義
 def get_custom_drawing_styles(landmark_color, landmark_size, connection_color, connection_thickness):
     landmark_drawing_spec = mp_drawing.DrawingSpec(
