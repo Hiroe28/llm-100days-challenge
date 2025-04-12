@@ -1,6 +1,5 @@
 libgl1-mesa-glx
 libgl1
-mesa-common-dev
 libglib2.0-0
 ffmpeg
 libsm6
@@ -12,4 +11,3 @@ zlib1g-dev
 libavcodec-dev
 libavformat-dev
 libswscale-dev
-xvfb
