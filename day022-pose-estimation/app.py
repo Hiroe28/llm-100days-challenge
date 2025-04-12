@@ -1,13 +1,20 @@
-import streamlit as st
-import mediapipe as mp
-import cv2
-import numpy as np
-from PIL import Image
-import io
-import os
-import math
-import random
+try:
+    import streamlit as st
+    import mediapipe as mp
+    import cv2
+    import numpy as np
+    from PIL import Image
+    import io
+    import os
+    import math
+    import random
+except ImportError as e:
+    import streamlit as st
+    st.error(f"依存関係のインポートエラー: {e}")
+    st.info("このアプリはMediaPipeとOpenCVが必要です。インストールを確認してください。")
+    st.stop()
 
+    
 # ページ設定
 st.set_page_config(
     page_title="ポーズ推定デモアプリ",
