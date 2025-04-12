@@ -6,6 +6,7 @@ try:
     from PIL import Image
     import io
     import os
+    os.environ['MEDIAPIPE_DISABLE_GPU'] = '1'
     import math
     import random
 except ImportError as e:
