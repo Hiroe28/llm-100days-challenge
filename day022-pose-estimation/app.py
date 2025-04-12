@@ -1,28 +1,16 @@
 import os
 import sys
 import tempfile
-
-# OpenCVのエラーを防ぐための環境設定
-os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
-os.environ["OPENCV_LOG_LEVEL"] = "ERROR"
-os.environ["OPENCV_IO_ENABLE_OPENGL"] = "0"
-os.environ["DISPLAY"] = ":99"
-# OpenCVのロード問題対策
-try:
-    import ctypes
-    libGL = ctypes.cdll.LoadLibrary('libGL.so.1')
-except Exception as e:
-    print(f"libGL.so.1のロードに失敗しましたが、続行します: {e}")
-
 import streamlit as st
-# ページ設定
+
+# 最初のStreamlit命令としてset_page_configを呼び出す
 st.set_page_config(
     page_title="ポーズ推定デモアプリ",
     page_icon="🧍",
     layout="wide"
 )
 
-# 一時ディレクトリを作成
+# 以降の初期化処理
 temp_dir = tempfile.mkdtemp()
 st.write(f"一時ディレクトリを作成: {temp_dir}")
 
@@ -30,42 +18,88 @@ st.write(f"一時ディレクトリを作成: {temp_dir}")
 os.environ["MEDIAPIPE_MODEL_PATH"] = temp_dir
 os.environ["MEDIAPIPE_RESOURCE_DIR"] = temp_dir
 
-# ここで重要: MediaPipeをインポートする前にダウンロード処理をモンキーパッチ
+# ここからMediaPipeの関数をオーバーライド
+import inspect
 import mediapipe as mp
 from mediapipe.python.solutions import download_utils
-import types
+from mediapipe.python.solutions import pose
 
-# オリジナルの関数を保存
-original_download = download_utils.download_oss_model
+# MediaPipeの関数シグネチャをチェック
+orig_func = download_utils.download_oss_model
+st.write(f"オリジナル関数のシグネチャ: {inspect.signature(orig_func)}")
 
-# カスタムダウンロード関数
-def custom_download_model(model_url, model_abspath):
-    """一時ディレクトリにモデルをダウンロードする"""
-    # 元のパスではなく一時ディレクトリ内のパスを使用
-    filename = os.path.basename(model_abspath)
+# 正しいシグネチャでカスタムダウンロード関数を定義
+def custom_download_oss_model(model_path):
+    """カスタムダウンロード関数（一時ディレクトリを使用）"""
+    filename = os.path.basename(model_path)
     new_path = os.path.join(temp_dir, filename)
-    st.write(f"モデルを一時ディレクトリにダウンロード: {new_path}")
+    st.write(f"モデルパス要求: {model_path} → 変更先: {new_path}")
     
+    # 複数の可能性のあるURLを試す
+    possible_urls = []
+    
+    # 標準のMediaPipe URLフォーマット (最近のバージョン)
+    if 'pose_landmark_lite.tflite' in model_path:
+        possible_urls = [
+            'https://storage.googleapis.com/mediapipe-assets/pose_landmark_lite.tflite',
+            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.tflite'
+        ]
+    elif 'pose_landmark_full.tflite' in model_path:
+        possible_urls = [
+            'https://storage.googleapis.com/mediapipe-assets/pose_landmark_full.tflite',
+            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
+            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.tflite'
+        ]
+    elif 'pose_landmark_heavy.tflite' in model_path:
+        possible_urls = [
+            'https://storage.googleapis.com/mediapipe-assets/pose_landmark_heavy.tflite',
+            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task',
+            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.tflite'
+        ]
+    else:
+        st.error(f"未知のモデルタイプ: {model_path}")
+        return model_path
+    
+    # 各URLを順番に試す
+    for model_url in possible_urls:
+        try:
+            st.write(f"モデルをダウンロード試行中: {model_url}")
+            import urllib.request
+            with urllib.request.urlopen(model_url) as response:
+                model_data = response.read()
+                
+            # ディレクトリ作成
+            os.makedirs(os.path.dirname(new_path), exist_ok=True)
+            
+            # ファイル書き込み
+            with open(new_path, 'wb') as out_file:
+                out_file.write(model_data)
+                
+            st.success(f"モデルダウンロード成功: {new_path}")
+            return new_path
+        except Exception as e:
+            st.warning(f"URL {model_url} からのダウンロード失敗: {str(e)}")
+            # 次のURLを試す
+            continue
+    
+    # すべてのURLが失敗した場合
+    st.error("すべてのモデルURLからのダウンロードが失敗しました。")
+    
+    # 緊急措置: ダミーの空ファイルを作成
     try:
-        # ディレクトリ作成
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
-        
-        # ダウンロード処理
-        import urllib.request
-        with urllib.request.urlopen(model_url) as response:
-            model_data = response.read()
-            
-        # ファイル書き込み
-        with open(new_path, 'wb') as out_file:
-            out_file.write(model_data)
-            
+        with open(new_path, 'wb') as f:
+            # 最小限のTFLiteファイルヘッダーを書き込む (これはダミーです)
+            f.write(b'TFL3')
+        st.warning(f"空のダミーファイルを作成しました: {new_path}")
         return new_path
     except Exception as e:
-        st.error(f"モデルダウンロードエラー: {str(e)}")
-        return None
+        st.error(f"ダミーファイル作成失敗: {str(e)}")
+        return model_path
 
 # モンキーパッチ適用
-download_utils.download_oss_model = custom_download_model
+download_utils.download_oss_model = custom_download_oss_model
 
 import mediapipe as mp
 import cv2
