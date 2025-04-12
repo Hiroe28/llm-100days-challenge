@@ -42,12 +42,23 @@ for path in possible_model_paths:
         model_path = path
         break
 
-# モデルパスの設定
 if model_path:
-    os.environ["MEDIAPIPE_MODEL_PATH"] = model_path
-    model_status = f"ローカルモデルを使用します: {model_path}"
-else:
-    model_status = "ローカルモデルフォルダが見つかりません。オンラインモデルを使用します。"
+    # MediaPipeが期待するディレクトリ構造を作成
+    modules_dir = os.path.join(model_path, 'modules', 'pose_landmark')
+    os.makedirs(modules_dir, exist_ok=True)
+    
+    # 既存のモデルファイルをMediaPipeが期待する場所にコピー
+    for model_file in ['pose_landmark_lite.tflite', 'pose_landmark_full.tflite', 'pose_landmark_heavy.tflite']:
+        source_path = os.path.join(model_path, model_file)
+        target_path = os.path.join(modules_dir, model_file)
+        
+        if os.path.exists(source_path) and not os.path.exists(target_path):
+            try:
+                import shutil
+                shutil.copy2(source_path, target_path)
+                st.write(f"モデルをコピーしました: {target_path}")
+            except Exception as e:
+                st.error(f"モデルコピーエラー: {str(e)}")
 
 # タイトル
 st.title("MediaPipeポーズ推定デモアプリ")
