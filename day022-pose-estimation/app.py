@@ -77,6 +77,37 @@ def custom_download_oss_model(model_path):
                 out_file.write(model_data)
                 
             st.success(f"モデルダウンロード成功: {new_path}")
+
+
+            # ダウンロード成功後、MediaPipeが期待するパスにリンクを作成
+            try:
+                expected_path = '/home/adminuser/venv/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/pose_landmark_lite.tflite'
+                expected_dir = os.path.dirname(expected_path)
+                
+                # ディレクトリ構造を作成
+                os.makedirs(expected_dir, exist_ok=True)
+                
+                # ファイルが既に存在する場合は削除
+                if os.path.exists(expected_path):
+                    os.remove(expected_path)
+                
+                # 手順1: シンボリックリンクを試す
+                try:
+                    os.symlink(new_path, expected_path)
+                    st.success(f"シンボリックリンク作成成功: {new_path} → {expected_path}")
+                except:
+                    # 手順2: シンボリックリンクが失敗したらコピーを試す
+                    import shutil
+                    shutil.copy2(new_path, expected_path)
+                    st.success(f"ファイルコピー成功: {new_path} → {expected_path}")
+            except Exception as e:
+                st.error(f"期待されるパスへのリンク/コピー作成失敗: {str(e)}")
+                import traceback
+                st.error(traceback.format_exc())
+
+
+
+
             return new_path
         except Exception as e:
             st.warning(f"URL {model_url} からのダウンロード失敗: {str(e)}")
