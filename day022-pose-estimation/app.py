@@ -15,6 +15,13 @@ except Exception as e:
     print(f"libGL.so.1のロードに失敗しましたが、続行します: {e}")
 
 import streamlit as st
+# ページ設定
+st.set_page_config(
+    page_title="ポーズ推定デモアプリ",
+    page_icon="🧍",
+    layout="wide"
+)
+
 # 一時ディレクトリを作成
 temp_dir = tempfile.mkdtemp()
 st.write(f"一時ディレクトリを作成: {temp_dir}")
@@ -71,12 +78,7 @@ import random
 
 
 
-# ページ設定
-st.set_page_config(
-    page_title="ポーズ推定デモアプリ",
-    page_icon="🧍",
-    layout="wide"
-)
+
 
 
 # 様々なパスでモデルフォルダを探す
