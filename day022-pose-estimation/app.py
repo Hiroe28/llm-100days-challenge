@@ -492,17 +492,23 @@ def detect_pose(image_bytes, display_mode):
             # その他の場合はそのまま使用
             img_rgb = img_array
         
+
+        # 検出実行
         try:
+            st.write("ポーズ検出モデルを初期化中...")
+            # カスタム環境変数を追加（ファイルシステムアクセス先を変更）
+            os.environ["MEDIAPIPE_BASE_PATH"] = temp_dir
+            os.environ["MEDIAPIPE_FILE_PREFIX"] = temp_dir
+            
             with mp_pose.Pose(
                 static_image_mode=True,
                 model_complexity=0,  # 軽量モデルを使用
                 enable_segmentation=True,
                 min_detection_confidence=0.5
             ) as pose:
-                # 処理前にメモリ上のモデルパスを確認
                 st.write("モデル処理開始...")
                 results = pose.process(img_rgb)
-                st.write("モデル処理完了")
+                st.write("モデル処理完了！")
             
             if results is None or not hasattr(results, 'pose_landmarks'):
                 st.warning("ポーズ検出に失敗しました。別の画像を試してください。")
@@ -511,12 +517,8 @@ def detect_pose(image_bytes, display_mode):
         except Exception as e:
             st.error(f"ポーズ検出エラー: {str(e)}")
             import traceback
-            stack_trace = traceback.format_exc()
-            # スタックトレースから重要な情報だけを抽出して表示
-            important_lines = [line for line in stack_trace.split('\n') if 'mediapipe' in line or 'Can\'t find file' in line]
-            st.error('\n'.join(important_lines))
+            st.error(traceback.format_exc())
             return img_array, None
-
 
         
         # 描画スタイルを設定
