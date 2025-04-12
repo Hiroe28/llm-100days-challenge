@@ -1,6 +1,4 @@
 import streamlit as st
-import mediapipe as mp
-import cv2
 import numpy as np
 from PIL import Image
 import io
@@ -8,7 +6,48 @@ import os
 import math
 import random
 
+# 事前にインポート問題を確認
+try:
+    import cv2
+    cv2_import_successful = True
+    cv2_status = "✅ OpenCV: 正常"
+except ImportError as e:
+    cv2_import_successful = False
+    cv2_status = f"❌ OpenCV: インポートエラー ({e})"
 
+# 様々なパスでモデルフォルダを探す
+script_dir = os.path.dirname(os.path.abspath(__file__))
+base_dir = os.path.dirname(script_dir)  # llm-100days-challenge ディレクトリ
+
+# 可能性のあるモデルフォルダパスのリスト
+possible_model_paths = [
+    os.path.join(script_dir, 'models'),  # 同じディレクトリ内の models フォルダ
+    os.path.join(base_dir, 'day022-pose-estimation', 'models'),  # リポジトリパス指定
+    '/mount/src/llm-100days-challenge/day022-pose-estimation/models',  # Streamlit Cloud での絶対パス
+]
+
+# モデルフォルダを探す
+model_path = None
+for path in possible_model_paths:
+    if os.path.exists(path):
+        model_path = path
+        break
+
+# モデルパスの設定
+if model_path:
+    os.environ["MEDIAPIPE_MODEL_PATH"] = model_path
+    model_status = f"✅ ローカルモデルを使用します: {model_path}"
+else:
+    model_status = "⚠️ ローカルモデルフォルダが見つかりません。オンラインモデルを使用します。"
+
+# MediaPipeをインポート (モデルパス設定後)
+try:
+    import mediapipe as mp
+    mp_import_successful = True
+    mp_status = "✅ MediaPipe: 正常"
+except ImportError as e:
+    mp_import_successful = False
+    mp_status = f"❌ MediaPipe: インポートエラー ({e})"
 
 # ページ設定
 st.set_page_config(
@@ -16,7 +55,6 @@ st.set_page_config(
     page_icon="🧍",
     layout="wide"
 )
-
 
 # 様々なパスでモデルフォルダを探す
 script_dir = os.path.dirname(os.path.abspath(__file__))
