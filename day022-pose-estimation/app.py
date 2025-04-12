@@ -22,7 +22,7 @@ import io
 import math
 import random
 
-# mp_pose = mp.solutions.pose
+mp_pose = mp.solutions.pose
 
 # タイトル
 st.title("MediaPipeポーズ推定デモアプリ")

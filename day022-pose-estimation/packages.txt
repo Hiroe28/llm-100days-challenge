@@ -13,3 +13,5 @@ libavcodec-dev
 libavformat-dev
 libswscale-dev
 xvfb
+libgl1-mesa-dev
+libgtk-3-dev
