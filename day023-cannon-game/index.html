@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプル大砲ゲーム - 教育版</title>
+    <style>
+        body {
+            font-family: 'Meiryo', 'Hiragino Kaku Gothic ProN', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+        canvas {
+            border: 2px solid #333;
+            background-color: #e6f7ff;
+            margin-bottom: 10px;
+            max-width: 100%;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #d4ebf2;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .value-display {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+        .message {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d81b60;
+            min-height: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .target-control {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .target-control button {
+            margin: 5px;
+            background-color: #1976d2;
+        }
+        .target-control button:hover {
+            background-color: #1565c0;
+        }
+        .badge-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #eee;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            text-align: center;
+            opacity: 0.5;
+            padding: 5px;
+            position: relative;
+        }
+        .badge.earned {
+            opacity: 1;
+            background-color: #ffd54f;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .badge-description {
+            font-size: 10px;
+            margin-top: 4px;
+            color: #555;
+        }
+        .badge.earned .badge-description {
+            color: #333;
+        }
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .game-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 900px;
+        }
+        h1, h2 {
+            color: #2e7d32;
+            text-align: center;
+        }
+        .distance-display {
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #fff3e0;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ffe0b2;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .physics-info {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #c8e6c9;
+            display: none; /* 最初は非表示 */
+        }
+        .physics-info.visible {
+            display: block;
+        }
+        .physics-formula {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 8px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        .mode-toggle button {
+            background-color: #9e9e9e;
+            min-width: 120px;
+        }
+        .mode-toggle button.active {
+            background-color: #ff9800;
+        }
+        .tab-container {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            margin-bottom: 10px;
+        }
+        .tab-button {
+            padding: 8px 15px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+        }
+        .tab-button.active {
+            background-color: #1976d2;
+            color: white;
+        }
+        .tab-content {
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 0 5px 5px 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        .hint-button {
+            background-color: #ff9800;
+            margin-top: 10px;
+        }
+        .hint-button:hover {
+            background-color: #f57c00;
+        }
+        .hint-content {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            display: none;
+        }
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #e1f5fe;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .predictions-left {
+            font-weight: bold;
+            color: #0277bd;
+        }
+        .debug-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>シンプル大砲ゲーム - 教育版</h1>
+
+    <div class="mode-toggle">
+        <button id="gameMode" class="active">ゲームモード</button>
+        <button id="learningMode">学習モード</button>
+    </div>
+    
+    <div class="game-container">
+        <div class="game-stats">
+            <div>スコア: <span id="scoreDisplay">0</span> / 試行回数: <span id="attemptsDisplay">0</span></div>
+            <div class="predictions-left">予測回数残り: <span id="predictionsLeftDisplay">3</span></div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div class="message" id="message"></div>
+        
+        <!-- 距離表示用の要素 -->
+        <div class="distance-display" id="distanceDisplay">的までの距離: 0 m</div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="angleSlider">大砲の角度 (°)</label>
+                <input type="range" id="angleSlider" min="0" max="90" value="45" step="1">
+                <div class="value-display" id="angleValue">45°</div>
+            </div>
+            
+            <div class="control-group">
+                <label for="velocitySlider">発射速度 (m/s)</label>
+                <input type="range" id="velocitySlider" min="10" max="100" value="50" step="1">
+                <div class="value-display" id="velocityValue">50 m/s</div>
+            </div>
+            
+            <div class="control-group">
+                <button id="fireButton">発射！</button>
+                <button id="predictButton">弾道予測 (3回)</button>
+            </div>
+        </div>
+        
+        <div class="physics-info" id="physicsInfo">
+            <h3>物理の解説</h3>
+            <p>現在の設定では：</p>
+            <ul>
+                <li>発射角度: <span id="currentAngle">45</span>°</li>
+                <li>発射速度: <span id="currentVelocity">50</span> m/s</li>
+                <li>予想到達距離: <span id="expectedDistance">0</span> m</li>
+            </ul>
+            <div class="physics-formula">
+                飛距離 = (初速度)² × sin(2×角度) ÷ 重力加速度
+            </div>
+            <p>最大飛距離を得るには45度で発射するのが理想的です。重力があるため、同じ速度では45度が最も遠くに飛びます。</p>
+            <button id="hintButton" class="hint-button">ヒントを表示</button>
+            <div id="hintContent" class="hint-content">
+                現在の目標距離 <span id="hintDistance">0</span> m を達成するには：<br>
+                • 発射角度を <span id="idealAngle">45</span>° に設定<br>
+                • 発射速度は約 <span id="idealVelocity">0</span> m/s が理想的
+            </div>
+        </div>
+        
+        <div class="target-control">
+            <button id="resetTargetButton">的の位置をリセット</button>
+            <button id="randomTargetButton">的をランダムに配置</button>
+        </div>
+        
+        <h2>アチーブメント</h2>
+        <div class="badge-container">
+            <div class="badge" id="badge1" title="初めて的に当てる">
+                初めての命中
+                <div class="badge-description">的に初めて当てよう</div>
+            </div>
+            <div class="badge" id="badge2" title="異なる位置の的に5回命中">
+                5回連続命中
+                <div class="badge-description">的の位置が変わっても5回連続で命中しよう</div>
+            </div>
+            <div class="badge" id="badge3" title="最小速度で的に当てる">
+                エコシューター
+                <div class="badge-description">速度40m/s以下で的に命中させよう</div>
+            </div>
+            <div class="badge" id="badge4" title="予測なしで命中">
+                腕利き砲手
+                <div class="badge-description">予測なしで3回連続命中させよう</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-info">
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="howto">遊び方</button>
+                <button class="tab-button" data-tab="physics">物理の解説</button>
+                <button class="tab-button" data-tab="challenge">チャレンジ</button>
+            </div>
+            <div class="tab-content">
+                <div class="tab-panel active" id="howto">
+                    <h3>遊び方</h3>
+                    <ol>
+                        <li>大砲の<strong>角度</strong>と<strong>発射速度</strong>を調整します</li>
+                        <li><strong>発射！</strong>ボタンをクリックして大砲を撃ちます</li>
+                        <li>放物線を描く弾道を観察して、的に当てることを目指しましょう</li>
+                        <li>「弾道予測」ボタンで発射前に軌道を確認できます（1ゲーム3回まで）</li>
+                        <li>画面上部に表示される的までの距離を参考にして狙いを定めましょう</li>
+                        <li>「学習モード」に切り替えると、物理の解説や理想的な設定値のヒントが表示されます</li>
+                    </ol>
+                </div>
+                <div class="tab-panel" id="physics">
+                    <h3>斜方投射の物理</h3>
+                    <p>大砲ゲームは「斜方投射」という物理現象を再現しています。これは重力場での物体の動きを表す基本的な運動の一つです。</p>
+                    <h4>基本公式</h4>
+                    <div class="physics-formula">
+                        飛距離 = (初速度)² × sin(2×角度) ÷ 9.8
+                    </div>
+                    <p>この公式から分かる重要な点：</p>
+                    <ul>
+                        <li>同じ速度なら<strong>45度</strong>で最大飛距離に達します（sin(2×45°) = sin(90°) = 1 で最大）</li>
+                        <li>飛距離は<strong>初速度の二乗</strong>に比例します（速度を2倍にすると、飛距離は4倍に）</li>
+                        <li>30度と60度のように、45度を中心に対称の角度では同じ飛距離になります</li>
+                    </ul>
+                    <p>学習モードでは、現在の設定での理論上の飛距離が表示され、的に当てるための理想的な設定値のヒントも確認できます。</p>
+                </div>
+                <div class="tab-panel" id="challenge">
+                    <h3>チャレンジモード</h3>
+                    <p>以下のチャレンジに挑戦してみよう！</p>
+                    <ul>
+                        <li><strong>予測マスター:</strong> 1回の予測だけで的に当てる</li>
+                        <li><strong>エコシューター:</strong> 最小の速度（40m/s以下）で的に当てる</li>
+                        <li><strong>連続命中王:</strong> 位置が変わった的に5回連続で命中させる</li>
+                        <li><strong>物理学者:</strong> 学習モードを使って、実際の物理法則を理解する</li>
+                        <li><strong>腕利き砲手:</strong> 予測を使わずに3回連続で命中させる</li>
+                    </ul>
+                    <p>アチーブメントを全て獲得して、物理の達人を目指そう！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="achievementPopup" class="achievement-popup">
+        <h3>アチーブメント獲得！</h3>
+        <p id="achievementMessage"></p>
+    </div>
+    
+    <div id="debugInfo" class="debug-info"></div>
+
+    <script>
+        // DOM読み込み完了を確認してから初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // キャンバスとコンテキストの準備
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // スライダーと表示要素
+            const angleSlider = document.getElementById('angleSlider');
+            const velocitySlider = document.getElementById('velocitySlider');
+            const angleValue = document.getElementById('angleValue');
+            const velocityValue = document.getElementById('velocityValue');
+            const messageElement = document.getElementById('message');
+            const distanceDisplay = document.getElementById('distanceDisplay');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const attemptsDisplay = document.getElementById('attemptsDisplay');
+            const predictionsLeftDisplay = document.getElementById('predictionsLeftDisplay');
+            const debugInfo = document.getElementById('debugInfo');
+            
+            // モードボタン
+            const gameModeButton = document.getElementById('gameMode');
+            const learningModeButton = document.getElementById('learningMode');
+            
+            // 物理情報要素
+            const physicsInfo = document.getElementById('physicsInfo');
+            const currentAngle = document.getElementById('currentAngle');
+            const currentVelocity = document.getElementById('currentVelocity');
+            const expectedDistance = document.getElementById('expectedDistance');
+            const hintButton = document.getElementById('hintButton');
+            const hintContent = document.getElementById('hintContent');
+            const hintDistance = document.getElementById('hintDistance');
+            const idealAngle = document.getElementById('idealAngle');
+            const idealVelocity = document.getElementById('idealVelocity');
+            
+            // タブ切り替え
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+            
+            // ボタン
+            const fireButton = document.getElementById('fireButton');
+            const predictButton = document.getElementById('predictButton');
+            const resetTargetButton = document.getElementById('resetTargetButton');
+            const randomTargetButton = document.getElementById('randomTargetButton');
+            
+            // ゲームの状態
+            let cannonX = 50;
+            let cannonY = canvas.height - 20;
+            let cannonLength = 40;
+            let cannonWidth = 20;
+            let projectileRadius = 8;
+            let targetRadius = 25;
+            let targetX = 650;
+            let targetY = canvas.height - targetRadius;
+            let isAnimating = false;
+            let projectileX = 0;
+            let projectileY = 0;
+            let time = 0;
+            let trajectoryPoints = [];
+            let predictedTrajectory = [];
+            let hitTarget = false;
+            let score = 0;
+            let attempts = 0;
+            let consecutiveHits = 0;
+            let distanceToTarget = 0; // 的までの距離
+            let predictionsLeft = 3; // 予測可能回数
+            let noPredictsUsedStreak = 0; // 予測なし連続命中数
+            let learningMode = false; // 学習モードフラグ
+            let targetMoved = false; // 的が移動したかのフラグ
+            
+            // アチーブメントの状態
+            let achievements = {
+                firstHit: false,
+                fiveConsecutive: false,
+                minimalVelocity: false,
+                noPredictStreak: false
+            };
+            
+            // 物理パラメータ
+            let angle = parseFloat(angleSlider.value);
+            let velocity = parseFloat(velocitySlider.value);
+            let gravity = 9.8;
+            
+            // ピクセル-メートル変換スケール
+            // このスケールを調整して、画面上の距離と物理計算の距離を一致させる
+            const PIXEL_TO_METER = 1; // 1ピクセル = 1メートル
+            
+            // 画面上の物理計算のスケールファクター
+            // このファクターを調整して、弾道が画面内で適切に表示されるようにする
+            const physicsScaleFactor = 0.97;
+            
+            // ゲームの難易度調整
+            const GAME_DIFFICULTY = 1.0; // 値を大きくすると難しくなる、小さくすると簡単になる
+            
+            // モード切り替え
+            gameModeButton.addEventListener('click', () => {
+                gameModeButton.classList.add('active');
+                learningModeButton.classList.remove('active');
+                learningMode = false;
+                physicsInfo.classList.remove('visible');
+            });
+            
+            learningModeButton.addEventListener('click', () => {
+                learningModeButton.classList.add('active');
+                gameModeButton.classList.remove('active');
+                learningMode = true;
+                physicsInfo.classList.add('visible');
+                updatePhysicsInfo();
+            });
+            
+            // タブ切り替え
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    
+                    // タブボタンの切り替え
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    button.classList.add('active');
+                    
+                    // タブパネルの切り替え
+                    tabPanels.forEach(panel => {
+                        panel.classList.remove('active');
+                    });
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // ヒント表示ボタン
+            hintButton.addEventListener('click', () => {
+                if (hintContent.style.display === 'block') {
+                    hintContent.style.display = 'none';
+                    hintButton.textContent = 'ヒントを表示';
+                } else {
+                    updateHint();
+                    hintContent.style.display = 'block';
+                    hintButton.textContent = 'ヒントを隠す';
+                }
+            });
+            
+            // スライダーの値を表示に反映
+            angleSlider.addEventListener('input', updateValues);
+            velocitySlider.addEventListener('input', updateValues);
+            fireButton.addEventListener('click', fireCannon);
+            predictButton.addEventListener('click', predictTrajectory);
+            resetTargetButton.addEventListener('click', resetTarget);
+            randomTargetButton.addEventListener('click', randomizeTarget);
+            
+            // デバッグモード切り替え（Dキーで切り替え）
+            let debugMode = false;
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'd' || e.key === 'D') {
+                    debugMode = !debugMode;
+                    debugInfo.style.display = debugMode ? 'block' : 'none';
+                }
+            });
+            
+            // 初期化
+            updateValues();
+            calculateDistance();
+            updateScoreDisplay();
+            drawScene();
+            
+            // スコア表示更新
+            function updateScoreDisplay() {
+                scoreDisplay.textContent = score;
+                attemptsDisplay.textContent = attempts;
+                predictionsLeftDisplay.textContent = predictionsLeft;
+            }
+            
+            // 物理情報の更新
+            function updatePhysicsInfo() {
+                if (!learningMode) return;
+                
+                currentAngle.textContent = angle;
+                currentVelocity.textContent = velocity;
+                
+                // 理論上の飛距離計算（斜方投射の公式）
+                const radians = angle * Math.PI / 180;
+                // 飛距離(m) = v²sin(2θ)/g
+                const theoreticalDistance = Math.round((velocity * velocity * Math.sin(2 * radians)) / gravity);
+                expectedDistance.textContent = theoreticalDistance;
+                
+                // ヒント内容も更新
+                updateHint();
+            }
+            
+            // ヒントの更新
+            function updateHint() {
+                hintDistance.textContent = distanceToTarget;
+                
+                // 45度を理想的な角度として表示
+                idealAngle.textContent = '45';
+                
+                // 目標距離に到達するための理想的な速度を計算
+                // 距離 = v^2 * sin(2θ) / g で、θ = 45°のとき sin(2θ) = 1
+                // よって v = √(距離 * g)
+                const idealVel = Math.round(Math.sqrt(distanceToTarget * gravity));
+                idealVelocity.textContent = idealVel;
+            }
+            
+            // 的までの距離を計算
+            function calculateDistance() {
+                // 単純なピクセル距離
+                const dx = targetX - cannonX;
+                const dy = cannonY - targetY;
+                
+                // 実際の距離（ピクセル）
+                const pixelDistance = Math.sqrt(dx * dx + dy * dy);
+                
+                // ゲームスケールで変換（1ピクセル = 1メートル）
+                distanceToTarget = Math.round(pixelDistance);
+                
+                // 距離表示を更新
+                updateDistanceDisplay();
+                
+                if (learningMode) {
+                    updatePhysicsInfo();
+                }
+                
+                return distanceToTarget;
+            }
+            
+            // 距離表示を更新する関数
+            function updateDistanceDisplay() {
+                distanceDisplay.textContent = `的までの距離: ${distanceToTarget} m`;
+            }
+            
+            // 値の更新
+            function updateValues() {
+                angle = parseFloat(angleSlider.value);
+                velocity = parseFloat(velocitySlider.value);
+                
+                angleValue.textContent = angle + '°';
+                velocityValue.textContent = velocity + ' m/s';
+                
+                if (learningMode) {
+                    updatePhysicsInfo();
+                }
+                
+                if (!isAnimating) {
+                    drawScene();
+                }
+            }
+            
+            // シーンの描画
+            function drawScene() {
+                // キャンバスのクリア
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 地面の描画
+                ctx.fillStyle = '#8bc34a';
+                ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+                
+                // 大砲の描画
+                drawCannon();
+                
+                // 的の描画
+                drawTarget();
+                
+                // 予測弾道の描画
+                if (predictedTrajectory.length > 0 && !isAnimating) {
+                    drawPredictedTrajectory();
+                }
+                
+                // 実際の弾道が存在する場合、それを描画
+                if (trajectoryPoints.length > 0 && !isAnimating) {
+                    drawTrajectory();
+                }
+                
+                // 弾丸の描画（アニメーション中のみ）
+                if (isAnimating) {
+                    drawProjectile();
+                }
+                
+                // キャンバス上に距離を表示
+                ctx.fillStyle = '#0d47a1';
+                ctx.font = 'bold 14px Arial';
+                // 距離線を描画
+                ctx.beginPath();
+                ctx.moveTo(cannonX, cannonY - 30);
+                ctx.lineTo(targetX, cannonY - 30);
+                ctx.strokeStyle = '#0d47a1';
+                ctx.setLineDash([5, 3]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                // 線の中央に距離を表示
+                ctx.fillText(`${distanceToTarget} m`, (cannonX + targetX) / 2, cannonY - 45);
+                
+                // デバッグ情報の更新
+                if (debugMode) {
+                    const radians = angle * Math.PI / 180;
+                    const theoreticalDistance = Math.round((velocity * velocity * Math.sin(2 * radians)) / gravity);
+                    debugInfo.textContent = `角度: ${angle}°, 速度: ${velocity}m/s, 予想距離: ${theoreticalDistance}m, スケール: ${physicsScaleFactor}`;
+                }
+            }
+            
+            // 大砲の描画
+            function drawCannon() {
+                const radians = angle * Math.PI / 180;
+                
+                // 大砲の台座
+                ctx.fillStyle = '#795548';
+                ctx.beginPath();
+                ctx.arc(cannonX, cannonY, 25, 0, Math.PI, true);
+                ctx.fill();
+                
+                // 大砲の砲身
+                ctx.save();
+                ctx.translate(cannonX, cannonY);
+                ctx.rotate(-radians);
+                
+                ctx.fillStyle = '#607d8b';
+                ctx.fillRect(0, -cannonWidth / 2, cannonLength, cannonWidth);
+                
+                // 大砲の口
+                ctx.beginPath();
+                ctx.arc(cannonLength, 0, cannonWidth / 2, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+            
+            // 的の描画
+            function drawTarget() {
+                ctx.fillStyle = '#f44336';
+                ctx.beginPath();
+                ctx.arc(targetX, targetY, targetRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 的の中心の白い円
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(targetX, targetY, targetRadius * 0.7, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // 的の中心の赤い円
+                ctx.fillStyle = '#f44336';
+                ctx.beginPath();
+                ctx.arc(targetX, targetY, targetRadius * 0.4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // 弾丸の描画
+            function drawProjectile() {
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(projectileX, projectileY, projectileRadius, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // 予測弾道の描画
+            function drawPredictedTrajectory() {
+                ctx.strokeStyle = 'rgba(0, 100, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(predictedTrajectory[0].x, predictedTrajectory[0].y);
+                
+                for (let i = 1; i < predictedTrajectory.length; i++) {
+                    ctx.lineTo(predictedTrajectory[i].x, predictedTrajectory[i].y);
+                }
+                
+                ctx.stroke();
+            }
+            
+            // 実際の放物線軌道の描画
+            function drawTrajectory() {
+                ctx.strokeStyle = 'rgba(0, 0, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(trajectoryPoints[0].x, trajectoryPoints[0].y);
+                
+                for (let i = 1; i < trajectoryPoints.length; i++) {
+                    ctx.lineTo(trajectoryPoints[i].x, trajectoryPoints[i].y);
+                }
+                
+                ctx.stroke();
+            }
+            
+            // 弾道予測
+            function predictTrajectory() {
+                if (predictionsLeft <= 0) {
+                    messageElement.textContent = '予測回数を使い切りました！';
+                    return;
+                }
+                
+                predictionsLeft--;
+                updateScoreDisplay();
+                predictButton.textContent = `弾道予測 (${predictionsLeft}回)`;
+                
+                predictedTrajectory = [];
+                
+                const radians = angle * Math.PI / 180;
+                const startX = cannonX + Math.cos(radians) * cannonLength;
+                const startY = cannonY - Math.sin(radians) * cannonLength;
+                
+                let simTime = 0;
+                let simX = startX;
+                let simY = startY;
+                const vx = velocity * Math.cos(radians);
+                const vy = velocity * Math.sin(radians);
+                
+                // 時間ステップを調整
+                const timeStep = 0.1;
+                
+                // 予測弾道を計算
+                while (simY <= canvas.height && simX >= 0 && simX <= canvas.width) {
+                    predictedTrajectory.push({x: simX, y: simY});
+                    
+                    simTime += timeStep;
+                    // 修正：画面上での見た目の動きを適切なスケールで計算
+                    simX = startX + vx * simTime * physicsScaleFactor;
+                    simY = startY - (vy * simTime - 0.5 * gravity * simTime * simTime) * physicsScaleFactor;
+                }
+                
+                drawScene();
+            }
+            
+            // 大砲の発射処理
+            function fireCannon() {
+                if (isAnimating) return;
+                
+                isAnimating = true;
+                attempts++;
+                hitTarget = false;
+                trajectoryPoints = [];
+                predictedTrajectory = [];
+                time = 0;
+                messageElement.textContent = '';
+                updateScoreDisplay();
+                
+                // 発射中はスライダーを無効化
+                angleSlider.disabled = true;
+                velocitySlider.disabled = true;
+                fireButton.disabled = true;
+                predictButton.disabled = true;
+                
+                // 発射位置の計算（大砲の先端）
+                const radians = angle * Math.PI / 180;
+                const startX = cannonX + Math.cos(radians) * cannonLength;
+                const startY = cannonY - Math.sin(radians) * cannonLength;
+                
+                projectileX = startX;
+                projectileY = startY;
+                
+                // アニメーションの開始
+                animateProjectile();
+            }
+            
+            // 弾丸のアニメーション
+            function animateProjectile() {
+                if (!isAnimating) return;
+                
+                // 時間ステップを調整
+                const timeStep = 0.1;
+                time += timeStep;
+                
+                // 物理計算：放物線運動
+                const radians = angle * Math.PI / 180;
+                const vx = velocity * Math.cos(radians);
+                const vy = velocity * Math.sin(radians);
+                
+                // 現在の位置を計算 (スケールを調整)
+                projectileX = cannonX + vx * time * physicsScaleFactor;
+                projectileY = cannonY - (vy * time - 0.5 * gravity * time * time) * physicsScaleFactor;
+                
+                // 軌道点を記録
+                trajectoryPoints.push({x: projectileX, y: projectileY});
+                
+                // 的に当たったかチェック
+                const dx = projectileX - targetX;
+                const dy = projectileY - targetY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < targetRadius + projectileRadius) {
+                    hitTarget = true;
+                    score++;
+                    consecutiveHits++;
+                    
+                    // 予測を使わなかった場合のカウンター
+                    if (predictedTrajectory.length === 0) {
+                        noPredictsUsedStreak++;
+                    } else {
+                        noPredictsUsedStreak = 0;
+                    }
+                    
+                    isAnimating = false;
+                    messageElement.textContent = 'ヒット！的に当たりました！';
+                    
+                    // 命中したら的を自動的に移動（ゲームの難易度アップ）
+                    if (consecutiveHits >= 1) {
+                        setTimeout(() => {
+                            randomizeTarget();
+                            targetMoved = true;
+                        }, 1000);
+                        messageElement.textContent = 'ヒット！次の的が登場します...';
+                    }
+                    
+                    checkAchievements();
+                    enableControls();
+                    drawScene();
+                    return;
+                }
+                
+                // 地面に当たったか、画面外に出たかチェック
+                if (projectileY > canvas.height - projectileRadius || 
+                    projectileX > canvas.width + projectileRadius || 
+                    projectileX < -projectileRadius) {
+                    isAnimating = false;
+                    consecutiveHits = 0; // 連続ヒットをリセット
+                    noPredictsUsedStreak = 0; // 予測なし連続命中もリセット
+                    
+                    if (projectileY > canvas.height - projectileRadius) {
+                        // ここに飛距離計算と表示を追加
+                        const landingDistance = Math.round(projectileX - cannonX);
+                        messageElement.textContent = `地面に落ちました！ 飛距離: ${landingDistance} m`;
+                    } else {
+                        messageElement.textContent = '範囲外に出ました！';
+                    }
+                    
+                    enableControls();
+                    drawScene();
+                    return;
+                }
+                
+                // シーンの再描画
+                drawScene();
+                
+                // 次のフレームをリクエスト
+                requestAnimationFrame(animateProjectile);
+            }
+            
+            // コントロールを有効化
+            function enableControls() {
+                angleSlider.disabled = false;
+                velocitySlider.disabled = false;
+                fireButton.disabled = false;
+                predictButton.disabled = false;
+            }
+            
+            // 的の位置をリセット
+            function resetTarget() {
+                targetX = 650;
+                targetY = canvas.height - targetRadius;
+                calculateDistance(); // 距離を再計算
+                updateDistanceDisplay(); // 距離表示を明示的に更新
+                targetMoved = true; // 的が移動したフラグを設定
+                consecutiveHits = 0; // 的をリセットすると連続命中もリセット
+                drawScene();
+            }
+            
+            // 的をランダムに配置
+            function randomizeTarget() {
+                targetX = Math.random() * (canvas.width - 200) + 200;
+                targetY = canvas.height - targetRadius - Math.random() * 150;
+                calculateDistance(); // 距離を再計算
+                updateDistanceDisplay(); // 距離表示を明示的に更新
+                targetMoved = true; // 的が移動したフラグを設定
+                drawScene();
+            }
+            
+            // アチーブメントのチェック
+            function checkAchievements() {
+                // 初めての命中
+                if (hitTarget && !achievements.firstHit) {
+                    achievements.firstHit = true;
+                    showAchievementPopup("初めての命中バッジを獲得しました！");
+                }
+                
+                // 異なる位置での5回連続命中
+                if (hitTarget && consecutiveHits >= 5 && targetMoved && !achievements.fiveConsecutive) {
+                    achievements.fiveConsecutive = true;
+                    showAchievementPopup("5回連続命中バッジを獲得しました！\n場所が変わっても命中できる技術を身につけました！");
+                }
+                
+                // 最小速度での命中
+                if (hitTarget && velocity <= 40 && !achievements.minimalVelocity) {
+                    achievements.minimalVelocity = true;
+                    showAchievementPopup("エコシューターバッジを獲得しました！\n少ないエネルギーで正確に命中させました！");
+                }
+                
+                // 予測なしでの3回連続命中
+                if (hitTarget && noPredictsUsedStreak >= 3 && !achievements.noPredictStreak) {
+                    achievements.noPredictStreak = true;
+                    showAchievementPopup("腕利き砲手バッジを獲得しました！\n予測なしで3回連続命中する熟練の技を見せました！");
+                }
+                
+                updateAchievements();
+            }
+            
+            // アチーブメント表示の更新
+            function updateAchievements() {
+                // バッジの表示を更新
+                if (achievements.firstHit) document.getElementById('badge1').classList.add('earned');
+                if (achievements.fiveConsecutive) document.getElementById('badge2').classList.add('earned');
+                if (achievements.minimalVelocity) document.getElementById('badge3').classList.add('earned');
+                if (achievements.noPredictStreak) document.getElementById('badge4').classList.add('earned');
+            }
+            
+            // アチーブメントポップアップ表示
+            function showAchievementPopup(message) {
+                const popup = document.getElementById('achievementPopup');
+                document.getElementById('achievementMessage').textContent = message;
+                
+                popup.style.display = 'block';
+                
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 3000);
+            }
+            
+            // 新しいゲームを開始
+            function startNewGame() {
+                // ゲーム状態のリセット
+                score = 0;
+                attempts = 0;
+                consecutiveHits = 0;
+                predictionsLeft = 3;
+                targetMoved = false;
+                noPredictsUsedStreak = 0;
+                
+                // 表示の更新
+                updateScoreDisplay();
+                predictButton.textContent = `弾道予測 (${predictionsLeft}回)`;
+                messageElement.textContent = '';
+                
+                // 的の位置をリセット
+                resetTarget();
+            }
+            
+            // デバッグモードの初期設定
+            debugInfo.style.display = 'none';
+            
+            // 初期のゲーム開始
+            startNewGame();
+        });
+    </script>
+</body>
+</html>
