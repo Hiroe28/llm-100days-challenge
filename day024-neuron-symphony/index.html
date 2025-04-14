@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- index.htmlのhead内に追加するメタタグ -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ニューロンシンフォニー</title>
+    <meta name="description" content="タッチやクリックで美しいニューロンアートと音楽を作り出す。ファンタジーゲーム風のクリスタルサウンドを生成し、録音もできるインタラクティブアート体験。">
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="ニューロンシンフォニー - インタラクティブなニューロンアート＆音楽生成" />
+    <meta property="og:description" content="タッチやクリックで美しいニューロンアートと音楽を作り出す。ファンタジーゲーム風のクリスタルサウンドを生成し、録音もできる。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day024-neuron-symphony/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day024-neuron-symphony/index.html" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ニューロンシンフォニー" />
+    <meta name="twitter:description" content="タッチやクリックで美しいニューロンアートと音楽を作り出す。ファンタジーゲーム風のクリスタルサウンドを生成し、録音もできるインタラクティブアート体験。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day024-neuron-symphony/screenshot.png" />
+
+    <!-- テーマカラー -->
+    <meta name="theme-color" content="#6a11cb">
+
+    <title>ニューロンシンフォニー</title>
+    <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="インタラクティブなニューロンアート生成器 - タッチやクリックで美しいニューロンアートと音楽を作ろう">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ニューロンシンフォニー</h1>
+            <p class="tagline">タッチで奏でる、ニューロンの響き</p>
+        </header>
+
+        <div class="canvas-container">
+            <canvas id="neuronCanvas"></canvas>
+            <div class="controls">
+                <button id="clearBtn">クリア</button>
+                <button id="saveBtn">保存</button>
+                <button id="audioToggle">🔊</button>
+                <button id="autoPlayBtn">🎼 自動演奏</button>
+                <button id="recordBtn">🔴 録音</button>
+                <select id="colorTheme">
+                    <option value="neon">ネオン</option>
+                    <option value="pastel">パステル</option>
+                    <option value="ocean">オーシャン</option>
+                    <option value="fire">ファイヤー</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="panel-toggle">ⓘ 詳細を表示</div>
+            <div class="panel-content">
+                <h3>ニューロンシンフォニーについて</h3>
+                <p>このアプリは脳内のニューロン（神経細胞）の発火パターンをモデルにした、インタラクティブなアートです。</p>
+                <p>画面をタッチまたはクリックすると、そこからニューロンの活動が始まります。接続されたニューロン同士が刺激を伝え合い、美しいパターンと音楽を生み出します。</p>
+                <p>スマートフォンをお使いの場合は、端末を傾けるとニューロンの動きにも影響します。</p>
+                <h3>お子さまと一緒に</h3>
+                <p>お子さまと一緒に遊ぶことで、脳の仕組みについて話すきっかけになります。ニューロンはどうやって互いに「お話」するのかな？という問いから、楽しい学びが広がります。</p>
+                <div class="share-container">
+                    <h3>作品をシェアしよう</h3>
+                    <p>素敵な作品ができたら、ぜひSNSでシェアしてください！</p>
+                    <p>#ニューロンシンフォニー #NeuronSymphony</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 ニューロンシンフォニー | <a href="https://github.com/Hiroe28/llm-100days-challenge/day024-neuron-symphony" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="neuron.js"></script>
+    <script src="audio.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
