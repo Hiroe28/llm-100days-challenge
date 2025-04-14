@@ -3,14 +3,17 @@
  */
 class NeuronSoundSystem {
     constructor() {
+        // 音量設定
+        this.volume = 0.3; // デフォルト音量30%
+        
         // Web Audio APIのセットアップ
         this.setupAudio();
         
         // 音色の設定
         this.setupInstruments();
         
-        // 音楽パラメータ
-        this.scale = this.generateScale('pentatonic', 'C');
+        // 音楽パラメータ - より調和のとれたスケールを使用
+        this.scale = this.generateScale('pentaMajor', 'C'); // 変更
         this.baseOctave = 3;
         this.lastNoteTime = 0;
         this.minTimeBetweenNotes = 100; // ms
@@ -26,15 +29,20 @@ class NeuronSoundSystem {
         this.autoArrangerInterval = null;
         this.beatCounter = 0;
         this.beatsPerMeasure = 4;
-
+        this.activeNeurons = [];
+    
+        // キーとスケールの設定
+        this.musicKey = 'C'; // 現在の調
+        this.currentScale = 'pentaMajor'; // 現在のスケール
+    
         // 録音関連
         this.recorder = null;
         this.recordedChunks = [];
         this.isRecording = false;
-
     }
     
-    // 音階の生成
+
+    // 音階の生成メソッドを改良
     generateScale(type, rootNote) {
         const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const rootIndex = chromaticScale.indexOf(rootNote);
@@ -50,8 +58,14 @@ class NeuronSoundSystem {
             case 'pentatonic':
                 intervals = [0, 2, 4, 7, 9]; // ペンタトニックスケール（明るい）
                 break;
-            case 'minorPentatonic':
-                intervals = [0, 3, 5, 7, 10]; // マイナーペンタトニック（暗め）
+            case 'pentaMajor': // 完全調和型ペンタトニック（どの音の組み合わせも調和する）
+                intervals = [0, 2, 4, 7, 9]; // C, D, E, G, A
+                break;
+            case 'pentaMinor': // マイナーペンタトニック
+                intervals = [0, 3, 5, 7, 10]; // C, Eb, F, G, Bb
+                break;
+            case 'gameMusic': // ゲーム音楽用スケール（日本的/ファンタジー風）
+                intervals = [0, 2, 5, 7, 9]; // C, D, F, G, A
                 break;
             default:
                 intervals = [0, 2, 4, 7, 9]; // デフォルトはペンタトニック
@@ -62,6 +76,7 @@ class NeuronSoundSystem {
             return chromaticScale[noteIndex];
         });
     }
+
     
     // 音名を周波数に変換
     noteToFrequency(note) {
@@ -184,29 +199,31 @@ class NeuronSoundSystem {
 
         
     }
-    
-    // 自動アレンジャーを開始
+
+    // 自動アレンジャーを改良
     startAutoArranger(neurons = []) {
         if (this.autoArrangerActive || !this.enabled) return;
         
         this.autoArrangerActive = true;
         this.beatCounter = 0;
-        this.activeNeurons = neurons; // ニューロン配列を保存
+        this.activeNeurons = neurons;
         
-        // テンポを設定
-        const bpm = 85;
+        // テンポを設定 - やや遅めに
+        const bpm = 75; // さらに落ち着いたテンポに
         const beatTime = 60 / bpm;
         
-        // アルペジオパターンを定義
-        const arpeggioPatterns = [
-            [0, 2, 4, 7], // メジャー系
-            [0, 3, 7, 12], // マイナー系
-            [0, 4, 7, 11], // メジャー7系
-            [0, 4, 7, 9, 12], // ペンタトニック系
-        ];
+        // 音楽の初期設定
+        this.musicKey = 'C'; // 調をCに固定
+        this.currentScale = 'pentaMajor'; // 常に調和するスケールを使用
+        this.scale = this.generateScale(this.currentScale, this.musicKey);
         
-        let currentPattern = 0;
-        let arpIndex = 0;
+        // 和音進行とアルペジオパターンを定義
+        const chordProgression = [
+            [0, 2, 4], // I (トニック)
+            [4, 0, 2], // V (ドミナント) - 転回形
+            [2, 4, 0], // III (メディアント) - 転回形
+            [0, 2, 4]  // I (トニック)
+        ];
         
         this.autoArrangerInterval = setInterval(() => {
             if (!this.enabled || this.audioContext.state !== 'running' || !this.activeNeurons.length) return;
@@ -214,105 +231,119 @@ class NeuronSoundSystem {
             const currentBeat = this.beatCounter % 16;
             const startTime = this.audioContext.currentTime;
             
-            // 8小節ごとにパターンを変更
-            if (currentBeat === 0 && this.beatCounter % 32 === 0) {
-                currentPattern = (currentPattern + 1) % arpeggioPatterns.length;
-                // たまにルートノートも変える
-                if (Math.random() < 0.3) {
-                    const roots = ['C', 'D', 'E', 'G', 'A'];
-                    const newRoot = roots[Math.floor(Math.random() * roots.length)];
-                    this.scale = this.generateScale('pentatonic', newRoot);
-                }
-            }
+            // 4小節ごとにコード進行を変更
+            const chordIndex = Math.floor(currentBeat / 4) % chordProgression.length;
+            const currentChord = chordProgression[chordIndex];
             
-            const pattern = arpeggioPatterns[currentPattern];
-            
-            // 重要: ニューロンを活用した演奏パターン
-            // ニューロンの密度が高い領域を音に反映
-            const activeNeurons = this.activeNeurons;
-            
-            // ニューロンを選択して発火させる
-            if (currentBeat % 2 === 0) {
-                // ビートごとに異なるニューロンを選択
-                const neuronIndex = (this.beatCounter % activeNeurons.length);
-                const selectedNeuron = activeNeurons[neuronIndex];
+            // ニューロンとビート位置に基づいて音を演奏
+            if (currentBeat % 2 === 0 && this.activeNeurons.length > 0) {
+                // ビートに合わせて異なるニューロンを選択
+                let neuronIndex = (this.beatCounter % this.activeNeurons.length);
+                let selectedNeuron = this.activeNeurons[neuronIndex];
                 
                 if (selectedNeuron) {
-                    // ニューロンを発火させて視覚的フィードバック
+                    // 視覚的フィードバック
                     selectedNeuron.fire();
                     
-                    // ニューロンの位置に基づいて音程を決定
+                    // ニューロンの位置を使って音程を生成
                     const canvasWidth = selectedNeuron.canvas.width;
                     const canvasHeight = selectedNeuron.canvas.height;
                     const x = selectedNeuron.x;
                     const y = selectedNeuron.y;
                     
-                    // x座標を音程マッピング
-                    const scaleIndex = Math.floor((x / canvasWidth) * this.scale.length);
-                    const octaveOffset = Math.floor((y / canvasHeight) * 3);
-                    const octave = this.baseOctave + octaveOffset + 1;
-                    const note = `${this.scale[scaleIndex]}${octave}`;
+                    // X位置をスケール上の音にマッピング
+                    // スケール上の音にのみ制限（常に調和する）
+                    const positionInScale = Math.floor((x / canvasWidth) * this.scale.length);
+                    const scaleNote = positionInScale % this.scale.length;
+                    
+                    // Y位置をオクターブにマッピング（2オクターブの範囲）
+                    const octaveOffset = Math.floor((y / canvasHeight) * 2);
+                    const octave = this.baseOctave + 1 + octaveOffset;
+                    
+                    // 現在のコードに基づいてハーモニーを作成（常に調和する）
+                    const harmonyIndex = currentChord[Math.floor(Math.random() * currentChord.length)];
+                    const harmonyNote = (scaleNote + harmonyIndex) % this.scale.length;
+                    
+                    // 最終的な音を決定
+                    const note = `${this.scale[harmonyNote]}${octave}`;
                     
                     // ニューロンの接続数に応じて音量を調整
-                    const velocity = 0.3 + Math.min(0.6, selectedNeuron.connections.length * 0.05);
+                    const connectionFactor = Math.min(1, selectedNeuron.connections.length / 5);
+                    const velocity = 0.3 + connectionFactor * 0.2;
                     
-                    // シンセリードでニューロンの音を演奏
-                    this.instruments.synth.trigger(note, startTime, 1.2, velocity);
-                }
-            }
-            
-            // 接続数の多いニューロンを見つける（「中心的なニューロン」）
-            if (currentBeat % 8 === 0 && activeNeurons.length > 0) {
-                // 接続数でソート
-                const sortedByConnections = [...activeNeurons].sort((a, b) => 
-                    b.connections.length - a.connections.length
-                );
-                
-                // 上位3つのニューロンを取得
-                const centralNeurons = sortedByConnections.slice(0, 3);
-                
-                // 中心的なニューロンがあれば、そのニューロンに基づいてベース音を生成
-                if (centralNeurons.length > 0) {
-                    const centralNeuron = centralNeurons[0];
-                    centralNeuron.fire(); // 視覚的にも強調
+                    // 音の長さ (ステップ感を出すため、短めに)
+                    const duration = 0.8 + Math.random() * 0.4;
                     
-                    // 中心ニューロンのx位置から音程を決定
-                    const canvasWidth = centralNeuron.canvas.width;
-                    const x = centralNeuron.x;
-                    const scaleIndex = Math.floor((x / canvasWidth) * this.scale.length);
+                    // シンセリードで演奏
+                    this.instruments.synth.trigger(note, startTime, duration, velocity);
                     
-                    const bassNote = `${this.scale[scaleIndex]}${this.baseOctave}`;
-                    this.instruments.bass.trigger(bassNote, startTime, 2.0, 0.7);
-                    
-                    // 中心ニューロンに接続された他のニューロンも発火させる（カスケード効果）
-                    if (centralNeuron.connections.length > 0) {
+                    // 低確率でアクセント音を追加（さらなる調和のため）
+                    if (Math.random() < 0.3) {
+                        // アクセント音はスケール内の調和する音に制限
+                        const accentOffset = [2, 4, 7][Math.floor(Math.random() * 3)]; // 3度, 5度, オクターブ
+                        const accentNote = (harmonyNote + accentOffset) % this.scale.length;
+                        const accentString = `${this.scale[accentNote]}${octave}`;
+                        
                         setTimeout(() => {
-                            centralNeuron.connections.forEach(conn => {
-                                if (conn.target && Math.random() < 0.3) {
-                                    conn.target.fire();
-                                }
-                            });
-                        }, beatTime * 500); // 遅延効果
+                            this.instruments.synth.trigger(accentString, this.audioContext.currentTime, duration * 0.5, velocity * 0.7);
+                        }, 100 + Math.random() * 150);
                     }
                 }
             }
             
-            // パッドサウンドを大きなコード変化のタイミングで
-            if (currentBeat % 8 === 0) {
-                // ニューロンの分布を分析して和音を決定
-                const areaMap = this.analyzeNeuronDistribution(activeNeurons);
+            // 和音演奏（4拍ごと）
+            if (currentBeat % 4 === 0) {
+                // 現在の和音の各音を演奏（パッドサウンド）
+                currentChord.forEach((chordStep, i) => {
+                    const chordNote = `${this.scale[chordStep]}${this.baseOctave + 1}`;
+                    setTimeout(() => {
+                        this.instruments.pad.trigger(chordNote, this.audioContext.currentTime, 3.0, 0.2);
+                    }, i * 100); // アルペジオ風にずらす
+                });
                 
-                // 最も密度の高いエリアに基づいて和音を選択
-                const densestArea = Object.keys(areaMap).sort((a, b) => areaMap[b] - areaMap[a])[0];
-                const areaIdx = parseInt(densestArea);
+                // 中心となるニューロンを見つける
+                const keyNeurons = this.findKeyNeurons(4);
                 
-                const chordBase = areaIdx % this.scale.length;
-                const chordNote = `${this.scale[chordBase]}${this.baseOctave + 1}`;
-                this.instruments.pad.trigger(chordNote, startTime, 4.0, 0.3);
+                if (keyNeurons.length > 0) {
+                    // 主要なニューロンを視覚的に強調
+                    keyNeurons.forEach((neuron, index) => {
+                        setTimeout(() => {
+                            neuron.fire();
+                            
+                            // 連鎖発火を追加
+                            if (neuron.connections.length > 0 && Math.random() < 0.4) {
+                                const targets = neuron.connections
+                                    .filter(conn => conn.target && Math.random() < 0.5)
+                                    .map(conn => conn.target);
+                                    
+                                targets.forEach((target, i) => {
+                                    setTimeout(() => target.fire(), 100 + i * 80);
+                                });
+                            }
+                        }, index * 200);
+                    });
+                    
+                    // ベース音（低めの音を選ぶ）
+                    const rootNote = `${this.scale[currentChord[0]]}${this.baseOctave}`;
+                    this.instruments.bass.trigger(rootNote, startTime, 2.0, 0.5);
+                }
             }
             
             this.beatCounter++;
         }, beatTime * 1000);
+    }
+
+
+    // 主要なニューロンを見つけるヘルパーメソッド
+    findKeyNeurons(count) {
+        if (!this.activeNeurons.length) return [];
+        
+        // 接続数でソート
+        const sortedNeurons = [...this.activeNeurons]
+            .sort((a, b) => b.connections.length - a.connections.length);
+        
+        // 上位のニューロンを返す
+        return sortedNeurons.slice(0, Math.min(count, sortedNeurons.length));
     }
 
     // ニューロンの分布を分析するヘルパーメソッド
@@ -431,6 +462,7 @@ class NeuronSoundSystem {
 
     
     // Web Audio APIのセットアップ
+    // Web Audio APIのセットアップ
     setupAudio() {
         try {
             // AudioContextの作成
@@ -438,7 +470,7 @@ class NeuronSoundSystem {
             
             // マスターゲイン（音量調整）
             this.masterGain = this.audioContext.createGain();
-            this.masterGain.gain.value = 0.5;
+            this.masterGain.gain.value = this.volume; // 初期音量を設定
             this.masterGain.connect(this.audioContext.destination);
             
             // リバーブエフェクト
@@ -493,98 +525,138 @@ class NeuronSoundSystem {
     // 音色の設定を実装
     setupInstruments() {
         this.instruments = {
-            synth: new SynthInstrument(this.audioContext, this.reverb, this.delay),
-            pad: new PadInstrument(this.audioContext, this.reverb),
+            synth: new SynthInstrument(this.audioContext, this.reverb, this.delay, this.masterGain),
+            pad: new PadInstrument(this.audioContext, this.reverb, this.masterGain),
             bass: new BassInstrument(this.audioContext, this.masterGain)
         };
     }
+
+    // 音量調整メソッド
+    setMasterVolume(value) {
+        // 0～100の値を0～1の範囲に変換
+        const normalizedVolume = Math.max(0, Math.min(1, value / 100));
+        this.volume = normalizedVolume;
+        
+        if (this.masterGain && this.enabled) {
+            // 急激な音量変化を避けるため徐々に変化させる
+            const now = this.audioContext.currentTime;
+            this.masterGain.gain.linearRampToValueAtTime(normalizedVolume, now + 0.1);
+        }
+        
+        return normalizedVolume;
+    }
+
 }
 
 /**
- * インストゥルメントクラス：シンセリード
+ * インストゥルメントクラス：シンセリード - より調和的な音色に改良
  */
 class SynthInstrument {
-    constructor(audioContext, reverbNode, delayNode) {
+    constructor(audioContext, reverbNode, delayNode, outputNode) {
         this.audioContext = audioContext;
         this.reverbNode = reverbNode;
         this.delayNode = delayNode;
+        this.outputNode = outputNode;
     }
     
     trigger(note, time, duration, velocity) {
-        // オシレーター（音源）- より多くのオシレーターを使用
-        const osc1 = this.audioContext.createOscillator();
-        const osc2 = this.audioContext.createOscillator();
-        const osc3 = this.audioContext.createOscillator(); // 追加
+        // 3つのオシレーターでより滑らかで豊かな音色を実現
+        const osc1 = this.audioContext.createOscillator(); // メイン音源
+        const osc2 = this.audioContext.createOscillator(); // わずかにデチューン
+        const osc3 = this.audioContext.createOscillator(); // オクターブ上
         
-        // ゲイン（音量）
-        const gainNode = this.audioContext.createGain();
+        // 個別のゲインノード
+        const gain1 = this.audioContext.createGain();
+        const gain2 = this.audioContext.createGain();
+        const gain3 = this.audioContext.createGain();
+        const masterGain = this.audioContext.createGain();
         
-        // フィルター
+        // フィルター - 輝きのある柔らかい音色に
         const filter = this.audioContext.createBiquadFilter();
-        filter.type = 'bandpass'; // bandpassに変更して特徴的な音に
-        filter.frequency.value = 3000 + velocity * 2000;
-        filter.Q.value = 3; // より鋭いフィルタリング
+        filter.type = 'lowpass';  // bandpassからlowpassに変更
+        filter.frequency.value = 1800;
+        filter.Q.value = 2;
         
-        // オシレーターの設定
-        osc1.type = 'sine';  // 正弦波（よりクリアな音）
-        osc2.type = 'triangle';  // 三角波（柔らかさを加える）
-        osc3.type = 'square';  // 矩形波（少しのエッジを追加）
+        // 2番目のフィルター - より輝きを加える
+        const highFilter = this.audioContext.createBiquadFilter();
+        highFilter.type = 'highshelf';
+        highFilter.frequency.value = 3000;
+        highFilter.gain.value = 6; // 高音域をブースト
+        
+        // オシレーターの設定 - クリスタルのような音色を実現
+        osc1.type = 'sine';      // メインはサイン波
+        osc2.type = 'triangle';  // 少し倍音のあるトライアングル波
+        osc3.type = 'sine';      // オクターブ上の音もサイン波
         
         // 周波数設定
         const freq = this.noteToFrequency(note);
         osc1.frequency.value = freq;
-        osc2.frequency.value = freq * 2.0;  // 1オクターブ上
-        osc3.frequency.value = freq * 1.01;  // わずかにデチューン
+        osc2.frequency.value = freq * 1.003; // わずかにデチューン（唸り効果）
+        osc3.frequency.value = freq * 2;     // 1オクターブ上
         
-        // エンベロープ設定 - FFのクリスタル風の短い減衰音に
+        // ゲイン設定
+        gain1.gain.value = 0.6;   // メイン音源
+        gain2.gain.value = 0.3;   // デチューン音源（控えめに）
+        gain3.gain.value = 0.15;  // オクターブ上（さらに控えめに）
+        
+        // エンベロープ設定 - より自然な減衰
         const now = time;
-        const attackTime = 0.005; // より速いアタック
-        const decayTime = 0.15;  // 短い減衰
-        const sustainLevel = velocity * 0.3; // 低いサステイン
-        const releaseTime = 0.8;  // 長めのリリース
+        const attackTime = 0.02;   // 少し緩やかな立ち上がり
+        const decayTime = 0.15;    // 自然な減衰
+        const sustainLevel = Math.max(0.001, velocity * 0.4);
+        const releaseTime = 0.3;   // 自然な収束
         
-        // 音量エンベロープ
-        gainNode.gain.setValueAtTime(0, now);
-        gainNode.gain.linearRampToValueAtTime(velocity, now + attackTime);
-        gainNode.gain.exponentialRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
-        gainNode.gain.linearRampToValueAtTime(0, now + duration);
+        // マスターゲインのエンベロープ
+        masterGain.gain.setValueAtTime(0, now);
+        masterGain.gain.linearRampToValueAtTime(velocity, now + attackTime);
+        masterGain.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
+        masterGain.gain.linearRampToValueAtTime(0.001, now + duration);
         
-        // フィルターエンベロープ - キラキラ感を出す
-        filter.frequency.setValueAtTime(5000, now);
-        filter.frequency.exponentialRampToValueAtTime(2000, now + 0.2);
+        // フィルターエンベロープ - クリスタルの輝きを表現
+        filter.frequency.setValueAtTime(1000, now);
+        filter.frequency.linearRampToValueAtTime(2500 + velocity * 2000, now + attackTime);
+        filter.frequency.exponentialRampToValueAtTime(1800, now + attackTime + decayTime);
         
         // 接続
-        osc1.connect(filter);
-        osc2.connect(filter);
-        osc3.connect(filter);
-        filter.connect(gainNode);
+        osc1.connect(gain1);
+        osc2.connect(gain2);
+        osc3.connect(gain3);
         
-        // エフェクト接続（リバーブとディレイ）
+        gain1.connect(filter);
+        gain2.connect(filter);
+        gain3.connect(filter);
+        
+        filter.connect(highFilter);
+        highFilter.connect(masterGain);
+        
+        // エフェクト接続
         const dryGain = this.audioContext.createGain();
-        const wetGain1 = this.audioContext.createGain();
-        const wetGain2 = this.audioContext.createGain();
+        const reverbGain = this.audioContext.createGain();
+        const delayGain = this.audioContext.createGain();
         
-        dryGain.gain.value = 0.6;
-        wetGain1.gain.value = 0.3;  // リバーブを強く
-        wetGain2.gain.value = 0.2;  // ディレイも強めに
+        dryGain.gain.value = 0.5;
+        reverbGain.gain.value = 0.35;  // 空間的広がり（リバーブ）
+        delayGain.gain.value = 0.2;    // エコー効果（ディレイ）
         
-        gainNode.connect(dryGain);
-        gainNode.connect(wetGain1);
-        gainNode.connect(wetGain2);
+        masterGain.connect(dryGain);
+        masterGain.connect(reverbGain);
+        masterGain.connect(delayGain);
         
-        dryGain.connect(this.audioContext.destination);
-        wetGain1.connect(this.reverbNode);
-        wetGain2.connect(this.delayNode);
+        dryGain.connect(this.outputNode);
+        reverbGain.connect(this.reverbNode);
+        delayGain.connect(this.delayNode);
         
         // 再生
         osc1.start(now);
         osc2.start(now);
         osc3.start(now);
+        
         osc1.stop(now + duration + releaseTime);
         osc2.stop(now + duration + releaseTime);
         osc3.stop(now + duration + releaseTime);
     }
     
+    // 既存のnoteToFrequencyメソッド
     noteToFrequency(note) {
         const notePattern = /^([A-G][#b]?)(-?\d+)$/;
         const match = note.match(notePattern);
@@ -617,27 +689,29 @@ class SynthInstrument {
         return A4 * Math.pow(2, semitonesFromA4 / 12);
     }
 }
+    
 
 /**
- * インストゥルメントクラス：パッド
+ * インストゥルメントクラス：パッド - より調和的で柔らかい音色
  */
 class PadInstrument {
-    constructor(audioContext, reverbNode) {
+    constructor(audioContext, reverbNode, outputNode) {
         this.audioContext = audioContext;
         this.reverbNode = reverbNode;
+        this.outputNode = outputNode;
     }
     
     trigger(note, time, duration, velocity) {
-        // 複数のオシレータでコード風の音色を作る
-        const oscCount = 3;
+        // パッド音源のオシレーター構成（5つに増加）
+        const oscCount = 5;
         const oscs = [];
         const gains = [];
         
         // フィルター
         const filter = this.audioContext.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.value = 1200;
-        filter.Q.value = 1;
+        filter.frequency.value = 900;
+        filter.Q.value = 0.8; // よりスムースなカット
         
         // マスターゲイン
         const masterGain = this.audioContext.createGain();
@@ -645,15 +719,22 @@ class PadInstrument {
         // 基本周波数
         const baseFreq = this.noteToFrequency(note);
         
-        // コード構成音の周波数比率
-        const ratios = [1, 1.26, 1.5];  // 基音、長3度、5度
+        // コード構成音の周波数比率 - 豊かなハーモニーに
+        // 1, 1.01 (微小デチューン), 2 (オクターブ), 1.5 (5度), 1.25 (長3度)
+        const ratios = [1, 1.01, 2, 1.5, 1.25];
         
-        // エンベロープ設定
+        // オシレーター波形タイプ - 各オシレーターに異なる波形
+        const waveTypes = ['sine', 'sine', 'sine', 'triangle', 'sine'];
+        
+        // 相対音量 - 各オシレーターの混合バランス
+        const volumeRatios = [0.7, 0.3, 0.15, 0.2, 0.25];
+        
+        // エンベロープ設定 - より滑らかで長い
         const now = time;
-        const attackTime = 0.3;
-        const decayTime = 0.5;
-        const sustainLevel = velocity * 0.4;
-        const releaseTime = 1.0;
+        const attackTime = 0.5;     // ゆっくりと立ち上がる
+        const decayTime = 0.8;      // ゆっくりと減衰
+        const sustainLevel = Math.max(0.001, velocity * 0.3);
+        const releaseTime = 1.5;    // 長めのリリース
         
         // オシレーターとゲイン生成
         for (let i = 0; i < oscCount; i++) {
@@ -661,20 +742,29 @@ class PadInstrument {
             gains[i] = this.audioContext.createGain();
             
             // オシレーター設定
-            oscs[i].type = ['sine', 'triangle', 'sine'][i];
+            oscs[i].type = waveTypes[i];
             oscs[i].frequency.value = baseFreq * ratios[i];
             
-            // デチューン（自然な揺らぎ）
+            // わずかなピッチ変動（自然な揺らぎ）
             if (i > 0) {
-                oscs[i].detune.value = (Math.random() - 0.5) * 10;
+                oscs[i].detune.value = (Math.random() - 0.5) * 5;
             }
             
-            // エンベロープ（各音ごとに少しずらす）
-            const envOffset = i * 0.1;
+            // 個別のエンベロープ（各音の立ち上がりを少しずらす）
+            const envOffset = i * 0.12; // わずかなずれ
             gains[i].gain.setValueAtTime(0, now);
-            gains[i].gain.linearRampToValueAtTime(velocity * (1 - i * 0.2), now + attackTime + envOffset);
-            gains[i].gain.linearRampToValueAtTime(sustainLevel * (1 - i * 0.1), now + attackTime + decayTime + envOffset);
-            gains[i].gain.linearRampToValueAtTime(0, now + duration);
+            gains[i].gain.linearRampToValueAtTime(
+                velocity * volumeRatios[i], 
+                now + attackTime + envOffset
+            );
+            gains[i].gain.linearRampToValueAtTime(
+                sustainLevel * volumeRatios[i], 
+                now + attackTime + decayTime + envOffset
+            );
+            gains[i].gain.linearRampToValueAtTime(
+                0.001, 
+                now + duration - (oscCount - i) * 0.1 // 終わりもわずかにずらす
+            );
             
             // 接続
             oscs[i].connect(gains[i]);
@@ -688,28 +778,29 @@ class PadInstrument {
         const dryGain = this.audioContext.createGain();
         const wetGain = this.audioContext.createGain();
         
-        dryGain.gain.value = 0.4;
-        wetGain.gain.value = 0.6;  // パッドは多めのリバーブ
+        dryGain.gain.value = 0.3;    // 原音は控えめに
+        wetGain.gain.value = 0.7;    // リバーブを多めに
         
         masterGain.connect(dryGain);
         masterGain.connect(wetGain);
         
-        dryGain.connect(this.audioContext.destination);
+        dryGain.connect(this.outputNode);
         wetGain.connect(this.reverbNode);
         
         // マスターゲインのエンベロープ（全体の音量）
         masterGain.gain.setValueAtTime(0, now);
-        masterGain.gain.linearRampToValueAtTime(velocity * 0.8, now + attackTime * 1.5);
-        masterGain.gain.linearRampToValueAtTime(velocity * 0.6, now + attackTime + decayTime);
-        masterGain.gain.linearRampToValueAtTime(0, now + duration + releaseTime);
+        masterGain.gain.linearRampToValueAtTime(velocity * 0.5, now + attackTime * 1.2);
+        masterGain.gain.linearRampToValueAtTime(velocity * 0.4, now + attackTime + decayTime);
+        masterGain.gain.linearRampToValueAtTime(0.001, now + duration + releaseTime);
         
         // 再生開始
         for (let i = 0; i < oscCount; i++) {
             oscs[i].start(now);
-            oscs[i].stop(now + duration + releaseTime);
+            oscs[i].stop(now + duration + releaseTime + 0.1); // 余裕を持たせる
         }
     }
     
+    // 既存のnoteToFrequencyメソッド
     noteToFrequency(note) {
         const notePattern = /^([A-G][#b]?)(-?\d+)$/;
         const match = note.match(notePattern);
@@ -744,7 +835,7 @@ class PadInstrument {
 }
 
 /**
- * インストゥルメントクラス：ベース
+ * インストゥルメントクラス：ベース - 豊かで柔らかい音色に改良
  */
 class BassInstrument {
     constructor(audioContext, outputNode) {
@@ -753,57 +844,79 @@ class BassInstrument {
     }
     
     trigger(note, time, duration, velocity) {
-        // ベース用オシレーター
-        const osc1 = this.audioContext.createOscillator();
-        const osc2 = this.audioContext.createOscillator();
+        // オシレーターを増やして豊かな音色に
+        const mainOsc = this.audioContext.createOscillator();
+        const subOsc = this.audioContext.createOscillator();
+        const harmOsc = this.audioContext.createOscillator();
         
-        // ゲインノード
-        const gain = this.audioContext.createGain();
+        // 複数のゲインノードで制御
+        const mainGain = this.audioContext.createGain();
+        const subGain = this.audioContext.createGain();
+        const harmGain = this.audioContext.createGain();
+        const masterGain = this.audioContext.createGain();
         
-        // フィルター
+        // フィルター - よりあたたかい音にするためlowpassを使用
         const filter = this.audioContext.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.value = 800;
-        filter.Q.value = 5;
+        filter.frequency.value = 700;  // カットオフ周波数を上げる
+        filter.Q.value = 1;  // 緩やかなフィルター
         
-        // オシレーター設定
-        osc1.type = 'sawtooth';
-        osc2.type = 'triangle';
-        
-        // 周波数設定（低めのベース音）
+        // 周波数の計算
         const freq = this.noteToFrequency(note);
-        osc1.frequency.value = freq;
-        osc2.frequency.value = freq * 0.5;  // 1オクターブ下
         
-        // エンベロープ設定
+        // 各オシレーターの波形と周波数を設定
+        mainOsc.type = 'triangle';  // メインの音源はトライアングル波（柔らかい）
+        mainOsc.frequency.value = freq;
+        
+        subOsc.type = 'sine';  // サブオシレーターは正弦波（基音を強調）
+        subOsc.frequency.value = freq * 0.5;  // 1オクターブ下
+        
+        harmOsc.type = 'sine';  // ハーモニクス用オシレーター
+        harmOsc.frequency.value = freq * 1.5;  // 5度上
+        
+        // ゲイン設定（レベル調整）
+        mainGain.gain.value = 0.7;
+        subGain.gain.value = 0.5;  // サブオシレーターも程よく混ぜる
+        harmGain.gain.value = 0.15;  // ハーモニクスは控えめに
+        
+        // エンベロープ設定 - 立ち上がりを緩やかに、持続を長く
         const now = time;
-        const attackTime = 0.01;
-        const decayTime = 0.1;
+        const attackTime = 0.08;  // 立ち上がりを緩やかに
+        const decayTime = 0.3;    // 減衰もゆっくり
         const sustainLevel = velocity * 0.7;
-        const releaseTime = 0.2;
+        const releaseTime = 0.4;  // リリースを長めに
         
-        // フィルターエンベロープ（ベース特有のうねり）
+        // 滑らかなエンベロープ
+        masterGain.gain.setValueAtTime(0, now);
+        masterGain.gain.linearRampToValueAtTime(velocity, now + attackTime);
+        masterGain.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
+        masterGain.gain.linearRampToValueAtTime(0.001, now + duration);
+        
+        // フィルターエンベロープ - 滑らかな変化
         filter.frequency.setValueAtTime(100, now);
-        filter.frequency.linearRampToValueAtTime(800 + velocity * 1200, now + attackTime);
-        filter.frequency.exponentialRampToValueAtTime(800, now + attackTime + decayTime);
-        
-        // 音量エンベロープ
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(velocity, now + attackTime);
-        gain.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
-        gain.gain.linearRampToValueAtTime(0, now + duration);
+        filter.frequency.linearRampToValueAtTime(700 + velocity * 400, now + attackTime);
+        filter.frequency.exponentialRampToValueAtTime(500, now + attackTime + decayTime);
         
         // 接続
-        osc1.connect(filter);
-        osc2.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.outputNode);
+        mainOsc.connect(mainGain);
+        subOsc.connect(subGain);
+        harmOsc.connect(harmGain);
         
-        // 再生
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + duration + releaseTime);
-        osc2.stop(now + duration + releaseTime);
+        mainGain.connect(filter);
+        subGain.connect(filter);
+        harmGain.connect(filter);
+        
+        filter.connect(masterGain);
+        masterGain.connect(this.outputNode);
+        
+        // 再生 - 十分な持続時間
+        mainOsc.start(now);
+        subOsc.start(now);
+        harmOsc.start(now);
+        
+        mainOsc.stop(now + duration + releaseTime);
+        subOsc.stop(now + duration + releaseTime);
+        harmOsc.stop(now + duration + releaseTime);
     }
     
     noteToFrequency(note) {
@@ -812,12 +925,13 @@ class BassInstrument {
         
         if (!match) {
             console.error('Invalid note format:', note);
-            return 55; // デフォルトは A1（低め）
+            return 55; // A1（低め）に戻す
         }
         
         const noteName = match[1];
         const octave = parseInt(match[2]);
         
+        // オクターブをそのままに（修正前のように）
         const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const noteIndex = chromaticScale.indexOf(noteName);
         

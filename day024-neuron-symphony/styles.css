@@ -237,3 +237,75 @@ footer a:hover {
         transform: scale(1);
     }
 }
+
+/* styles.cssに追加 */
+
+.audio-controls {
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    width: 80px;
+    margin-left: 4px;
+}
+
+/* スライダーのスタイル */
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    outline: none;
+}
+
+/* スライダーのつまみ */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--secondary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--secondary-color);
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+/* ホバー時のつまみ拡大 */
+.slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: var(--accent-color);
+}
+
+.slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    background: var(--accent-color);
+}
+
+/* モバイル向け調整 */
+@media (max-width: 768px) {
+    .controls {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .audio-controls {
+        order: 1;
+    }
+}

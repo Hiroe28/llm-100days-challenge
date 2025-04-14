@@ -30,7 +30,49 @@ document.addEventListener('DOMContentLoaded', () => {
     let isRecording = false;
     let visualEffect = null;
 
+    let lastClickProcessed = false;
+    let lastTouchProcessed = false;
+
+    const volumeSlider = document.getElementById('volumeSlider');
+    // 初期音量の設定 (デフォルト30%に下げる)
+    volumeSlider.value = 30;
     
+    
+    // 音量スライダーのイベントリスナー
+    volumeSlider.addEventListener('input', () => {
+        const volumeValue = volumeSlider.value;
+        
+        if (soundSystem) {
+            soundSystem.setMasterVolume(volumeValue);
+            
+            // 音量が0の場合、ミュートボタンの表示を変更
+            if (volumeValue == 0) {
+                audioToggle.textContent = '🔇';
+                audioEnabled = false;
+            } else if (volumeValue > 0 && !audioEnabled) {
+                audioToggle.textContent = '🔊';
+                audioEnabled = true;
+            }
+        }
+    });
+
+    // 音声トグルボタンのイベントリスナーを修正
+    audioToggle.addEventListener('click', () => {
+        audioEnabled = !audioEnabled;
+        
+        if (audioEnabled) {
+            // ミュート解除時は現在のスライダー値を適用
+            soundSystem.setMasterVolume(volumeSlider.value);
+            audioToggle.textContent = '🔊';
+        } else {
+            // ミュート時は音量を0に（スライダー位置は変更しない）
+            soundSystem.setMasterVolume(0);
+            audioToggle.textContent = '🔇';
+        }
+        
+        soundSystem.enabled = audioEnabled;
+    });
+
 
     autoPlayBtn.addEventListener('click', () => {
         if (!autoPlaying) {
@@ -99,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // アプリケーション状態
     let neurons = [];
     let lastClickTime = 0;
+    let lastTouchTime = 0; // この行を追加
     let colorThemeValue = 'neon';
     let gravity = { x: 0, y: 0 };
     let isPaused = false;
@@ -255,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     }
 
+
     // イベントリスナーの設定
     canvas.addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
@@ -262,22 +306,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const y = (e.clientY - rect.top) / (rect.bottom - rect.top) * height;
         
         const now = performance.now();
-        if (now - lastClickTime < 300) {
+        
+        // ダブルクリック判定の時間を延長（300msから500msに）
+        // また、明示的なダブルクリックの場合のみ複数ニューロンを追加
+        if (now - lastClickTime < 500 && now - lastClickTime > 50) {
             // ダブルクリック - 複数のニューロンを追加
-            for (let i = 0; i < 5; i++) {
+            // ニューロン数を減らす（5個から3個に）
+            for (let i = 0; i < 3; i++) {
                 const offsetX = x + (Math.random() - 0.5) * 100;
                 const offsetY = y + (Math.random() - 0.5) * 100;
                 addNeuron(offsetX, offsetY);
             }
-        } else {
-            // シングルクリック - 単一のニューロン発火
+            
+            // シングルクリックイベントとしても処理されないようフラグを設定
+            lastClickProcessed = true;
+            
+            console.log("ダブルクリック: 3つのニューロンを追加");
+        } else if (!lastClickProcessed) {
+            // シングルクリック - 単一のニューロン発火/追加
             fireNeuron(x, y);
+            console.log("シングルクリック: 1つのニューロンを追加/発火");
         }
         
+        // フラグをリセット
+        lastClickProcessed = false;
         lastClickTime = now;
     });
-    
-    // タッチイベント（モバイル対応）
+
     canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         const touch = e.touches[0];
@@ -285,9 +340,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const x = (touch.clientX - rect.left) / (rect.right - rect.left) * width;
         const y = (touch.clientY - rect.top) / (rect.bottom - rect.top) * height;
         
-        fireNeuron(x, y);
+        const now = performance.now();
+        
+        // 短時間での連続タップを検出（ダブルタップに相当）
+        if (now - lastTouchTime < 500 && now - lastTouchTime > 50) {
+            // 複数のニューロンを追加
+            for (let i = 0; i < 3; i++) {
+                const offsetX = x + (Math.random() - 0.5) * 100;
+                const offsetY = y + (Math.random() - 0.5) * 100;
+                addNeuron(offsetX, offsetY);
+            }
+            lastTouchProcessed = true;
+        } else if (!lastTouchProcessed) {
+            // 単一ニューロン
+            fireNeuron(x, y);
+        }
+        
+        lastTouchProcessed = false;
+        lastTouchTime = now;
     });
-    
+        
     // ボタンイベントリスナー
     clearBtn.addEventListener('click', () => {
         neurons = [];
