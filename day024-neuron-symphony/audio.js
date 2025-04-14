@@ -135,8 +135,12 @@ class NeuronSoundSystem {
     
     // ニューロン発火時の音楽生成
     playNeuronSound(neuronData) {
-        if (!this.enabled || this.audioContext.state !== 'running') return;
-        
+        // 音声コンテキストが準備できていなければスキップ
+        if (!this.ensureAudioContext() || !this.enabled) {
+            console.log('Audio not ready, skipping sound');
+            return;
+        }
+            
         const now = performance.now();
         if (now - this.lastNoteTime < this.minTimeBetweenNotes) return;
         this.lastNoteTime = now;
@@ -460,13 +464,25 @@ class NeuronSoundSystem {
         return true;
     }
 
-    
-    // Web Audio APIのセットアップ
-    // Web Audio APIのセットアップ
+    // audio.jsのNeuronSoundSystemクラスに追加するメソッド
+
+    // setupAudioメソッドを強化
     setupAudio() {
         try {
-            // AudioContextの作成
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            // AudioContextの作成 - iOSでの遅延初期化に対応
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            
+            // モバイルデバイス向けオプション
+            const contextOptions = {
+                latencyHint: 'interactive',
+                sampleRate: 44100 // 標準サンプルレート
+            };
+            
+            this.audioContext = new AudioContextClass(contextOptions);
+            console.log('AudioContext initialized with state:', this.audioContext.state);
+            
+            // 音量設定（デフォルト値が未定義の場合に備える）
+            this.volume = this.volume || 0.3;
             
             // マスターゲイン（音量調整）
             this.masterGain = this.audioContext.createGain();
@@ -492,11 +508,37 @@ class NeuronSoundSystem {
             this.delay.connect(this.delayFeedback);
             this.delayFeedback.connect(this.delay);
             this.delay.connect(this.masterGain);
+            
+            // オーディオ初期化状態をログに記録
+            console.log('Audio system setup complete');
         } catch (e) {
-            console.error('Web Audio API is not supported or blocked:', e);
+            console.error('Web Audio API setup failed:', e);
             this.enabled = false;
         }
     }
+
+    // 音声コンテキストを確実に開始するメソッドを追加
+    ensureAudioContext() {
+        if (!this.audioContext) {
+            console.warn('AudioContext not initialized, creating now');
+            this.setupAudio();
+            return false;
+        }
+        
+        if (this.audioContext.state === 'suspended') {
+            console.log('Resuming suspended AudioContext');
+            this.audioContext.resume().then(() => {
+                console.log('AudioContext successfully resumed');
+            }).catch(err => {
+                console.error('Failed to resume AudioContext:', err);
+            });
+            return false;
+        }
+        
+        return this.audioContext.state === 'running';
+    }
+
+
 
     // リバーブエフェクトを作成するメソッド
     createReverb() {

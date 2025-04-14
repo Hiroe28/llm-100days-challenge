@@ -150,6 +150,106 @@ document.addEventListener('DOMContentLoaded', () => {
     const soundSystem = new NeuronSoundSystem();
     let audioEnabled = soundSystem.enabled;
     updateAudioButtonState();
+
+    // オーディオ初期化の関数
+    function initAudio() {
+        if (soundSystem.audioContext.state === 'suspended') {
+            soundSystem.audioContext.resume().then(() => {
+                console.log('AudioContext resumed successfully');
+            }).catch(err => {
+                console.error('Failed to resume AudioContext:', err);
+            });
+        }
+    }
+
+    // 音声コンテキスト初期化のためのイベントリスナー（複数のインタラクションに対応）
+    function setupAudioContextEvents() {
+        // 画面への最初のタッチ/クリックで音声を有効化
+        const interactionEvents = ['click', 'touchstart', 'touchend', 'mousedown', 'keydown'];
+        
+        const unlockAudio = function() {
+            initAudio();
+            
+            // 成功したら全てのイベントリスナーを削除
+            interactionEvents.forEach(function(event) {
+                document.removeEventListener(event, unlockAudio);
+            });
+            
+            // デバッグ用メッセージ
+            console.log('Audio initialized by user interaction');
+        };
+        
+        // 各種イベントにリスナーを追加
+        interactionEvents.forEach(function(event) {
+            document.addEventListener(event, unlockAudio, { once: false });
+        });
+        
+        // iOS Safariでのオーディオ対策（特別対応）
+        document.addEventListener('touchstart', function() {
+            // iOSで空のバッファを再生すると、以降の音声再生が許可される
+            const silentBuffer = soundSystem.audioContext.createBuffer(1, 1, 22050);
+            const source = soundSystem.audioContext.createBufferSource();
+            source.buffer = silentBuffer;
+            source.connect(soundSystem.audioContext.destination);
+            source.start(0);
+            console.log('iOS silent buffer played');
+        }, { once: true });
+    }
+
+    // 初期化処理の実行
+    setupAudioContextEvents();
+
+    // 音声ボタンのクリックでも確実に初期化
+    audioToggle.addEventListener('click', initAudio);
+
+    // 自動演奏ボタンのクリック時にも初期化を試みる
+    autoPlayBtn.addEventListener('click', initAudio);
+
+    // モバイルデバイスかどうかを検出する関数
+    function isMobileDevice() {
+        return (
+            typeof window.orientation !== 'undefined' ||
+            navigator.userAgent.indexOf('IEMobile') !== -1 ||
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        );
+    }
+
+    // モバイルデバイスの場合、特別な初期化メッセージを表示
+    if (isMobileDevice()) {
+        // 初期化用のメッセージ要素を作成
+        const audioInitMsg = document.createElement('div');
+        audioInitMsg.className = 'audio-init-message';
+        audioInitMsg.innerHTML = `
+            <div class="message-content">
+                <p>🔊 画面をタップして音を有効にしてください</p>
+                <button class="activate-audio-btn">音を有効にする</button>
+            </div>
+        `;
+        
+        document.body.appendChild(audioInitMsg);
+        
+        // メッセージボタンのクリックで音声初期化
+        const activateBtn = document.querySelector('.activate-audio-btn');
+        activateBtn.addEventListener('click', function() {
+            initAudio();
+            audioInitMsg.style.opacity = '0';
+            setTimeout(() => {
+                audioInitMsg.style.display = 'none';
+            }, 500);
+        });
+        
+        // 音声が有効になったら非表示に
+        document.addEventListener('click', function checkAudioState() {
+            if (soundSystem.audioContext.state === 'running') {
+                audioInitMsg.style.opacity = '0';
+                setTimeout(() => {
+                    audioInitMsg.style.display = 'none';
+                }, 500);
+                document.removeEventListener('click', checkAudioState);
+            }
+        });
+    }
+
     
     // ランダムな位置にニューロンを生成
     function createRandomNeurons(count) {
