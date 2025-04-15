@@ -1,8 +1,7 @@
 name: Keep Streamlit Apps Awake
-
 on:
   schedule:
-    # 12時間おきに実行 (0時、12時)
+    # 12時間おきに実行 (0時、12時UTC)
     - cron: '0 0,12 * * *'
   
   # リポジトリが更新されたときにも実行
@@ -17,7 +16,6 @@ on:
   
   # 手動で実行するためのトリガーも追加
   workflow_dispatch:
-
 jobs:
   ping:
     runs-on: ubuntu-latest
@@ -37,11 +35,11 @@ jobs:
           # Day 19 - 手書き数字認識とCNN可視化アプリ 
           RESPONSE_19=$(curl -s -o /dev/null -w "%{http_code}" "https://llm-100days-challenge-day019-mnist-cnn-visualizer.streamlit.app/?ping=$TIMESTAMP")
           echo "Day 19 App response: $RESPONSE_19"
-
+          
           # Day 20 - マーブル模様ジェネレーター 
           RESPONSE_20=$(curl -s -o /dev/null -w "%{http_code}" "https://llm-100days-challenge-day020-marble-generator.streamlit.app/?ping=$TIMESTAMP")
           echo "Day 20 App response: $RESPONSE_20"
-
+          
           # Day 21 - VICE FAIRY風画像ジェネレーター 
           RESPONSE_21=$(curl -s -o /dev/null -w "%{http_code}" "https://llm-100days-challenge-day021-fairy-magazine.streamlit.app/?ping=$TIMESTAMP")
           echo "Day 21 App response: $RESPONSE_21"
@@ -49,7 +47,6 @@ jobs:
           # Day 22 - ポーズ推定デモアプリ 
           RESPONSE_22=$(curl -s -o /dev/null -w "%{http_code}" "https://huggingface.co/spaces/Hiroe0208/day022-pose-estimation/?ping=$TIMESTAMP")
           echo "Day 22 App response: $RESPONSE_22"
-
           
           # 結果のサマリー
           echo "------------------------------"
@@ -66,22 +63,21 @@ jobs:
           else
             echo "❌ Day 19 App: Ping may have failed. Status code: $RESPONSE_19"
           fi
-
+          
           if [ "$RESPONSE_20" -eq 200 ]; then
             echo "✅ Day 20 App: Successfully pinged!"
           else
             echo "❌ Day 20 App: Ping may have failed. Status code: $RESPONSE_20"
-            
           fi
-            if [ "$RESPONSE_21" -eq 200 ]; then
+          
+          if [ "$RESPONSE_21" -eq 200 ]; then
             echo "✅ Day 21 App: Successfully pinged!"
           else
             echo "❌ Day 21 App: Ping may have failed. Status code: $RESPONSE_21"
           fi
-
+          
           if [ "$RESPONSE_22" -eq 200 ]; then
             echo "✅ Day 22 App: Successfully pinged!"
           else
             echo "❌ Day 22 App: Ping may have failed. Status code: $RESPONSE_22"
           fi
-          
