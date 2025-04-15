@@ -1,8 +1,8 @@
 name: Keep Streamlit Apps Awake
 on:
   schedule:
-    # 12時間おきに実行 (0時、12時UTC)
-    - cron: '0 0,12 * * *'
+    # 6時間おきに実行
+    - cron: '0 */6 * * *'
   
   # リポジトリが更新されたときにも実行
   push:
