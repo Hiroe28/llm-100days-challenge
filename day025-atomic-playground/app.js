@@ -523,45 +523,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // タッチデバイス用の長押し検出
     let touchStartTime = 0;
     let touchHoldTimer = null;
-    let touchedAtom = null;    
-    
-    // タッチイベント
-    canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault(); // スクロールを防止
+    let touchedAtom = null;
+    let touchDragStartX = 0;
+    let touchDragStartY = 0;
+    let touchIsDragging = false;
+
+    // touchstartイベント - タッチ開始時の処理
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // デフォルトの動作を防止
         
-        // タッチの開始位置と現在位置を比較
         const touch = e.touches[0];
-        const touchX = touch.clientX;
-        const touchY = touch.clientY;
+        const rect = canvas.getBoundingClientRect();
+        const x = (touch.clientX - rect.left) / (rect.right - rect.left) * width;
+        const y = (touch.clientY - rect.top) / (rect.bottom - rect.top) * height;
         
-        // タッチ位置が大きく動いたらタイマーをキャンセル
-        if (Math.abs(touchX - touch.clientX) > 10 || 
-            Math.abs(touchY - touch.clientY) > 10) {
-            
-            if (touchHoldTimer) {
-                clearTimeout(touchHoldTimer);
-                touchHoldTimer = null;
-            }
-        }
+        touchStartTime = Date.now();
+        touchDragStartX = x;
+        touchDragStartY = y;
+        touchIsDragging = false;
         
-        // ドラッグ機能の追加（タッチした原子があれば移動）
+        // クリック位置の原子を探す
+        touchedAtom = findAtomAt(x, y);
+        
         if (touchedAtom) {
-            const rect = canvas.getBoundingClientRect();
-            const x = (touch.clientX - rect.left) / (rect.right - rect.left) * width;
-            const y = (touch.clientY - rect.top) / (rect.bottom - rect.top) * height;
-            
-            // 原子の位置を更新
-            touchedAtom.x = x;
-            touchedAtom.y = y;
-            
-            // 結合した原子も一緒に移動
-            if (touchedAtom.bonds.length > 0) {
-                const dx = touchedAtom.x - x;
-                const dy = touchedAtom.y - y;
-                moveConnectedAtoms(touchedAtom, dx, dy, new Set([touchedAtom]));
-            }
+            // 長押し検出タイマー
+            touchHoldTimer = setTimeout(() => {
+                // 長押しで原子を削除
+                removeAtom(touchedAtom);
+                showMessage(`${touchedAtom.element}原子を削除しました`, "info");
+                touchedAtom = null;
+                touchIsDragging = false;
+                
+                // 振動フィードバック（可能な場合）
+                if (navigator.vibrate) {
+                    navigator.vibrate(100);
+                }
+            }, 800);  // 800ミリ秒の長押しで実行
         }
     });
+
     
     // 元素選択ボタンのイベント
     elementButtons.forEach(btn => {
@@ -756,18 +756,59 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(forceUpdateMolecules, 100);
     }
 
+
     canvas.addEventListener('touchmove', (e) => {
-        // タッチ位置が動いたらタイマーをキャンセル
-        if (Math.abs(e.touches[0].clientX - e.touches[0].clientX) > 10 ||
-            Math.abs(e.touches[0].clientY - e.touches[0].clientY) > 10) {
-            
+        e.preventDefault(); // スクロールを防止
+        
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const x = (touch.clientX - rect.left) / (rect.right - rect.left) * width;
+        const y = (touch.clientY - rect.top) / (rect.bottom - rect.top) * height;
+        
+        // 移動距離を計算
+        const moveDistance = Math.sqrt(
+            Math.pow(x - touchDragStartX, 2) + 
+            Math.pow(y - touchDragStartY, 2)
+        );
+        
+        // 一定距離以上移動したらドラッグ開始と判断
+        if (moveDistance > 10) {
+            // タイマーをキャンセル（削除しない）
             if (touchHoldTimer) {
                 clearTimeout(touchHoldTimer);
                 touchHoldTimer = null;
             }
+            
+            // ドラッグ状態に設定
+            touchIsDragging = true;
+        }
+        
+        // 原子をドラッグ中の場合は移動させる
+        if (touchedAtom && touchIsDragging) {
+            // 原子の位置を更新
+            touchedAtom.x = x;
+            touchedAtom.y = y;
+            
+            // 結合した原子も一緒に移動
+            if (touchedAtom.bonds.length > 0) {
+                // 既存の結合原子も移動
+                touchedAtom.bonds.forEach(bond => {
+                    const connectedAtom = bond.atom;
+                    const dx = x - touchDragStartX;
+                    const dy = y - touchDragStartY;
+                    
+                    connectedAtom.x += dx;
+                    connectedAtom.y += dy;
+                });
+            }
+            
+            // ドラッグ開始位置を更新
+            touchDragStartX = x;
+            touchDragStartY = y;
         }
     });
 
+    // touchendイベント - タッチ終了時の処理
     canvas.addEventListener('touchend', (e) => {
         // タイマーをクリア
         if (touchHoldTimer) {
@@ -777,19 +818,37 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const touchDuration = Date.now() - touchStartTime;
         
-        // 短いタッチ（通常のタップ）の場合に原子を配置
-        if (touchDuration < 500 && !touchedAtom) {
-            // タッチの位置を取得（changedTouchesを使用）
+        // ドラッグ終了処理
+        if (touchedAtom && touchIsDragging) {
+            // ドラッグ終了時に他の原子との結合チェック
+            const bondedAtoms = touchedAtom.tryBondWithNearbyAtoms(atoms);
+            
+            // 結合音を再生
+            if (audioEnabled && bondedAtoms.length > 0) {
+                soundSystem.playEventSound('bond', {
+                    pitchFactor: 0.3 + Math.random() * 0.4,
+                    velocityFactor: 0.6 + Math.random() * 0.3
+                });
+            }
+            
+            // 分子検出を試行
+            moleculeDetector.detectMolecules(atoms, true);
+        }
+        // 短いタッチかつドラッグしていない場合は原子を配置
+        else if (touchDuration < 500 && !touchIsDragging && !touchedAtom) {
+            // タッチの位置を取得
             const touch = e.changedTouches[0];
             const rect = canvas.getBoundingClientRect();
             const x = (touch.clientX - rect.left) / (rect.right - rect.left) * width;
             const y = (touch.clientY - rect.top) / (rect.bottom - rect.top) * height;
             
-            // 原子を配置する処理を呼び出し
+            // 原子を配置
             handleClick(x, y);
         }
         
+        // 状態をリセット
         touchedAtom = null;
+        touchIsDragging = false;
     });
 
     // 特定座標に原子があるか探す関数
@@ -811,6 +870,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 結合した原子も一緒に移動させる関数（再帰的）
     function moveConnectedAtoms(atom, dx, dy, visited) {
+        if (!visited) visited = new Set([atom]);
+        
         atom.bonds.forEach(bond => {
             const connectedAtom = bond.atom;
             if (!visited.has(connectedAtom)) {
@@ -1202,3 +1263,63 @@ window.filterMoleculesByElement = function(element) {
         }
     });
 }
+
+// app.jsファイルの末尾に追加するヘルパー関数
+
+// タッチイベントからキャンバス上の座標を取得する関数
+function getTouchPosition(touch, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: (touch.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+        y: (touch.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    };
+}
+
+// タッチデバイス用の初期化処理を追加
+function initTouchSupport() {
+    // touchAction: noneでズームやスクロールを防止
+    canvas.style.touchAction = 'none';
+    
+    // iOS Safariでのダブルタップズームを防止
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+    
+    console.log('タッチ操作のサポートを初期化しました');
+}
+
+// iOSのSafariでオーディオを確実に再生するための追加処理
+function setupIOSAudio() {
+    // iOSかどうかを検出
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (isIOS) {
+        // タッチ時にサイレントオーディオを再生してオーディオコンテキストを有効化
+        document.addEventListener('touchstart', function() {
+            // 一度だけ再生
+            const silentAudio = new Audio();
+            silentAudio.autoplay = true;
+            
+            // 音声コンテキストを再開
+            if (soundSystem && soundSystem.audioContext) {
+                soundSystem.audioContext.resume();
+            }
+        }, {once: true});
+        
+        console.log('iOS用オーディオサポートを設定しました');
+    }
+}
+
+// アプリ初期化時に呼び出す
+document.addEventListener('DOMContentLoaded', () => {
+    // 既存の初期化コードの後に追加
+    if (isMobileDevice()) {
+        initTouchSupport();
+        setupIOSAudio();
+    }
+});
