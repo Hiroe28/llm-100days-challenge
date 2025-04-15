@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>アトミックプレイグラウンド</title>
+    <meta name="description" content="タッチやクリックで原子を配置し、分子を作り出す。化学結合のシミュレーションと美しい視覚・音響効果を楽しめるインタラクティブな科学体験。">
+
+<!-- OGP (Open Graph Protocol) -->
+<meta property="og:title" content="アトミックプレイグラウンド - インタラクティブな原子・分子シミュレーション" />
+<meta property="og:description" content="タッチやクリックで原子を配置し、分子を作り出す。化学結合をシミュレーションし、視覚・音響効果で科学を楽しく学べるインタラクティブな体験。" />
+<meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day025-atomic-playground/screenshot.png" />
+<meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day025-atomic-playground/index.html" />
+<meta property="og:type" content="website" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="アトミックプレイグラウンド" />
+<meta name="twitter:description" content="タッチやクリックで原子を配置し、分子を作り出す。化学結合のシミュレーションと美しい視覚・音響効果を楽しめるインタラクティブな科学体験。" />
+<meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day025-atomic-playground/screenshot.png" />
+
+    <!-- テーマカラー -->
+    <meta name="theme-color" content="#1C2833">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>アトミックプレイグラウンド</h1>
+            <p class="tagline">タッチで創る、分子の世界</p>
+        </header>
+
+        <div class="element-selector">
+            <div class="element-group">
+                <button class="element-btn active" data-element="H">H</button>
+                <button class="element-btn" data-element="O">O</button>
+                <button class="element-btn" data-element="C">C</button>
+                <button class="element-btn" data-element="N">N</button>
+                <button class="element-btn" data-element="Cl">Cl</button>
+            </div>
+            <div class="element-info">
+                <div id="selectedElementInfo">
+                    <h3>水素 (H)</h3>
+                    <p>原子番号: 1 | 質量: 1.008</p>
+                    <p>電子配置: 1s¹</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="atomCanvas"></canvas>
+            
+            <div class="molecule-display">
+                <div id="moleculeInfo">
+                    <p>分子を作ってみよう！</p>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="clearBtn">クリア</button>
+                <button id="saveBtn">保存</button>
+                <button id="moleculeListBtn">分子リスト</button>
+                <div class="audio-controls">
+                    <button id="audioToggle">🔊</button>
+                    <div class="volume-control">
+                        <input type="range" id="volumeSlider" min="0" max="100" value="30" class="slider">
+                    </div>
+                </div>
+                <button id="simulationToggle">▶ 一時停止</button>
+                <select id="simulationMode">
+                    <option value="normal">通常モード</option>
+                    <option value="heat">熱運動モード</option>
+                    <option value="gravity">重力モード</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="panel-toggle">ⓘ 詳細を表示</div>
+            <div class="panel-content">
+                <h3>アトミックプレイグラウンドについて</h3>
+                <p>このアプリは原子と分子の結合をシミュレーションした、インタラクティブな科学プレイグラウンドです。</p>
+                <p>画面をタッチまたはクリックすると、選択した元素の原子が配置されます。原子同士が近づくと電子の共有（化学結合）が起こり、分子が形成されます。</p>
+                <p>スマートフォンをお使いの場合は、端末を傾けると原子の動きに重力が影響します。</p>
+                <p>PCの場合、右クリックで原子を削除できます。</p>
+                <p>スマートフォンで原子を削除するには、削除したい原子を長押し（約1秒間）してください。</p>
+                
+                <h3>使い方</h3>
+                <ol>
+                    <li>上部の元素ボタンから配置したい原子を選びます</li>
+                    <li>キャンバス上をタップ/クリックして原子を配置します</li>
+                    <li>原子同士を近づけると結合が形成されます</li>
+                    <li>既知の分子ができると、情報が表示されます</li>
+                </ol>
+                
+                <h3>お子さまと一緒に</h3>
+                <p>お子さまと一緒に遊ぶことで、化学の基礎について話すきっかけになります。「水素と酸素で水ができるのはなぜ？」という問いから、楽しい学びが広がります。</p>
+                
+                <h3>作成できる分子</h3>
+                <div id="molecular-database">
+                    <!-- JavaScriptで動的に生成されます -->
+                    <p>読み込み中...</p>
+                </div>
+                
+                <div class="share-container">
+                    <h3>作品をシェアしよう</h3>
+                    <p>素敵な分子ができたら、ぜひSNSでシェアしてください！</p>
+                    <p>#アトミックプレイグラウンド #AtomicPlayground</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分子リストモーダル -->
+        <div id="moleculeListModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>作成できる分子リスト</h2>
+                <div class="molecule-list-container">
+                    <!-- JavaScriptで動的に生成されます -->
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 アトミックプレイグラウンド | <a href="https://github.com/Hiroe28/llm-100days-challenge/atomic-playground" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="periodic_table.js"></script>
+    <script src="atom.js"></script>
+    <script src="molecule.js"></script>
+    <script src="audio.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,937 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2ecc71;
+    --text-color: #f8f9fa;
+    --background-color: #1C2833;
+    --accent-color: #e74c3c;
+    --panel-bg: rgba(28, 40, 51, 0.85);
+    
+    /* 元素カラー */
+    --hydrogen-color: #FFFFFF;
+    --oxygen-color: #FF0000;
+    --carbon-color: #808080;
+    --nitrogen-color: #5555FF;
+    --chlorine-color: #00FF00;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    overflow-x: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 1rem;
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding: 0.75rem;
+    width: 100%;
+}
+
+h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.25rem;
+    letter-spacing: 1px;
+}
+
+.tagline {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* 元素選択パネル */
+.element-selector {
+    display: flex;
+    width: 100%;
+    max-width: 1000px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+}
+
+.element-group {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.5rem;
+    gap: 0.5rem;
+}
+
+.element-btn {
+    width: 48px;
+    height: 48px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 1.2rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.element-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.element-btn.active {
+    box-shadow: 0 0 8px 2px rgba(52, 152, 219, 0.6);
+    background: rgba(52, 152, 219, 0.3);
+}
+
+.element-btn[data-element="H"] { color: var(--hydrogen-color); }
+.element-btn[data-element="O"] { color: var(--oxygen-color); }
+.element-btn[data-element="C"] { color: var(--carbon-color); }
+.element-btn[data-element="N"] { color: var(--nitrogen-color); }
+.element-btn[data-element="Cl"] { color: var(--chlorine-color); }
+
+.element-info {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.element-info h3 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.element-info p {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    margin-bottom: 0.2rem;
+}
+
+.canvas-container {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    height: 60vh;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+}
+
+#atomCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.molecule-display {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    max-width: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.75rem;
+    border-radius: 8px;
+    z-index: 5;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+    backdrop-filter: blur(3px);
+}
+
+#moleculeInfo {
+    min-height: 2.5rem;
+}
+
+.molecule-name {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    color: var(--primary-color);
+}
+
+.molecule-formula {
+    font-family: 'Roboto Mono', monospace;
+    margin-bottom: 0.25rem;
+}
+
+.controls {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+button, select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+button:hover, select:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+#audioToggle {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 1.2rem;
+}
+
+.info-panel {
+    margin-top: 1.5rem;
+    max-width: 800px;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.panel-toggle {
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.panel-toggle:hover {
+    opacity: 0.9;
+}
+
+.panel-content {
+    background: var(--panel-bg);
+    padding: 1.5rem;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    display: none;
+    line-height: 1.6;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+}
+
+.panel-content h3 {
+    margin: 1rem 0 0.5rem;
+    color: var(--primary-color);
+}
+
+.panel-content h3:first-child {
+    margin-top: 0;
+}
+
+.panel-content p, .panel-content li {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.panel-content ol, .panel-content ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.share-container {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+footer {
+    margin-top: 2rem;
+    text-align: center;
+    padding: 1rem;
+    opacity: 0.7;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* オーディオコントロール */
+.audio-controls {
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    width: 80px;
+    margin-left: 4px;
+}
+
+/* スライダーのスタイル */
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    outline: none;
+}
+
+/* スライダーのつまみ */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+/* ホバー時のつまみ拡大 */
+.slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: var(--accent-color);
+}
+
+.slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    background: var(--accent-color);
+}
+
+/* 分子が認識されたときのフラッシュエフェクト */
+@keyframes moleculeRecognized {
+    0% { background-color: rgba(46, 204, 113, 0); }
+    50% { background-color: rgba(46, 204, 113, 0.3); }
+    100% { background-color: rgba(0, 0, 0, 0.6); }
+}
+
+.molecule-flash {
+    animation: moleculeRecognized 1s ease-out;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .element-selector {
+        flex-direction: column;
+    }
+    
+    .element-group {
+        justify-content: center;
+    }
+    
+    .canvas-container {
+        height: 50vh;
+    }
+    
+    .controls {
+        bottom: 0.75rem;
+        right: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.3rem;
+    }
+    
+    button, select {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .molecule-display {
+        max-width: 60%;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .tagline {
+        font-size: 0.8rem;
+    }
+    
+    .canvas-container {
+        height: 45vh;
+    }
+    
+    .controls {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        bottom: 0.5rem;
+        right: 0.5rem;
+        gap: 0.25rem;
+    }
+    
+    .element-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    button, select {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.8rem;
+    }
+    
+    .molecule-display {
+        max-width: 80%;
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .audio-controls {
+        margin-right: 0;
+    }
+    
+    .volume-control {
+        width: 60px;
+    }
+    
+    #audioToggle {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* モバイル音声初期化メッセージ用スタイル */
+.audio-init-message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.message-content {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 80%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.message-content p {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.activate-audio-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+    font-family: inherit;
+}
+
+.activate-audio-btn:hover, .activate-audio-btn:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+/* メッセージスタイルの調整 */
+.app-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    z-index: 1000;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.5s ease;
+    text-align: center;
+    max-width: 80%;
+}
+
+@media (max-width: 480px) {
+    .app-message {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        max-width: 90%;
+    }
+    
+    .message-content {
+        padding: 1.2rem;
+    }
+    
+    .message-content p {
+        font-size: 1rem;
+    }
+    
+    .activate-audio-btn {
+        padding: 0.7rem 1.3rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ドラッグ中の原子スタイル */
+.dragging {
+    cursor: grabbing;
+}
+
+/* 既存のCSSに以下を追加してください */
+
+/* 分子リスト関連のスタイル */
+#molecular-database {
+    margin-bottom: 1.5rem;
+}
+
+.molecule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.molecule-table th,
+.molecule-table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.molecule-table th {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.molecule-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.molecule-tag {
+    display: inline-block;
+    background-color: rgba(52, 152, 219, 0.2);
+    border: 1px solid rgba(52, 152, 219, 0.5);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    margin: 0.2rem;
+    font-size: 0.8rem;
+}
+
+.molecule-tag.H {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.molecule-tag.O {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.5);
+}
+
+.molecule-tag.C {
+    background-color: rgba(128, 128, 128, 0.2);
+    border-color: rgba(128, 128, 128, 0.5);
+}
+
+.molecule-tag.N {
+    background-color: rgba(85, 85, 255, 0.2);
+    border-color: rgba(85, 85, 255, 0.5);
+}
+
+.molecule-tag.Cl {
+    background-color: rgba(0, 255, 0, 0.2);
+    border-color: rgba(0, 255, 0, 0.5);
+}
+
+/* モーダルウィンドウのスタイル */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--panel-bg);
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid rgba(52, 152, 219, 0.5);
+    border-radius: 12px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.molecule-list-container {
+    margin-top: 1rem;
+}
+
+/* 新しいボタンのスタイル */
+#moleculeListBtn {
+    background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+
+#moleculeListBtn:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #27ae60 100%);
+    transform: translateY(-2px);
+}
+
+/* モバイル対応の調整 */
+@media (max-width: 768px) {
+    .molecule-table {
+        font-size: 0.8rem;
+    }
+    
+    .modal-content {
+        width: 90%;
+        margin: 15% auto;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .molecule-table th,
+    .molecule-table td {
+        padding: 0.3rem;
+    }
+    
+    .molecule-tag {
+        padding: 0.1rem 0.3rem;
+        margin: 0.1rem;
+        font-size: 0.7rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 20% auto;
+        padding: 10px;
+    }
+}
+
+/* styles.cssに以下を追加または既存の分子リスト関連スタイルを更新 */
+
+/* 分子リスト関連のスタイル */
+#molecular-database {
+    margin-bottom: 1.5rem;
+}
+
+.molecule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.molecule-table th,
+.molecule-table td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.molecule-table th {
+    font-weight: bold;
+    color: var(--primary-color);
+    position: sticky;
+    top: 0;
+    background-color: var(--panel-bg);
+    z-index: 1;
+}
+
+.molecule-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.molecule-tag {
+    display: inline-block;
+    background-color: rgba(52, 152, 219, 0.2);
+    border: 1px solid rgba(52, 152, 219, 0.5);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    margin: 0.2rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.molecule-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.molecule-tag.H {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.molecule-tag.O {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.5);
+}
+
+.molecule-tag.C {
+    background-color: rgba(128, 128, 128, 0.2);
+    border-color: rgba(128, 128, 128, 0.5);
+}
+
+.molecule-tag.N {
+    background-color: rgba(85, 85, 255, 0.2);
+    border-color: rgba(85, 85, 255, 0.5);
+}
+
+.molecule-tag.Cl {
+    background-color: rgba(0, 255, 0, 0.2);
+    border-color: rgba(0, 255, 0, 0.5);
+}
+
+/* モーダルウィンドウのスタイル */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--panel-bg);
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid rgba(52, 152, 219, 0.5);
+    border-radius: 12px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.molecule-list-container {
+    margin-top: 1rem;
+}
+
+/* フィルタリング関連 */
+.molecule-filter {
+    margin-bottom: 1rem;
+    padding: 0.8rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.molecule-filter label {
+    margin-right: 0.5rem;
+    font-weight: bold;
+}
+
+.molecule-filter select {
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+.molecule-filter select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* 新しいボタンのスタイル */
+#moleculeListBtn {
+    background: linear-gradient(135deg, #3498db 0%, #2ecc71 100%);
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+
+#moleculeListBtn:hover {
+    background: linear-gradient(135deg, #2980b9 0%, #27ae60 100%);
+    transform: translateY(-2px);
+}
+
+/* 元素別分子リスト */
+.element-molecule-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.element-molecule-list li {
+    background-color: rgba(0, 0, 0, 0.2);
+    margin: 0.5rem 0;
+    padding: 0.8rem;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.2s ease;
+}
+
+.element-molecule-list li:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+    transform: translateX(5px);
+}
+
+/* モバイル対応の調整 */
+@media (max-width: 768px) {
+    .molecule-table {
+        font-size: 0.8rem;
+    }
+    
+    .modal-content {
+        width: 90%;
+        margin: 15% auto;
+        padding: 15px;
+    }
+    
+    .molecule-filter {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .molecule-filter label {
+        margin-bottom: 0.5rem;
+    }
+    
+    .molecule-filter select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .molecule-table th,
+    .molecule-table td {
+        padding: 0.3rem;
+    }
+    
+    .molecule-tag {
+        padding: 0.1rem 0.3rem;
+        margin: 0.1rem;
+        font-size: 0.7rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 20% auto;
+        padding: 10px;
+    }
+    
+    .element-molecule-list li {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+}
