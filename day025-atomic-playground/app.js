@@ -526,32 +526,40 @@ document.addEventListener('DOMContentLoaded', () => {
     let touchedAtom = null;    
     
     // タッチイベント
-    canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // スクロールを防止
         
+        // タッチの開始位置と現在位置を比較
         const touch = e.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const x = (touch.clientX - rect.left) / (rect.right - rect.left) * width;
-        const y = (touch.clientY - rect.top) / (rect.bottom - rect.top) * height;
+        const touchX = touch.clientX;
+        const touchY = touch.clientY;
         
-        touchStartTime = Date.now();
+        // タッチ位置が大きく動いたらタイマーをキャンセル
+        if (Math.abs(touchX - touch.clientX) > 10 || 
+            Math.abs(touchY - touch.clientY) > 10) {
+            
+            if (touchHoldTimer) {
+                clearTimeout(touchHoldTimer);
+                touchHoldTimer = null;
+            }
+        }
         
-        // クリック位置の原子を探す
-        touchedAtom = findAtomAt(x, y);
-        
+        // ドラッグ機能の追加（タッチした原子があれば移動）
         if (touchedAtom) {
-            // 長押し検出タイマー
-            touchHoldTimer = setTimeout(() => {
-                // 長押しで原子を削除
-                removeAtom(touchedAtom);
-                showMessage(`${touchedAtom.element}原子を削除しました`, "info");
-                touchedAtom = null;
-                
-                // 振動フィードバック（可能な場合）
-                if (navigator.vibrate) {
-                    navigator.vibrate(100);
-                }
-            }, 800);  // 800ミリ秒の長押しで実行
+            const rect = canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) / (rect.right - rect.left) * width;
+            const y = (touch.clientY - rect.top) / (rect.bottom - rect.top) * height;
+            
+            // 原子の位置を更新
+            touchedAtom.x = x;
+            touchedAtom.y = y;
+            
+            // 結合した原子も一緒に移動
+            if (touchedAtom.bonds.length > 0) {
+                const dx = touchedAtom.x - x;
+                const dy = touchedAtom.y - y;
+                moveConnectedAtoms(touchedAtom, dx, dy, new Set([touchedAtom]));
+            }
         }
     });
     
@@ -760,7 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    canvas.addEventListener('touchend', () => {
+    canvas.addEventListener('touchend', (e) => {
         // タイマーをクリア
         if (touchHoldTimer) {
             clearTimeout(touchHoldTimer);
@@ -769,9 +777,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const touchDuration = Date.now() - touchStartTime;
         
-        // 短いタッチ（通常のタップ）の場合は既存の処理を実行
+        // 短いタッチ（通常のタップ）の場合に原子を配置
         if (touchDuration < 500 && !touchedAtom) {
-            // 既存のタップ処理
+            // タッチの位置を取得（changedTouchesを使用）
+            const touch = e.changedTouches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = (touch.clientX - rect.left) / (rect.right - rect.left) * width;
+            const y = (touch.clientY - rect.top) / (rect.bottom - rect.top) * height;
+            
+            // 原子を配置する処理を呼び出し
+            handleClick(x, y);
         }
         
         touchedAtom = null;
