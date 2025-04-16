@@ -854,14 +854,31 @@ gameCanvas.addEventListener('click', function(event) {
     handlePointerEvent(event);
 });
 
-// タッチイベントリスナー
+// スワイプ操作のための変数を追加
+let touchStartX = 0;
+let touchStartY = 0;
+let isSwiping = false;
+
+// タッチ開始イベント
 gameCanvas.addEventListener('touchstart', function(event) {
     // タッチイベントの場合はスクロールを防止
     event.preventDefault();
     
-    // 最初のタッチポイントを使用
-    const touch = event.touches[0];
-    handlePointerEvent(touch);
+    // ゲームが動作中や成功/失敗状態なら処理しない
+    if (gameState === 'MOVING' || gameState === 'SUCCESS' || gameState === 'FAIL') return;
+    
+    // 方向選択モードならスワイプ開始
+    if (gameState === 'DIRECTION') {
+        isSwiping = true;
+        // 最初のタッチポイントの位置を記録
+        const touch = event.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+    } 
+    // パワー選択モードならショット実行
+    else if (gameState === 'POWER') {
+        takeShot();
+    }
 });
 
 // ポインターイベント（マウスクリックまたはタッチ）の処理
@@ -880,24 +897,41 @@ gameCanvas.addEventListener('mousemove', function(event) {
     handlePointerMove(event);
 });
 
-// タッチ移動イベントリスナー
+// タッチ移動イベント
 gameCanvas.addEventListener('touchmove', function(event) {
     // スクロールを防止
     event.preventDefault();
     
-    // 最初のタッチポイントを使用
-    const touch = event.touches[0];
-    
-    // タッチイベントをマウスイベントのようにシミュレート
-    const simulatedEvent = {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-    };
-    
-    handlePointerMove(simulatedEvent);
+    // 方向選択モードでスワイプ中の場合のみ処理
+    if (gameState === 'DIRECTION' && isSwiping) {
+        const touch = event.touches[0];
+        
+        // キャンバス上の座標を取得
+        const rect = gameCanvas.getBoundingClientRect();
+        const currentX = touch.clientX - rect.left;
+        const currentY = touch.clientY - rect.top;
+        
+        // 白いボールとの角度を計算
+        const dx = currentX - cueBallX;
+        const dy = currentY - cueBallY;
+        directionAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+        
+        // ゲーム画面を再描画
+        drawGame();
+    }
 });
 
-// ポインター移動（マウスまたはタッチ）の処理
+// タッチ終了イベント
+gameCanvas.addEventListener('touchend', function(event) {
+    // スワイプ操作が完了したらフラグをリセット
+    if (gameState === 'DIRECTION' && isSwiping) {
+        isSwiping = false;
+        // 方向が決定したのでパワー選択に進む
+        startPowerSelection();
+    }
+});
+
+// 既存のポインター移動処理はそのまま残す
 function handlePointerMove(event) {
     if (gameState === 'DIRECTION') {
         // キャンバス上の座標を取得
