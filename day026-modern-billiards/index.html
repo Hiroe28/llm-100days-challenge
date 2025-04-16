@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- OGP (Open Graph Protocol) -->
+<meta property="og:title" content="モダンビリヤード - スタイリッシュで直感的なポケットビリヤードゲーム" />
+<meta property="og:description" content="マウスやタッチで直感的に操作できるモダンデザインのビリヤードゲーム。物理シミュレーションで本格的な打球感を再現。練習モードと標準モードを搭載。" />
+<meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day026-modern-billiards/screenshot.png" />
+<meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day026-modern-billiards/index.html" />
+<meta property="og:type" content="website" />
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="モダンビリヤード" />
+<meta name="twitter:description" content="マウスやタッチで直感的に操作できるモダンデザインのビリヤードゲーム。物理シミュレーションで本格的な打球感を再現。PC・スマホ両対応。" />
+<meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day026-modern-billiards/screenshot.png" />
+
+
+    <title>Modern Billiards</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>Modern Billiards</h1>
+            <div class="score-display">
+                <div id="shotsCounter">ショット: 0</div>
+                <div id="scoreDisplay">スコア: 0</div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <canvas id="gameCanvas" width="700" height="400"></canvas>
+            <div id="statusMessage"></div>
+            
+            <div class="controls-container">
+                <div class="power-gauge-container">
+                    <div id="powerGauge">
+                        <div id="powerBar"></div>
+                    </div>
+                    <div id="powerText">パワー: 0%</div>
+                </div>
+                
+                <div class="buttons-container">
+                    <button id="resetButton" class="game-button">リセット</button>
+                    <button id="helpButton" class="game-button">ヘルプ</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="helpModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>遊び方</h2>
+                <div class="instructions">
+                    <div class="instruction-item">
+                        <div class="instruction-number">1.</div>
+                        <div class="instruction-text"><strong>方向の決め方</strong>: マウスまたは指で白いボールから狙いたい方向に向かって動かし、クリック/タップで決定します</div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">2.</div>
+                        <div class="instruction-text"><strong>パワーの決め方</strong>: パワーゲージが動いているときに、好みの強さでクリック/タップします</div>
+                    </div>
+                    <div class="instruction-item">
+                        <div class="instruction-number">3.</div>
+                        <div class="instruction-text"><strong>ゲームの目的</strong>: カラーボールをポケットに入れてスコアを獲得しましょう！</div>
+                    </div>
+                    <div class="instruction-points">
+                        <div>・ 黄色のボール: 1点</div>
+                        <div>・ 赤いボール: 2点</div>
+                        <div>・ 青いボール: 3点</div>
+                        <div>・ 白いボールをポケットに落とすと1点減点されます</div>
+                    </div>
+                </div>
+                
+                <h3>ゲームモード</h3>
+                <div class="game-options">
+                    <div class="option-group">
+                        <div class="option-controls">
+                            <label>
+                                <input type="radio" name="game-mode" value="practice" checked> 練習モード (1ボールのみ)
+                            </label>
+                            <label>
+                                <input type="radio" name="game-mode" value="standard"> 標準モード (複数ボール)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

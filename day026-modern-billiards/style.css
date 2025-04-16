@@ -1,0 +1,317 @@
+/* リセットボタンのパルスアニメーション */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 8px rgba(233, 69, 96, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 8px 16px rgba(233, 69, 96, 0.6);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 8px rgba(233, 69, 96, 0.4);
+    }
+}/* 遊び方のレイアウト改善 */
+.instructions {
+    margin-top: 15px;
+    line-height: 1.6;
+}
+
+.instruction-item {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: flex-start;
+}
+
+.instruction-number {
+    flex: 0 0 25px;
+    font-weight: bold;
+}
+
+.instruction-text {
+    flex: 1;
+    text-align: left;
+}
+
+.instruction-points {
+    margin-top: 10px;
+    text-align: left;
+    padding-left: 25px;
+}
+
+.instruction-points div {
+    margin-bottom: 5px;
+}
+
+/* 設定オプションのスタイル */
+.game-options {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.option-group {
+    display: flex;
+    align-items: flex-start;
+}
+
+.option-label {
+    flex: 0 0 100px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.option-controls {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.option-controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.option-controls input[type="radio"] {
+    margin: 0;
+}/* モダンなスタイリング */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #1a1a2e;
+    color: #e6e6e6;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.game-container {
+    max-width: 900px;
+    width: 100%;
+    background-color: #16213e;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #0f3460;
+}
+
+h1 {
+    color: #e94560;
+    font-weight: 700;
+    font-size: 28px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-display {
+    display: flex;
+    gap: 20px;
+}
+
+#shotsCounter, #scoreDisplay {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e6e6e6;
+    background-color: #0f3460;
+    padding: 8px 15px;
+    border-radius: 30px;
+    min-width: 120px;
+    text-align: center;
+}
+
+.game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#gameCanvas {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    background-color: #0a5e36; /* ビリヤードテーブルの深い緑色 */
+    border: 10px solid #482c0d; /* テーブルの木製枠 */
+    margin-bottom: 15px;
+}
+
+#statusMessage {
+    font-weight: 600;
+    color: #e94560;
+    height: 24px;
+    text-align: center;
+    margin: 10px 0;
+    transition: opacity 0.3s;
+    width: 100%;
+}
+
+.controls-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 20px;
+    gap: 30px;
+}
+
+.power-gauge-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#powerGauge {
+    width: 200px;
+    height: 16px;
+    background-color: #0f3460;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+#powerBar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #e94560 0%, #ffbd69 100%);
+    border-radius: 8px;
+    transition: width 0.1s linear;
+}
+
+#powerText {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e6e6e6;
+    min-width: 100px;
+}
+
+.buttons-container {
+    display: flex;
+    gap: 10px;
+}
+
+.game-button {
+    padding: 10px 20px;
+    background-color: #e94560;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 100px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.game-button:hover {
+    background-color: #ff657f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(233, 69, 96, 0.4);
+}
+
+.game-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* モーダルスタイル */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #16213e;
+    border-radius: 12px;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.close-button {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #e6e6e6;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover {
+    color: #e94560;
+}
+
+.instructions {
+    margin-top: 20px;
+    line-height: 1.6;
+}
+
+.instructions p {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .game-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .score-display {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .controls-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .power-gauge-container {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    
+    #powerGauge {
+        width: 150px;
+    }
+}
