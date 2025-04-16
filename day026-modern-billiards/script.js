@@ -887,7 +887,14 @@ gameCanvas.addEventListener('touchmove', function(event) {
     
     // 最初のタッチポイントを使用
     const touch = event.touches[0];
-    handlePointerMove(touch);
+    
+    // タッチイベントをマウスイベントのようにシミュレート
+    const simulatedEvent = {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    };
+    
+    handlePointerMove(simulatedEvent);
 });
 
 // ポインター移動（マウスまたはタッチ）の処理
