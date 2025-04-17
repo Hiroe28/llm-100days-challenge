@@ -434,6 +434,31 @@ function showIntroStory() {
     
     document.body.appendChild(storyPopup);
     
+    // テキストを最初から表示（スクロール位置をリセット）
+    setTimeout(() => {
+        const storyText = document.querySelector('.story-text');
+        if (storyText) {
+            storyText.scrollTop = 0;
+        }
+    }, 100);
+    
+    // タッチイベントがボタンに影響しないように
+    const storyContent = document.querySelector('.story-content');
+    if (storyContent) {
+        storyContent.addEventListener('touchmove', function(e) {
+            e.stopPropagation(); // イベント伝播を止める
+        });
+    }
+    
+    const storyText = document.querySelector('.story-text');
+    if (storyText) {
+        storyText.addEventListener('touchmove', function(e) {
+            e.stopPropagation(); // タッチイベントの伝播を止める
+            // このコンテナ内のスクロールは許可
+        });
+    }
+    
+
     // 開始ボタンのイベントリスナー
     document.getElementById('start-game').addEventListener('click', () => {
         document.body.removeChild(storyPopup);
@@ -446,7 +471,7 @@ function showIntroStory() {
     });
 }
 
-// gameOver 関数も同様に修正
+// gameOver 関数の修正版（変数の再宣言エラーを修正）
 function gameOver(isWin) {
     const gameEndEl = document.getElementById('game-end');
     const isMobile = window.innerWidth <= 768;
@@ -527,6 +552,31 @@ function gameOver(isWin) {
         `ファンタジー錬金術工房で30日間の挑戦をしましたが、賢者の石の作成には至りませんでした...`);
     
     gameEndEl.style.display = 'flex';
+    
+
+    // テキストを最初から表示
+    setTimeout(() => {
+        const gameEndInfoEl = gameEndEl.querySelector('.game-end-info');
+        if (gameEndInfoEl) {
+            gameEndInfoEl.scrollTop = 0;
+        }
+        
+        // タッチイベントの問題を防止
+        const gameEndContent = gameEndEl.querySelector('.game-end-content');
+        if (gameEndContent) {
+            gameEndContent.addEventListener('touchmove', function(e) {
+                e.stopPropagation();
+            });
+        }
+        
+        // 変数の再宣言を防ぐために別名を使用
+        if (gameEndInfoEl) {
+            gameEndInfoEl.addEventListener('touchmove', function(e) {
+                e.stopPropagation();
+                // このコンテナ内のスクロールは許可
+            });
+        }
+    }, 100);
     
     // ゲームエンドBGMを再生
     if (typeof soundManager !== 'undefined') {
