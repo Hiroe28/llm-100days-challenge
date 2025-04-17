@@ -402,6 +402,7 @@ function showMessage(text, type) {
 // main.js に追加
 // ゲーム開始時のストーリーポップアップを表示
 // main.js の showIntroStory 関数を修正
+// ゲーム開始時のストーリーポップアップを表示
 function showIntroStory() {
     const storyPopup = document.createElement('div');
     storyPopup.className = 'story-popup';
@@ -436,9 +437,9 @@ function showIntroStory() {
     
     // テキストを最初から表示（スクロール位置をリセット）
     setTimeout(() => {
-        const storyText = document.querySelector('.story-text');
-        if (storyText) {
-            storyText.scrollTop = 0;
+        const storyTextEl = document.querySelector('.story-text');
+        if (storyTextEl) {
+            storyTextEl.scrollTop = 0;
         }
     }, 100);
     
@@ -450,15 +451,14 @@ function showIntroStory() {
         });
     }
     
-    const storyText = document.querySelector('.story-text');
-    if (storyText) {
-        storyText.addEventListener('touchmove', function(e) {
+    const storyTextEl = document.querySelector('.story-text');
+    if (storyTextEl) {
+        storyTextEl.addEventListener('touchmove', function(e) {
             e.stopPropagation(); // タッチイベントの伝播を止める
             // このコンテナ内のスクロールは許可
         });
     }
     
-
     // 開始ボタンのイベントリスナー
     document.getElementById('start-game').addEventListener('click', () => {
         document.body.removeChild(storyPopup);
