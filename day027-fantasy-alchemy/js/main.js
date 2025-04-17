@@ -405,6 +405,12 @@ function showIntroStory() {
     document.getElementById('start-game').addEventListener('click', () => {
         document.body.removeChild(storyPopup);
         playButtonSound();
+
+        // ここでBGMを開始
+        if (typeof soundManager !== 'undefined') {
+            soundManager.playBGM('gameplay');
+        }
+
     });
 }
 // gameOver関数の修正版 - シェアボタンを追加
