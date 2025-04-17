@@ -1753,3 +1753,220 @@ h2 {
     0% { transform: scale(0.8); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+/* モバイルデバイス向け最適化 */
+@media (max-width: 768px) {
+    /* コンテナの幅を最大化 */
+    .container {
+      width: 100%;
+      max-width: 100%;
+      padding: 10px;
+      margin: 0;
+      border-radius: 0;
+    }
+    
+    /* ヘッダーのボタン配置を調整 */
+    .game-header {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .game-header > div {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    /* ボタンサイズを大きくして操作しやすく */
+    .gathering-button, .shop-button, .recipe-button, .sleep-button, .save-button, .load-button, .sound-button {
+      padding: 12px 15px;
+      font-size: 1rem;
+      margin: 0 2px;
+    }
+    
+    /* プレイヤー情報パネルをモバイル向けに */
+    .player-info-panel {
+      flex-direction: column;
+    }
+    
+    /* 素材選択をタップしやすく */
+    .ingredient {
+      padding: 15px;
+    }
+    
+    .ingredient img {
+      width: 60px;
+      height: 60px;
+    }
+    
+    /* 選択スロットを大きく */
+    .selected-slot {
+      width: 80px;
+      height: 80px;
+    }
+    
+    /* 調合ボタンを目立たせる */
+    .craft-button {
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      margin: 20px auto;
+    }
+    
+    /* ショップ・採取・レシピ画面の調整 */
+    .shop-content, .gathering-content, .recipe-content {
+      width: 95%;
+      max-height: 90vh;
+    }
+    
+    /* 素材とレシピのグリッドを調整 */
+    .shop-items, .recipe-list {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    /* 採取場所のグリッドを調整 */
+    .gathering-places {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+    
+    /* メッセージ表示を調整 */
+    #message-container {
+      width: 90%;
+    }
+    
+    /* 調合履歴を縦長に */
+    .history-item {
+      padding: 12px;
+    }
+    
+    /* ストーリー・ゲームエンド画面の調整 */
+    .story-content, .game-end-content {
+      width: 95%;
+    }
+    
+    /* 調合結果オーバーレイの調整 */
+    .crafting-result-content, .gathering-result-content {
+      width: 90%;
+    }
+  }
+  
+  /* さらに小さい画面向け */
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 1.5rem;
+    }
+    
+    h2 {
+      font-size: 1.2rem;
+    }
+    
+    /* 素材グリッドを2列に */
+    .ingredient-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* 採取場所を2列に */
+    .gathering-places {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* ボタンをさらに大きく */
+    .gathering-button, .shop-button, .recipe-button, .sleep-button {
+      width: 100%;
+      margin: 4px 0;
+      padding: 15px;
+    }
+    
+    /* ヘッダーのボタンコンテナを調整 */
+    .game-header > div:last-child {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    /* サウンド・セーブ・ロードボタンをアイコンのみに */
+    .save-button, .load-button, .sound-button {
+      width: auto;
+      margin: 4px;
+    }
+  }
+
+.touch-device .ingredient,
+.touch-device .gathering-place,
+.touch-device .buy-button,
+.touch-device .close-button,
+.touch-device .craft-button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(0,0,0,0); /* タップ時のハイライトを消す */
+}
+
+.touch-device .selected-slot {
+  min-width: 70px;
+  min-height: 70px;
+}
+
+.touch-device .ingredient-name,
+.touch-device .shop-item-name,
+.touch-device .recipe-name {
+  font-size: 1rem;
+}
+
+.touch-device .gold-display,
+.touch-device .day-display {
+  font-size: 1.1rem;
+}
+
+/* 選択領域をより大きく */
+.touch-device .shop-item,
+.touch-device .history-item,
+.touch-device .gathering-place,
+.touch-device .recipe-item {
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+/* ボタンの間隔を開ける */
+.touch-device button {
+  margin: 10px 5px;
+}
+
+/* style.css に追加 */
+@media (max-width: 768px) {
+    .crafting-area {
+      grid-template-columns: 1fr;
+    }
+    
+    .ingredients-section, .result-section {
+      margin-bottom: 20px;
+    }
+    
+    /* スクロールできるようにする */
+    .ingredient-list {
+      max-height: 300px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch; /* iOSのスムーズスクロール */
+    }
+    
+    .selected-ingredients {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+
+@media (max-width: 768px) {
+    .shop-overlay, .gathering-overlay, .recipe-overlay,
+    .crafting-animation, .warning-overlay, .story-popup,
+    .recipe-discovery-popup, .game-end-overlay {
+      align-items: flex-start;
+      padding-top: 10vh;
+    }
+    
+    .shop-content, .gathering-content, .recipe-content {
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    /* ポップアップ内の閉じるボタンを大きく */
+    .close-button {
+      padding: 12px 20px;
+      margin-top: 15px;
+    }
+  }

@@ -71,7 +71,26 @@ function initGame() {
     if (typeof saveManager !== 'undefined') {
         saveManager.init();
     }
+
+    // タッチ対応のクリックイベント
+    document.addEventListener('touchstart', function() {
+        // タッチデバイスであることを検知
+        document.body.classList.add('touch-device');
+    }, {once: true});
     
+    // main.js に追加
+    // ダブルタップによるズームを防止
+    document.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+    }, { passive: false });
+    
+    // 指を大きく広げるピンチズームの防止（オプション）
+    document.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) {
+        e.preventDefault();
+        }
+    }, { passive: false });
+
     // 目標進捗を初期化
     updateGoalProgress();
     

@@ -13,6 +13,7 @@ class SoundManager {
     }
     
     // 初期化
+    // SoundManager クラスの init メソッドを修正
     init() {
         if (this.initialized) return;
         
@@ -20,8 +21,20 @@ class SoundManager {
         this.addSoundControls();
         this.initialized = true;
         
-        // BGM再生開始
-        this.playBGM('gameplay');
+        // BGM再生はユーザーの最初のインタラクション後に行う
+        // 自動的に再生を開始しない
+        // this.playBGM('gameplay'); ← この行を削除または以下のように変更
+        
+        // 最初のクリックやタッチでBGM再生を開始するイベントリスナーを追加
+        const startAudio = () => {
+            this.playBGM('gameplay');
+            // 一度再生したらイベントリスナーを削除
+            document.removeEventListener('click', startAudio);
+            document.removeEventListener('touchstart', startAudio);
+        };
+        
+        document.addEventListener('click', startAudio);
+        document.addEventListener('touchstart', startAudio);
     }
     
     // UIコントロール追加
