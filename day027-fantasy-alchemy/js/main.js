@@ -401,12 +401,16 @@ function showMessage(text, type) {
 
 // main.js に追加
 // ゲーム開始時のストーリーポップアップを表示
+// main.js の showIntroStory 関数を修正
 function showIntroStory() {
     const storyPopup = document.createElement('div');
     storyPopup.className = 'story-popup';
     
-    storyPopup.innerHTML = `
-        <div class="story-content">
+    const isMobile = window.innerWidth <= 768;
+    
+    // モバイル向けに構造を調整
+    storyPopup.innerHTML = isMobile ? 
+        `<div class="story-content">
             <img src="images/story/intro.png" alt="錬金術工房" class="story-image">
             <div class="story-text">
                 <p>あなたは新米の錬金術師。一ヶ月前に亡くなった祖父から古い錬金術工房を相続した。</p>
@@ -415,8 +419,18 @@ function showIntroStory() {
                 <p>祖父は最後の試みで29日目に倒れ、完成できなかった。今日から始まる新月の周期で、あなたは祖父の夢を叶えることができるだろうか？</p>
             </div>
             <button class="story-button" id="start-game">修行を始める</button>
-        </div>
-    `;
+        </div>` : 
+        // PCの場合は元のHTML
+        `<div class="story-content">
+            <img src="images/story/intro.png" alt="錬金術工房" class="story-image">
+            <div class="story-text">
+                <p>あなたは新米の錬金術師。一ヶ月前に亡くなった祖父から古い錬金術工房を相続した。</p>
+                <p>祖父の日記によると、「賢者の石」を創るには新月から始まる「30日間の大業」が必要だという。</p>
+                <p>15種類の基本レシピを全て習得し、特別な素材を集めれば、伝説の賢者の石を作り出せるはずだ。</p>
+                <p>祖父は最後の試みで29日目に倒れ、完成できなかった。今日から始まる新月の周期で、あなたは祖父の夢を叶えることができるだろうか？</p>
+            </div>
+            <button class="story-button" id="start-game">修行を始める</button>
+        </div>`;
     
     document.body.appendChild(storyPopup);
     
@@ -424,61 +438,97 @@ function showIntroStory() {
     document.getElementById('start-game').addEventListener('click', () => {
         document.body.removeChild(storyPopup);
         playButtonSound();
-
-        // ここでBGMを開始
+        
+        // BGMを開始
         if (typeof soundManager !== 'undefined') {
             soundManager.playBGM('gameplay');
         }
-
     });
 }
-// gameOver関数の修正版 - シェアボタンを追加
+
+// gameOver 関数も同様に修正
 function gameOver(isWin) {
     const gameEndEl = document.getElementById('game-end');
+    const isMobile = window.innerWidth <= 768;
     
     if (isWin) {
-        gameEndEl.innerHTML = `
-            <div class="game-end-content">
-                <img src="images/story/game_clear.png" alt="ゲームクリア" class="game-end-image">
-                <div class="game-end-info">
-                    <div class="game-end-title">賢者の石の完成！</div>
-                    <div class="game-end-text">
-                        <p>祖父の夢を叶え、ついに賢者の石を作り出した！</p>
-                        <p>この石はあらゆる物質を金に変え、不老不死の秘薬も作り出せる。</p>
-                        <p>偉大な錬金術師としての名声を手に入れた今、新たな冒険が待っている。</p>
-                        <p>所要日数: ${currentDay}日</p>
+        // モバイル向けHTML構造
+        if (isMobile) {
+            gameEndEl.innerHTML = `
+                <div class="game-end-content">
+                    <img src="images/story/game_clear.png" alt="ゲームクリア" class="game-end-image">
+                    <div class="game-end-info">
+                        <div class="game-end-title">賢者の石の完成！</div>
+                        <div class="game-end-text">
+                            <p>祖父の夢を叶え、ついに賢者の石を作り出した！</p>
+                            <p>この石はあらゆる物質を金に変え、不老不死の秘薬も作り出せる。</p>
+                            <p>偉大な錬金術師としての名声を手に入れた今、新たな冒険が待っている。</p>
+                            <p>所要日数: ${currentDay}日</p>
+                        </div>
+                        <button class="retry-button" onclick="location.reload()">新たな旅に出る</button>
                     </div>
-                    <button class="retry-button" onclick="location.reload()">新たな旅に出る</button>
                 </div>
-            </div>
-        `;
-        
-        // シェアボタンを追加
-        const messageContainer = gameEndEl.querySelector('.game-end-info');
-        addShareButtons(messageContainer, `ファンタジー錬金術工房で賢者の石の作成に成功しました！所要日数: ${currentDay}日`);
+            `;
+        } else {
+            // PC向けは元の構造
+            gameEndEl.innerHTML = `
+                <div class="game-end-content">
+                    <img src="images/story/game_clear.png" alt="ゲームクリア" class="game-end-image">
+                    <div class="game-end-info">
+                        <div class="game-end-title">賢者の石の完成！</div>
+                        <div class="game-end-text">
+                            <p>祖父の夢を叶え、ついに賢者の石を作り出した！</p>
+                            <p>この石はあらゆる物質を金に変え、不老不死の秘薬も作り出せる。</p>
+                            <p>偉大な錬金術師としての名声を手に入れた今、新たな冒険が待っている。</p>
+                            <p>所要日数: ${currentDay}日</p>
+                        </div>
+                        <button class="retry-button" onclick="location.reload()">新たな旅に出る</button>
+                    </div>
+                </div>
+            `;
+        }
     } else {
-        gameEndEl.innerHTML = `
-            <div class="game-end-content">
-                <img src="images/story/game_over.png" alt="ゲームオーバー" class="game-end-image">
-                <div class="game-end-info">
-                    <div class="game-end-title">時は尽きた…</div>
-                    <div class="game-end-text">
-                        <p>30日間の期限が過ぎてしまった。祖父の夢は叶わなかった。</p>
-                        <p>しかし、この間に多くの知識と経験を得た。次はきっと成功するだろう。</p>
+        // ゲームオーバー時も同様
+        if (isMobile) {
+            gameEndEl.innerHTML = `
+                <div class="game-end-content">
+                    <img src="images/story/game_over.png" alt="ゲームオーバー" class="game-end-image">
+                    <div class="game-end-info">
+                        <div class="game-end-title">時は尽きた…</div>
+                        <div class="game-end-text">
+                            <p>30日間の期限が過ぎてしまった。祖父の夢は叶わなかった。</p>
+                            <p>しかし、この間に多くの知識と経験を得た。次はきっと成功するだろう。</p>
+                        </div>
+                        <button class="retry-button" onclick="location.reload()">もう一度挑戦する</button>
                     </div>
-                    <button class="retry-button" onclick="location.reload()">もう一度挑戦する</button>
                 </div>
-            </div>
-        `;
-        
-        // シェアボタンを追加
-        const messageContainer = gameEndEl.querySelector('.game-end-info');
-        addShareButtons(messageContainer, `ファンタジー錬金術工房で30日間の挑戦をしましたが、賢者の石の作成には至りませんでした...`);
+            `;
+        } else {
+            gameEndEl.innerHTML = `
+                <div class="game-end-content">
+                    <img src="images/story/game_over.png" alt="ゲームオーバー" class="game-end-image">
+                    <div class="game-end-info">
+                        <div class="game-end-title">時は尽きた…</div>
+                        <div class="game-end-text">
+                            <p>30日間の期限が過ぎてしまった。祖父の夢は叶わなかった。</p>
+                            <p>しかし、この間に多くの知識と経験を得た。次はきっと成功するだろう。</p>
+                        </div>
+                        <button class="retry-button" onclick="location.reload()">もう一度挑戦する</button>
+                    </div>
+                </div>
+            `;
+        }
     }
+    
+    // シェアボタンを追加
+    const messageContainer = gameEndEl.querySelector('.game-end-info');
+    addShareButtons(messageContainer, isWin ? 
+        `ファンタジー錬金術工房で賢者の石の作成に成功しました！所要日数: ${currentDay}日` : 
+        `ファンタジー錬金術工房で30日間の挑戦をしましたが、賢者の石の作成には至りませんでした...`);
     
     gameEndEl.style.display = 'flex';
     
-    // ゲームエンドBGMを再生（実装されていれば）
+    // ゲームエンドBGMを再生
     if (typeof soundManager !== 'undefined') {
         soundManager.playBGM(isWin ? 'gameClear' : 'gameOver');
     }

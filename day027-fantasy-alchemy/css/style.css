@@ -1970,3 +1970,104 @@ h2 {
       margin-top: 15px;
     }
   }
+
+  /* ストーリー画面とゲームオーバー/クリア画面のモバイル最適化 */
+@media (max-width: 768px) {
+    /* ストーリーポップアップの調整 */
+    .story-popup {
+      align-items: center; /* 中央揃えを維持 */
+      overflow-y: auto; /* スクロール可能に */
+      padding: 10px 0;
+    }
+    
+    .story-content {
+      width: 95%;
+      max-width: 95%;
+      position: relative;
+      margin: auto;
+    }
+    
+    /* テキスト領域を画像下部に固定し、スクロール可能に */
+    .story-text {
+      position: relative; /* 絶対位置から相対位置に変更 */
+      bottom: auto;
+      margin-top: 10px; /* 画像との間に余白 */
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 10px; /* 角丸に */
+    }
+    
+    /* 画像を画面に合わせてリサイズ */
+    .story-image {
+      width: 100%;
+      height: auto;
+      max-height: 60vh; /* 画面の60%を超えないように */
+      object-fit: contain;
+    }
+    
+    /* スタートボタンの位置調整 */
+    .story-button {
+      position: relative;
+      bottom: auto;
+      left: auto;
+      transform: none;
+      margin: 20px auto 10px auto;
+      display: block;
+    }
+    
+    /* ゲームエンド画面の調整 */
+    #game-end .game-end-content {
+      width: 95%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .game-end-image {
+      width: 100%;
+      height: auto;
+      max-height: 50vh;
+      object-fit: contain;
+    }
+    
+    .game-end-info {
+      position: relative;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+    
+    /* テキストサイズの調整 */
+    .game-end-title {
+      font-size: 1.8rem;
+    }
+    
+    .game-end-text {
+      font-size: 1rem;
+    }
+  }
+  
+  /* さらに小さい画面向け */
+  @media (max-width: 480px) {
+    .story-text {
+      max-height: 180px;
+      padding: 15px;
+    }
+    
+    .story-text p {
+      margin: 5px 0;
+      font-size: 0.9rem;
+    }
+    
+    .game-end-title {
+      font-size: 1.5rem;
+    }
+    
+    .game-end-text {
+      font-size: 0.9rem;
+    }
+    
+    .game-end-image {
+      max-height: 40vh;
+    }
+  }
