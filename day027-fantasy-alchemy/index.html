@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- メタタグ -->
+    <meta property="og:title" content="ファンタジー錬金術工房" />
+    <meta property="og:description" content="30日間の期限内に素材を集めて調合し、賢者の石を目指す錬金術クラフティングゲーム。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day027-fantasy-alchemy/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day027-fantasy-alchemy/index.html" />
+    <meta name="twitter:card" content="summary_large_image" />  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>ファンタジー錬金術工房</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>✨ ファンタジー錬金術工房 ✨</h1>
+        
+        <!-- グローバルメッセージ表示エリア（上部に移動） -->
+        <div id="message-container">
+            <div id="message" class="message"></div>
+        </div>
+        
+        <div class="game-header">
+            <div>
+                <div class="gold-display" id="gold-display">所持金: 500 G</div>
+                <div class="day-display" id="day-display">1日目 / 30日</div>
+            </div>
+            <div>
+                <button class="gathering-button" id="gathering-button">採取</button>
+                <button class="shop-button" id="shop-button">ショップ</button>
+                <button class="recipe-button" id="recipe-button">レシピ</button>
+                <button class="sleep-button" id="sleep-button">就寝</button>
+                
+            </div>
+        </div>
+
+        <!-- プレイヤー情報と目標をまとめたパネル -->
+        <div class="player-info-panel">
+            <div class="alchemy-info">
+                <div id="alchemy-level">錬金術レベル: 1</div>
+                <div class="exp-bar-container">
+                    <div class="exp-bar" id="exp-bar" style="width: 0%;"></div>
+                </div>
+                <div id="alchemy-exp">経験値: 0/100 (0%)</div>
+            </div>
+            
+            <div class="goal-progress">
+                <div class="goal-title">目標: 賢者の石を作る</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+                </div>
+                <div class="progress-text" id="progress-text">0% 完了</div>
+            </div>
+        </div>
+        
+        <!-- 発見ヒント（折りたたみ式） -->
+        <div class="recipe-hints">
+            <div class="hints-title" onclick="toggleHints()">発見したレシピヒント ▼</div>
+            <div class="hints-list" id="hints-list" style="display: none;">
+                <p class="no-hints">まだヒントは見つかっていません。採取で見つけることができます。</p>
+            </div>
+        </div>
+        
+        <!-- 調合エリア（変更なし） -->
+        <div class="crafting-area">
+            <div class="ingredients-section">
+                <h2>素材選択</h2>
+                <div class="ingredient-list" id="ingredient-list">
+                    <!-- Ingredients will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <h2>選択した素材</h2>
+                <div class="selected-ingredients">
+                    <div class="selected-slot" id="slot-1"></div>
+                    <div class="selected-slot" id="slot-2"></div>
+                    <div class="selected-slot" id="slot-3"></div>
+                    <div class="selected-slot" id="slot-4"></div> <!-- 追加 -->
+                </div>
+                
+                <button id="craft-button" class="craft-button" disabled>調合する</button>
+                
+                <h2>調合履歴</h2>
+                <div class="history-list" id="history-list">
+                    <!-- History will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        
+
+    <div class="crafting-animation" id="crafting-animation">
+        <div class="cauldron">
+            <!-- Sparkles will be added by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="gathering-result" id="gathering-result">
+        <div class="gathering-result-content">
+            <h3>採取結果</h3>
+            <div id="gathering-items"></div>
+            <button class="close-button" id="close-gathering-result">閉じる</button>
+        </div>
+    </div>        
+        
+        
+        
+        <!-- 遊び方ガイド（画面下部に配置） -->
+        <div class="game-guide">
+            <div class="guide-title" onclick="toggleGuide()">遊び方ガイド ▼</div>
+            <div class="guide-content" id="guide-content" style="display: none;">
+                <h3>基本の流れ</h3>
+                <p>1. <strong>素材を集める</strong>: 「採取」ボタンで素材を集めるか、「ショップ」で購入します。<br>　ショップの在庫は3日毎に補充されます。</p>
+                <p>2. <strong>調合する</strong>: 素材を3つまで選び、「調合する」ボタンを押して新しいアイテムを作ります。</p>
+                <p>3. <strong>売却する</strong>: 作ったアイテムを売って収益を得ます。</p>
+                <p>4. <strong>レベルアップ</strong>: 調合を重ねて錬金術レベルを上げると、成功率が上がります。</p>
+                <p>※１日の活動は7:00~22:00です。夜なべせずに就寝しましょう。</p>
+                
+                <h3>レシピの発見方法</h3>
+                <p><strong>方法1</strong>: 様々な素材の組み合わせを試して調合する。</p>
+                <p><strong>方法2</strong>: ショップでレシピ書を購入する。</p>
+                <p><strong>方法3</strong>: 採取時にレシピのヒントを発見する（採取場所によって異なるヒントが見つかります）。</p>
+                
+                <h3>レアアイテムの入手</h3>
+                <p>錬金術レベルが上がると、採取時にレア素材やレシピのヒントが見つかる確率が上昇します。</p>
+                <p>特定の場所（竜の巣、精霊の泉、黄金の砂浜）でレア素材を入手しましょう。</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="game-end" class="game-end-overlay" style="display: none;">
+        <div class="game-end-content">
+            <div class="game-end-title" id="game-end-title">ゲームオーバー</div>
+            <div class="game-end-text" id="game-end-text">時間切れです！賢者の石の作成に失敗しました...</div>
+            <button class="retry-button" onclick="location.reload()">もう一度挑戦する</button>
+        </div>
+    </div>
+
+    <!-- JavaScript ファイル -->
+    <script src="js/data.js"></script>
+    <script src="js/crafting.js"></script>
+    <script src="js/gathering.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/save.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
