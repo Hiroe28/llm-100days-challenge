@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夢の境界線 -不思議な部屋からの脱出-</title>
+    <style>
+        /* 全体のスタイル */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Mochiy Pop One', sans-serif;
+            background-color: #f0e6f6;
+            color: #333;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* フォント読み込み */
+        @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap');
+        
+        /* コンテナスタイル */
+        .container{
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 3/2;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.2);
+        }
+        
+        /* ゲーム画面 */
+        .game-screen{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: none;
+        }
+        
+        /* タイトル画面 */
+        .title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('assets/title_bg.png');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+        }
+        
+        .title-overlay {
+            background: linear-gradient(to bottom, rgba(80, 19, 108, 0.7), rgba(49, 14, 87, 0.9));
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        
+        .title-content {
+            z-index: 11;
+            padding: 20px;
+            max-width: 90%;
+        }
+        
+        .title-screen h1 {
+            color: #fff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .title-screen p {
+            color: #e5d0ff;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            max-width: 90%;
+        }
+        
+        /* ストーリー画面 */
+        .story-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(80, 19, 108, 0.8), rgba(49, 14, 87, 0.9));
+            z-index: 15;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .story-screen.active {
+            display: block;
+        }
+        
+        .story-content {
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100%;
+            box-sizing: border-box;
+        }
+        
+        .story-screen h2 {
+            color: #fff;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .story-screen p {
+            color: #f5ebff;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            max-width: 90%;
+            line-height: 1.6;
+        }
+        
+        .story-image {
+            max-width: 70%;
+            height: auto;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .story-button-container {
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            padding-bottom: 20px;
+        }
+        
+        /* ステージ間画面 */
+        .stage-transition {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(106, 48, 147, 0.8), rgba(160, 68, 255, 0.7));
+            z-index: 14;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            display: none;
+        }
+        
+        .stage-transition.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .transition-content {
+            z-index: 15;
+            max-width: 90%;
+        }
+        
+        .stage-transition h2 {
+            color: #fff;
+            font-size: 2em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .stage-transition p {
+            color: #f5ebff;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .transition-image {
+            max-width: 70%;
+            height: auto;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ボタンスタイル */
+        .button {
+            background: linear-gradient(to bottom, #ff9a9e, #fad0c4);
+            color: #6a3093;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.5);
+            font-family: 'Mochiy Pop One', sans-serif;
+            z-index: 20;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(255, 154, 158, 0.7);
+        }
+        
+        .button:active {
+            transform: translateY(1px);
+        }
+        
+        /* オブジェクトスタイル */
+        .error-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 基本的にクリックを通過させる */
+            z-index: 2;
+        }
+
+        .error-object{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+            transition: opacity 1.5s ease; /* ゆっくり消えるように */
+        }
+        
+        /* チェックマークスタイル */
+        .check-mark {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(40, 200, 80, 0.9);
+            border-radius: 50%;
+            z-index: 4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(40, 200, 80, 0.7);
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(1);
+            animation: check-appear 0.5s ease forwards;
+        }
+        
+        .check-mark::before {
+            content: "";
+            width: 30px;
+            height: 15px;
+            border-left: 4px solid white;
+            border-bottom: 4px solid white;
+            transform: rotate(-45deg) translate(3px, -5px);
+        }
+        
+        @keyframes check-appear {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        
+        /* ヒントボタン */
+        .hint-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+            color: #6a3093;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .hint-button:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.1);
+        }
+        
+        /* ステージ情報バー */
+        .stage-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 15px;
+            border-radius: 20px;
+            z-index: 5;
+            font-weight: bold;
+            color: #6a3093;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* プログレスバー */
+        .progress-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 15px;
+            border-radius: 20px;
+            z-index: 5;
+        }
+        
+        .progress-text {
+            margin-right: 10px;
+            font-weight: bold;
+            color: #6a3093;
+        }
+        
+        .progress-dots {
+            display: flex;
+        }
+        
+        .progress-dot {
+            width: 15px;
+            height: 15px;
+            background-color: #e0d0f0;
+            border-radius: 50%;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-dot.found {
+            background-color: #ff9a9e;
+            box-shadow: 0 0 10px rgba(255, 154, 158, 0.7);
+        }
+        
+        /* クリック領域 */
+        .clickable-area {
+            position: absolute;
+            cursor: pointer;
+            z-index: 3;
+        }
+        
+        /* クリア画面 */
+        .clear-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(106, 48, 147, 0.9), rgba(160, 68, 255, 0.8));
+            z-index: 20;
+            box-sizing: border-box;
+            display: none;
+            transition: opacity 0.8s ease;
+            overflow-y: auto; /* スクロール可能にする */
+        }
+
+        .clear-screen.active {
+            display: block; /* flexからblockに変更 */
+        }
+
+        .clear-content {
+            padding: 20px;
+            z-index: 21;
+            max-width: 90%;
+            margin: 0 auto; /* 中央揃え */
+            text-align: center;
+            transition: opacity 0.5s ease;
+        }
+
+        
+        .clear-screen h2 {
+            color: #fff;
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .clear-screen p {
+            color: #f5ebff;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .clear-image {
+            max-width: 60%; /* サイズを小さくする */
+            height: auto;
+            margin: 15px auto; /* 上下の余白を確保 */
+        }
+
+        /* ボタンを下部に固定せず、コンテンツに合わせて配置 */
+        #nextStageButton {
+            margin: 20px auto 40px; /* 下部に余白を追加 */
+            display: inline-block;
+        }
+
+        
+        /* エンディング画面 */
+        .ending-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(80, 19, 108, 0.8), rgba(49, 14, 87, 0.7));
+            z-index: 25;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .ending-screen.active {
+            display: block;
+        }
+        
+        .ending-content {
+            padding: 30px 20px;
+            position: relative;
+            z-index: 26;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100%;
+            box-sizing: border-box;
+        }
+        
+        .ending-screen h2 {
+            color: #fff;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .ending-screen p {
+            color: #f5ebff;
+            font-size: 1.2em;
+            margin-bottom: 25px;
+            max-width: 90%;
+            line-height: 1.7;
+        }
+        
+        .ending-image {
+            max-width: 80%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* テキストメッセージ */
+        .message {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            color: #6a3093;
+            z-index: 5;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+            text-align: center;
+            max-width: 80%;
+        }
+        
+        .message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        
+        /* 視覚フィードバック */
+        .feedback {
+            position: absolute;
+            pointer-events: none;
+            z-index: 4;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: feedback 0.8s ease-out;
+        }
+        
+        @keyframes feedback {
+            0% { transform: scale(0); opacity: 0.7; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        /* モバイル対応 */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+            
+            .title-screen h1 {
+                font-size: 1.8em;
+            }
+            
+            .title-screen p {
+                font-size: 1em;
+            }
+            
+            .button {
+                padding: 10px 25px;
+                font-size: 1em;
+            }
+            
+            .hint-button {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2em;
+                top: 10px;
+                right: 10px;
+            }
+            
+            .stage-info {
+                top: 10px;
+                left: 10px;
+                font-size: 0.9em;
+                padding: 4px 12px;
+            }
+            
+            .progress-container {
+                bottom: 10px;
+                left: 10px;
+                padding: 3px 10px;
+            }
+            
+            .progress-dot {
+                width: 12px;
+                height: 12px;
+            }
+            
+            .message {
+                bottom: 60px;
+                font-size: 0.9em;
+            }
+            
+            .check-mark {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .check-mark::before {
+                width: 20px;
+                height: 10px;
+                border-left: 3px solid white;
+                border-bottom: 3px solid white;
+            }
+            
+            .story-screen h2 {
+                font-size: 1.5em;
+            }
+            
+            .story-screen p {
+                font-size: 0.9em;
+            }
+            
+            .ending-screen h2 {
+                font-size: 1.8em;
+            }
+            
+            .ending-screen p {
+                font-size: 1em;
+            }
+            
+            .story-image, .transition-image, .clear-image, .ending-image {
+                max-width: 90%;
+            }
+
+            /* コンテナスタイル修正 */
+            .container {
+                position: relative;
+                width: 90%;  /* 幅を広げる */
+                max-width: 1200px;  /* 最大幅を増やす */
+                aspect-ratio: 3/2;
+                margin: 0 auto;
+                overflow: hidden;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,.2);
+            }
+
+            /* ゲーム画面サイズ修正 */
+            .game-screen {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background-size: cover;  /* containからcoverに変更 */
+                background-position: center;
+                background-repeat: no-repeat;
+                display: none;
+            }
+
+            /* 遷移アニメーション修正 */
+            .stage-transition, .clear-screen {
+                transition: opacity 0.3s ease;  /* スムーズな遷移のため */
+                opacity: 0;
+            }
+
+            .stage-transition.active, .clear-screen.active {
+                opacity: 1;
+            }
+
+            /* 画面遷移アニメーション */
+            .story-screen, .game-screen, .title-screen, .clear-screen, .ending-screen {
+                transition: opacity 0.8s ease;
+            }
+
+
+            /* BGM操作ボタン */
+            .sound-control {
+                position: absolute;
+                top: 20px;
+                right: 80px; /* ヒントボタンの横 */
+                background-color: rgba(255, 255, 255, 0.7);
+                color: #6a3093;
+                border: none;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                font-size: 1.2em;
+                cursor: pointer;
+                z-index: 5;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s ease;
+            }
+
+            .sound-control:hover {
+                background-color: rgba(255, 255, 255, 0.9);
+                transform: scale(1.1);
+            }
+
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- タイトル画面 -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-overlay"></div>
+            <div class="title-content">
+                <h1>夢の境界線</h1>
+                <p>-不思議な部屋からの脱出-</p>
+                <p>病室で眠る少女の夢の世界に迷い込んだあなた。<br>現実に戻るためには、夢の世界の「おかしなところ」を見つけなければなりません。</p>
+                <button class="button" id="startButton">物語を見る</button>
+            </div>
+        </div>
+        
+        <!-- ストーリー画面 -->
+        <div class="story-screen" id="storyScreen">
+            <div class="story-content">
+                <h2>少女とあなたの物語</h2>
+                <img src="assets/story_hospital.png" alt="病室の少女" class="story-image">
+                <p>その少女の名前は美月。長い間、原因不明の病気と闘い続けていました。<br>
+                白い病室の窓から見える空を眺めながら、彼女はいつも夢想していました。</p>
+                
+                <p>「ねぇ、あの雲の向こうには何があるのかな？」<br>
+                美月はぼんやりとした目で空を見上げ、そうつぶやきます。</p>
+                
+                <img src="assets/story_dream.png" alt="夢の世界への入り口" class="story-image">
+                
+                <p>ある夜、あなたは不思議な光に導かれるように、美月の夢の中に迷い込みました。<br>
+                そこは彼女の記憶と願いが混ざり合った、現実とも幻想ともつかない世界。</p>
+                
+                <p>しかし、この夢の世界には「おかしなところ」があります。<br>
+                美月の意識が弱まるにつれ、夢の世界の境界線が曖昧になり、現実の記憶が歪んでしまったのです。</p>
+                
+                <img src="assets/story_distortion.png" alt="歪んだ夢の世界" class="story-image">
+                
+                <p>「この世界のおかしなところを直していかないと、美月は永遠に夢の中に閉じ込められてしまうかもしれない…」</p>
+                
+                <p>そんな予感がした瞬間、あなたの前に最初の部屋が姿を現しました。<br>
+                美月の大切な思い出が詰まった「思い出のリビング」です。</p>
+                
+                <div class="story-button-container">
+                    <button class="button" id="storyNextButton">探索を始める</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ステージ間遷移画面 -->
+        <div class="stage-transition" id="stageTransition">
+            <div class="transition-content">
+                <h2 id="transitionTitle">次のステージへ</h2>
+                <img id="transitionImage" src="" alt="ステージ遷移" class="transition-image">
+                <p id="transitionText">次のステージに進みます...</p>
+                <button class="button" id="transitionNextButton">次へ進む</button>
+            </div>
+        </div>
+        
+        <!-- ゲーム画面 -->
+        <div class="game-screen" id="gameScreen">
+            <!-- ステージ情報 -->
+            <div class="stage-info" id="stageInfo">ステージ1: 思い出のリビング</div>
+            
+            <!-- 間違いオブジェクトレイヤー -->
+            <div class="error-layer" id="errorLayer">
+                <!-- 各ステージごとの間違いオブジェクトはJSで動的に追加 -->
+            </div>
+            
+            <!-- 進行度表示 -->
+            <div class="progress-container">
+                <div class="progress-text">見つけた「おかしなところ」: </div>
+                <div class="progress-dots">
+                    <div class="progress-dot" id="dot1"></div>
+                    <div class="progress-dot" id="dot2"></div>
+                    <div class="progress-dot" id="dot3"></div>
+                </div>
+            </div>
+            
+            <!-- ヒントボタン -->
+            <!-- <button class="hint-button" id="hintButton">?</button> -->
+
+            <!-- BGM操作ボタン（オプション） -->
+            <!-- <button class="sound-control" id="bgmControl" title="BGM ON/OFF">🎵</button> -->
+
+            <!-- メッセージ表示 -->
+            <div class="message" id="message"></div>
+            
+            <!-- クリック判定用のキャンバス（非表示） -->
+            <canvas id="hitCanvas" style="display: none;"></canvas>
+        </div>
+        
+        <!-- クリア画面 -->
+        <div class="clear-screen" id="clearScreen">
+            <div class="clear-content">
+                <h2 id="clearTitle">不思議なリビングの記憶が修復されました</h2>
+                <img id="clearImage" src="assets/clear_stage1.png" alt="クリア画像" class="clear-image">
+                <p id="clearDescription">おかしなところを全て見つけました！<br>
+                美月の記憶の一部が正しく修復されました。</p>
+                <p id="nextStageDescription">まだ他にも歪んだ場所があるようです。<br>
+                次の場所へ進みましょう。</p>
+                <button class="button" id="nextStageButton">続ける</button>
+            </div>
+        </div>
+        
+        <!-- エンディング画面 -->
+        <div class="ending-screen" id="endingScreen">
+            <div class="ending-content">
+                <h2>目覚めの瞬間</h2>
+                <img src="assets/ending_1.png" alt="美月の目覚め" class="ending-image">
+                <p>すべての「おかしなところ」を直し終えたとき、<br>
+                夢の世界が光に包まれ始めました。</p>
+                
+                <p>「ありがとう…あなたのおかげで、わたしの記憶が戻ったよ」<br>
+                美月の声が空間全体に響き渡ります。</p>
+                
+                <img src="assets/ending_2.png" alt="病室での再会" class="ending-image">
+                
+                <p>気がつくと、あなたは病院の廊下に立っていました。<br>
+                そして、なぜか美月の病室の前にいることに気づきます。</p>
+                
+                <p>部屋を覗くと、美月がベッドに座り、窓の外を見つめていました。<br>
+                「やっと目が覚めたのね」と、彼女のお母さんが喜びの涙を流しています。</p>
+                
+                <img src="assets/ending_3.png" alt="回復した美月" class="ending-image">
+                
+                <p>美月はあなたに気づくと、不思議そうに目を見開きます。<br>
+                「あなた…夢の中で会った人ですよね？」</p>
+                
+                <p>医師によると、美月の意識が戻り、症状も急速に改善しているとのこと。<br>
+                退院はもう目前だそうです。</p>
+                
+                <img src="assets/ending_4.png" alt="未来への一歩" class="ending-image">
+                
+                <p>あなたが立ち去ろうとすると、美月が小さな紙をあなたに渡しました。<br>
+                それは彼女が描いた、あなたと彼女が夢の世界で冒険する姿の絵でした。</p>
+                
+                <p>「また会えますか？今度は夢の中じゃなくて、現実の世界で…」</p>
+                
+                <p>あなたは微笑みながら、きっとねと答えました。</p>
+                
+                <button class="button" id="endingButton">タイトルに戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ステージ設定
+        const stageSettings = [
+            {
+                id: 1,
+                name: "思い出のリビング",
+                background: "assets/stage1_bg.png",
+                maskImage: "assets/stage1_mask.png",
+                errorObjects: [
+                    { id: 'clock', color: 'rgb(255, 0, 0)', image: 'assets/stage1_clock_wrong.png', hint: "時計の針が逆さまに動いています..." },
+                    { id: 'photo', color: 'rgb(0, 255, 0)', image: 'assets/stage1_photo_wrong.png', hint: "写真立ての家族の顔が消えています..." },
+                    { id: 'window', color: 'rgb(0, 0, 255)', image: 'assets/stage1_window_wrong.png', hint: "窓の外の空の色が現実とは違います..." }
+                ],
+                clearMessage: "不思議なリビングの記憶が修復されました",
+                clearDescription: "おかしなところを全て見つけました！<br>美月の記憶の一部が正しく修復されました。",
+                nextStageMessage: "次は「キャンディの部屋」を探索しましょう。<br>そこには美月の願望と夢が詰まっています。"
+            },
+            {
+                id: 2,
+                name: "キャンディの部屋",
+                background: "assets/stage2_bg.png",
+                maskImage: "assets/stage2_mask.png",
+                errorObjects: [
+                    { id: 'candy', color: 'rgb(255, 0, 0)', image: 'assets/stage2_candy_wrong.png', hint: "キャンディの色が現実にはあり得ない..." },
+                    { id: 'teddy', color: 'rgb(0, 255, 0)', image: 'assets/stage2_teddy_wrong.png', hint: "テディベアの目が動いているような..." },
+                    { id: 'mobile', color: 'rgb(0, 0, 255)', image: 'assets/stage2_mobile_wrong.png', hint: "天井のモビールが重力を無視して動いています..." }
+                ],
+                clearMessage: "キャンディの部屋の記憶が修復されました",
+                clearDescription: "おかしなところを全て見つけました！<br>美月の願望と夢の記憶が正しくなりました。",
+                nextStageMessage: "最後は「うそつき図書館」です。<br>そこには美月の記憶の真実と偽りが隠されています。"
+            },
+            {
+                id: 3,
+                name: "うそつき図書館",
+                background: "assets/stage3_bg.png",
+                maskImage: "assets/stage3_mask.png",
+                errorObjects: [
+                    { id: 'book', color: 'rgb(255, 0, 0)', image: 'assets/stage3_book_wrong.png', hint: "その本のページが逆さまに印刷されています..." },
+                    { id: 'lamp', color: 'rgb(0, 255, 0)', image: 'assets/stage3_lamp_wrong.png', hint: "ランプの光が上ではなく下に向かっています..." },
+                    { id: 'shadow', color: 'rgb(0, 0, 255)', image: 'assets/stage3_shadow_wrong.png', hint: "本棚の影が光と反対方向に伸びています..." }
+                ],
+                clearMessage: "すべての記憶が修復されました",
+                clearDescription: "おめでとう！すべての「おかしなところ」を見つけました。<br>美月の記憶が完全に修復されました。",
+                nextStageMessage: "彼女はもうすぐ目を覚まし、現実世界に戻ります。<br>あなたのおかげで、美月は新たな一歩を踏み出せるでしょう。"
+            }
+        ];
+        
+        // ゲームの状態を管理するオブジェクト
+        const gameState = {
+            currentStage: 0,  // 0はステージ選択前、1からステージ番号
+            foundErrors: 0,
+            totalErrors: 3,
+            isGameStarted: false,
+            isStageCleared: false,
+            foundObjects: []
+        };
+        
+        // DOMエレメント
+        const titleScreen = document.getElementById('titleScreen');
+        const storyScreen = document.getElementById('storyScreen');
+
+        const gameScreen = document.getElementById('gameScreen');
+        const clearScreen = document.getElementById('clearScreen');
+        const stageInfo = document.getElementById('stageInfo');
+        const errorLayer = document.getElementById('errorLayer');
+        
+        const startButton = document.getElementById('startButton');
+        const storyNextButton = document.getElementById('storyNextButton');
+        const stage1Button = document.getElementById('stage1Button');
+        const stage2Button = document.getElementById('stage2Button');
+        const stage3Button = document.getElementById('stage3Button');
+        const nextStageButton = document.getElementById('nextStageButton');
+        const hintButton = document.getElementById('hintButton');
+        const message = document.getElementById('message');
+        
+        const dots = [
+            document.getElementById('dot1'),
+            document.getElementById('dot2'),
+            document.getElementById('dot3')
+        ];
+        
+        // キャンバス要素（ヒットテスト用）
+        const hitCanvas = document.getElementById('hitCanvas');
+        const hitCtx = hitCanvas.getContext('2d');
+        
+        // 音声効果
+        let clickSound, correctSound, errorSound, clearSound;
+        
+        // 画像の読み込み
+        let bgImage, maskImage;
+        let errorObjects = [];
+        
+        // ゲームの初期化
+        function initGame() {
+            console.log("ゲーム初期化開始");
+            
+            // 音声の読み込み
+            loadSounds();
+            
+            // BGMのセットアップ
+            setupBGM();
+
+            // イベントリスナーの設定
+            setupEventListeners();
+            
+            console.log("ゲーム初期化完了");
+            console.log("ゲーム状態:", gameState);
+        }
+        
+
+        // showStory関数を修正
+        function showStory() {
+            // フェードアウト効果を追加
+            titleScreen.style.transition = "opacity 0.8s ease";
+            titleScreen.style.opacity = 0;
+            
+            setTimeout(() => {
+                titleScreen.style.display = 'none';
+                storyScreen.style.display = 'flex';
+                storyScreen.style.opacity = 0; // 初期状態は透明
+                
+                // 表示後にフェードインさせる
+                setTimeout(() => {
+                    storyScreen.style.transition = "opacity 0.8s ease";
+                    storyScreen.style.opacity = 1;
+                    storyScreen.classList.add('active');
+                }, 50);
+            }, 800); // 少し長めの待機時間
+        }
+        
+        
+        // ステージ開始
+        // ステージ開始
+        function startStage(stageId) {
+            console.log(`ステージ${stageId}を開始します`);
+            
+            // ステージ状態初期化
+            gameState.currentStage = stageId;
+            gameState.foundErrors = 0;
+            gameState.isStageCleared = false;
+            gameState.foundObjects = [];
+            
+            // stageIdが配列の範囲内かチェック
+            if (stageId < 1 || stageId > stageSettings.length) {
+                console.error(`無効なステージID: ${stageId}`);
+                return;
+            }
+            
+            const stage = stageSettings[stageId - 1];
+            console.log("ステージ設定:", stage);
+            
+            // 進行度表示リセット
+            dots.forEach(dot => dot.classList.remove('found'));
+            
+            // ステージ情報表示
+            stageInfo.textContent = `ステージ${stageId}: ${stage.name}`;
+            
+            // 背景設定
+            gameScreen.style.backgroundImage = `url('${stage.background}')`;
+            
+            // 間違いオブジェクト設定
+            loadStageObjects(stage);
+            
+            // マスク画像読み込み
+            loadMaskImage(stage.maskImage);
+            
+            // クリア画面テキスト設定
+            document.getElementById('clearTitle').textContent = stage.clearMessage;
+            document.getElementById('clearDescription').innerHTML = stage.clearDescription;
+            document.getElementById('nextStageDescription').innerHTML = stage.nextStageMessage;
+            
+            // 最終ステージの場合、ボタンテキスト変更
+            if (stageId === stageSettings.length) {
+                nextStageButton.textContent = "エンディングへ";
+            } else {
+                nextStageButton.textContent = "次のステージへ";
+            }
+            
+            // 画面遷移
+            // storyScreenとgameScreenの表示状態を確認
+            console.log("画面状態:", {
+                "storyScreen表示": storyScreen.style.display,
+                "gameScreen表示": gameScreen.style.display
+            });
+            
+            // もしストーリー画面が表示されていたら消す
+            if (storyScreen.style.display !== 'none') {
+                storyScreen.classList.remove('active');
+                storyScreen.style.display = 'none';
+            }
+            
+            // ゲーム画面を表示
+            gameScreen.style.display = 'block';
+            gameState.isGameStarted = true;
+            
+            // 開始メッセージ
+            showMessage(`この${stage.name}には3つの「おかしなところ」があります。見つけてください。`);
+        }
+        
+        // ステージの間違いオブジェクト読み込み
+        function loadStageObjects(stage) {
+            // 既存のオブジェクトをクリア
+            errorLayer.innerHTML = '';
+            errorObjects = [];
+            
+            // 新しいオブジェクトを追加
+            stage.errorObjects.forEach(obj => {
+                const imgElement = document.createElement('img');
+                imgElement.src = obj.image;
+                imgElement.className = 'error-object';
+                imgElement.id = obj.id + 'Wrong';
+                imgElement.alt = obj.id;
+                errorLayer.appendChild(imgElement);
+                
+                errorObjects.push(imgElement);
+            });
+        }
+        
+        // マスク画像読み込み
+        function loadMaskImage(maskSrc) {
+            console.log("マスク画像の読み込みを開始: " + maskSrc); // デバッグ用
+            
+            maskImage = new Image();
+            maskImage.src = maskSrc;
+            maskImage.onload = function() {
+                // キャンバスサイズを設定（マスク画像と同じサイズ）
+                hitCanvas.width = maskImage.width;
+                hitCanvas.height = maskImage.height;
+                
+                // マスク画像をキャンバスに描画
+                hitCtx.drawImage(maskImage, 0, 0);
+                console.log("マスク画像を読み込みました: " + maskImage.width + "x" + maskImage.height);
+                
+                // デバッグ用：キャンバスの内容を確認
+                const imageData = hitCtx.getImageData(0, 0, hitCanvas.width, hitCanvas.height);
+                console.log("キャンバスのピクセルデータ:", imageData);
+            };
+            
+            // エラーハンドリングを追加
+            maskImage.onerror = function() {
+                console.error("マスク画像の読み込みに失敗しました: " + maskSrc);
+            };
+        }
+        
+        // 音声の読み込み
+        function loadSounds() {
+            console.log("音声の読み込みを開始");
+            
+            clickSound = new Audio('assets/click.mp3');
+            correctSound = new Audio('assets/correct.mp3');
+            errorSound = new Audio('assets/error.mp3');
+            clearSound = new Audio('assets/clear.mp3');
+            
+            // 音量調整
+            clickSound.volume = 0.2;
+            correctSound.volume = 0.25;
+            errorSound.volume = 0.15;
+            clearSound.volume = 0.3;
+            
+            // エラーハンドリングを追加
+            [clickSound, correctSound, errorSound, clearSound].forEach(sound => {
+                sound.onerror = function() {
+                    console.error("音声ファイルの読み込みに失敗: " + sound.src);
+                };
+                sound.oncanplaythrough = function() {
+                    console.log("音声ファイルの読み込み成功: " + sound.src);
+                };
+            });
+        }
+                
+        // ゲーム画面クリック処理
+        function handleGameClick(e) {
+            console.log("クリックされました"); // デバッグ用
+            
+            if (!gameState.isGameStarted || gameState.isStageCleared) return;
+            
+            // クリック位置を取得
+            const rect = gameScreen.getBoundingClientRect();
+            
+            // キャンバスとゲーム画面の比率計算
+            const scaleX = hitCanvas.width / rect.width;
+            const scaleY = hitCanvas.height / rect.height;
+            
+            // クリック位置をマスクの座標系に変換
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+            
+            // クリック音
+            clickSound.play();
+            
+            console.log(`座標変換後: (${x}, ${y})`); // デバッグ用
+            console.log(`キャンバスサイズ: ${hitCanvas.width}x${hitCanvas.height}`); // デバッグ用
+            
+            // 座標が範囲内かチェック
+            if (x >= 0 && x < hitCanvas.width && y >= 0 && y < hitCanvas.height) {
+                // キャンバスのピクセル色を取得してヒットテスト
+                const pixel = hitCtx.getImageData(x, y, 1, 1).data;
+                const pixelColor = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
+                
+                console.log(`クリック位置: (${x}, ${y}), 色: ${pixelColor}`);
+                
+                // エラー領域の判定
+                const stage = stageSettings[gameState.currentStage - 1];
+                let errorIndex = -1;
+                
+                for (let i = 0; i < stage.errorObjects.length; i++) {
+                    const obj = stage.errorObjects[i];
+                    console.log(`比較中: ${obj.id}, 色: ${obj.color}`); // デバッグ用
+                    // 完全一致だけでなく、近似一致も許容する
+                    if (isColorMatch(pixel, obj.color) && !gameState.foundObjects.includes(obj.id)) {
+                        errorIndex = i;
+                        console.log(`一致しました: ${obj.id}`); // デバッグ用
+                        break;
+                    }
+                }
+                
+                // 視覚フィードバックを表示
+                showFeedback(e.clientX - rect.left, e.clientY - rect.top);
+                
+                if (errorIndex !== -1) {
+                    // 正解処理
+                    handleCorrect(errorIndex, e.clientX - rect.left, e.clientY - rect.top);
+                } else {
+                    // 不正解処理
+                    errorSound.play();
+                    showMessage("ここには異常はないようです...");
+                }
+            } else {
+                // 範囲外クリック
+                errorSound.play();
+                showMessage("ここには何もないようです...");
+            }
+        }
+
+        // 色の近似一致判定
+        function isColorMatch(pixelData, targetColor) {
+            // targetColorからRGB値を抽出
+            console.log("色一致を確認中:", pixelData, targetColor);
+            
+            const targetMatch = targetColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+            if (!targetMatch) {
+                console.error("ターゲット色のフォーマットが不正:", targetColor);
+                return false;
+            }
+            
+            const targetR = parseInt(targetMatch[1], 10);
+            const targetG = parseInt(targetMatch[2], 10);
+            const targetB = parseInt(targetMatch[3], 10);
+            
+            // pixelDataから直接RGB値を取得
+            const r = pixelData[0];
+            const g = pixelData[1];
+            const b = pixelData[2];
+            
+            // 各色の差分を計算
+            const rDiff = Math.abs(r - targetR);
+            const gDiff = Math.abs(g - targetG);
+            const bDiff = Math.abs(b - targetB);
+            
+            // より寛容な許容誤差（各色成分に対して50の差まで許容）
+            const tolerance = 50;
+            
+            // いずれかの色成分が強い場合も一致と判定
+            const isMatch = (rDiff <= tolerance && gDiff <= tolerance && bDiff <= tolerance) ||
+                        (r > 200 && targetR > 200) ||  // 赤が強い
+                        (g > 200 && targetG > 200) ||  // 緑が強い
+                        (b > 200 && targetB > 200);    // 青が強い
+            
+            console.log(`色比較: [${r},${g},${b}] vs [${targetR},${targetG},${targetB}], 一致: ${isMatch}`);
+            return isMatch;
+        }
+        
+        // 正解処理
+        function handleCorrect(index, x, y) {
+            correctSound.play();
+            
+            const stage = stageSettings[gameState.currentStage - 1];
+            const obj = stage.errorObjects[index];
+            
+            gameState.foundObjects.push(obj.id);
+            gameState.foundErrors++;
+            
+            // 進行度表示の更新
+            dots[gameState.foundErrors - 1].classList.add('found');
+            
+            // チェックマーク表示
+            showCheckMark(x, y);
+            
+            // エラーオブジェクトをフェードアウト
+            let errorObject = document.getElementById(obj.id + 'Wrong');
+            
+            if (errorObject) {
+                // アニメーション効果
+                errorObject.style.animation = 'correct 1s ease';
+                
+                // メッセージを表示
+                switch(obj.id) {
+                    case 'clock':
+                        showMessage("時計の針が正しい向きになりました！");
+                        break;
+                    case 'photo':
+                        showMessage("写真立てが元に戻りました！");
+                        break;
+                    case 'window':
+                        showMessage("窓の外の空の色が正しくなりました！");
+                        break;
+                    case 'candy':
+                        showMessage("キャンディが元に戻りました！");
+                        break;
+                    case 'teddy':
+                        showMessage("テディベアが正常になりました！");
+                        break;
+                    case 'mobile':
+                        showMessage("天井のモビールが元に戻りました！");
+                        break;
+                    case 'book':
+                        showMessage("本の目が消えました！");
+                        break;
+                    case 'lamp':
+                        showMessage("ランプが普通の光に戻っています！");
+                        break;
+                    case 'shadow':
+                    showMessage("妙な影が消えていきます！");
+                        break;
+                    default:
+                        showMessage("おかしなところが直りました！");
+                }
+                
+                // アニメーション後にフェードアウト
+                setTimeout(() => {
+                    errorObject.style.opacity = 0;
+                    
+                    // すべての間違いが見つかったらクリア
+                    if (gameState.foundErrors === gameState.totalErrors) {
+                        setTimeout(clearStage, 1500);
+                    }
+                }, 1000);
+            }
+        }
+
+        // イベントリスナーの設定
+        function setupEventListeners() {
+            console.log("イベントリスナーを設定中...");
+            
+            startButton.addEventListener('click', showStory);
+            // storyNextButton.addEventListener('click', () => startStage(1));
+            // ストーリーから探索への遷移を修正
+            storyNextButton.addEventListener('click', function() {
+                // フェードアウト効果
+                storyScreen.style.transition = "opacity 0.8s ease";
+                storyScreen.style.opacity = 0;
+                
+                setTimeout(() => {
+                    storyScreen.style.display = 'none';
+                    // ゲーム画面を準備するが、まだ表示しない
+                    gameScreen.style.display = 'block';
+                    gameScreen.style.opacity = 0;
+                    
+                    // ステージ1を開始
+                    startStage(1);
+                    
+                    // フェードイン効果
+                    setTimeout(() => {
+                        gameScreen.style.transition = "opacity 0.8s ease";
+                        gameScreen.style.opacity = 1;
+                    }, 50);
+                }, 800);
+            });
+
+
+            nextStageButton.addEventListener('click', goToNextStage);
+            
+            // ヒントボタンのデバッグ
+            console.log("ヒントボタン要素:", hintButton);
+            if (hintButton) {
+                hintButton.addEventListener('click', function() {
+                    console.log("ヒントボタンがクリックされました");
+                    showHint();
+                });
+            } else {
+                console.error("ヒントボタン要素が見つかりません");
+            }
+            
+            // ゲーム画面のクリックイベント
+            gameScreen.addEventListener('click', function(e) {
+                console.log("ゲーム画面がクリックされました");
+                handleGameClick(e);
+            });
+
+            const bgmControl = document.getElementById('bgmControl');
+            if (bgmControl) {
+                bgmControl.addEventListener('click', toggleBGM);
+            }
+
+        }
+
+        
+        // BGMのON/OFF切り替え
+        function toggleBGM() {
+            if (bgmPlayer) {
+                if (bgmPlayer.paused) {
+                    bgmPlayer.play();
+                    document.getElementById('bgmControl').textContent = '🎵';
+                } else {
+                    bgmPlayer.pause();
+                    document.getElementById('bgmControl').textContent = '🔇';
+                }
+            }
+        }
+
+        // チェックマーク表示
+        function showCheckMark(x, y) {
+            const checkMark = document.createElement('div');
+            checkMark.className = 'check-mark';
+            checkMark.style.left = (x - 30) + 'px'; // 中心に表示するため半分のサイズをオフセット
+            checkMark.style.top = (y - 30) + 'px';
+            
+            gameScreen.appendChild(checkMark);
+            
+            // 3秒後に消す
+            setTimeout(() => {
+                gameScreen.removeChild(checkMark);
+            }, 3000);
+        }
+        
+        // クリック位置に視覚フィードバックを表示
+        function showFeedback(x, y) {
+            const feedback = document.createElement('div');
+            feedback.className = 'feedback';
+            feedback.style.left = x + 'px';
+            feedback.style.top = y + 'px';
+            feedback.style.width = '30px';
+            feedback.style.height = '30px';
+            
+            gameScreen.appendChild(feedback);
+            
+            // アニメーション完了後に要素を削除
+            setTimeout(() => {
+                gameScreen.removeChild(feedback);
+            }, 800);
+        }
+        
+        function showMessage(text) {
+            console.log("メッセージ表示:", text);
+            
+            message.textContent = text;
+            message.classList.add('show');
+            
+            // 3秒後に消す
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 3000);
+        }
+        
+        // ヒント表示
+        function showHint() {
+            // まだ見つかっていないおかしなところのヒントをランダムに表示
+            const notFoundIndexes = [];
+            const stage = stageSettings[gameState.currentStage - 1];
+            
+            stage.errorObjects.forEach((obj, index) => {
+                if (!gameState.foundObjects.includes(obj.id)) {
+                    notFoundIndexes.push(index);
+                }
+            });
+            
+            if (notFoundIndexes.length > 0) {
+                const randomIndex = notFoundIndexes[Math.floor(Math.random() * notFoundIndexes.length)];
+                showMessage(stage.errorObjects[randomIndex].hint);
+            } else {
+                showMessage("すべての「おかしなところ」を見つけました！");
+            }
+        }
+        
+        // ステージクリア
+        // clearStage関数の修正
+        function clearStage() {
+            console.log("ステージクリア処理を開始");
+            
+            try {
+                clearSound.play();
+            } catch (e) {
+                console.error("音声再生エラー:", e);
+            }
+            
+            gameState.isStageCleared = true;
+            
+            // クリア画面表示前にスクロール位置をリセット
+            clearScreen.scrollTop = 0;
+            
+            // クリア画面表示
+            clearScreen.style.display = 'block'; // flexではなくblockに変更
+            clearScreen.style.opacity = '1';
+            
+            setTimeout(() => {
+                clearScreen.classList.add('active');
+                console.log("クリア画面を表示しました");
+            }, 50);
+        }
+                
+
+        // 次のステージへ
+
+        function goToNextStage() {
+            // クリア画面を閉じる
+            clearScreen.classList.remove('active');
+            clearScreen.style.opacity = 0;
+            
+            setTimeout(() => {
+                clearScreen.style.display = 'none';
+                
+                // 最終ステージだった場合はエンディング
+                if (gameState.currentStage === stageSettings.length) {
+                    // ゲーム画面をフェードアウト
+                    gameScreen.style.opacity = 0;
+                    
+                    setTimeout(() => {
+                        showEnding();
+                    }, 500);
+                } else {
+                    // ゲーム画面を完全に非表示にする
+                    gameScreen.style.opacity = 0;
+                    
+                    setTimeout(() => {
+                        // 次のステージを準備して開始
+                        const nextStageId = gameState.currentStage + 1;
+                        startStage(nextStageId);
+                        
+                        // フェードイン
+                        setTimeout(() => {
+                            gameScreen.style.opacity = 1;
+                        }, 100);
+                    }, 500); // 十分な待機時間でフェードアウトを完了させる
+                }
+            }, 800);
+        }
+        
+        // エンディング表示
+
+        function showEnding() {
+            console.log("エンディング表示処理を開始");
+            
+            const endingScreen = document.getElementById('endingScreen');
+            if (!endingScreen) {
+                console.error("エンディング画面要素が見つかりません");
+                return; // エラー回避
+            }
+            
+            // エンディング画面を表示
+            gameScreen.style.display = 'none';
+            endingScreen.style.display = 'block';
+            
+            setTimeout(() => {
+                endingScreen.classList.add('active');
+                console.log("エンディング画面を表示しました");
+            }, 50);
+            
+            // エンディングボタンのイベントリスナー設定
+            const endingButton = document.getElementById('endingButton');
+            if (endingButton) {
+                // 既存のイベントリスナーを削除（重複防止）
+                endingButton.removeEventListener('click', resetGame);
+                
+                // 新しいイベントリスナーを追加
+                endingButton.addEventListener('click', resetGame);
+            }
+        }
+        // ゲームリセット関数
+        function resetGame() {
+            console.log("ゲームをリセットします");
+            
+            const endingScreen = document.getElementById('endingScreen');
+            endingScreen.classList.remove('active');
+            
+            setTimeout(() => {
+                endingScreen.style.display = 'none';
+                titleScreen.style.display = 'flex';
+                titleScreen.style.opacity = '1';
+                
+                // ゲーム状態リセット
+                gameState.currentStage = 0;
+                gameState.foundErrors = 0;
+                gameState.isGameStarted = false;
+                gameState.isStageCleared = false;
+                gameState.foundObjects = [];
+                
+                console.log("ゲームをリセットしました");
+            }, 500);
+        }
+
+        // BGM管理用のオブジェクト
+        let bgmPlayer = null;
+
+        // BGMの読み込みと再生
+        function setupBGM() {
+            // BGM用のオーディオ要素を作成
+            bgmPlayer = new Audio('assets/bgm.mp3'); // BGMファイルのパスを指定
+            bgmPlayer.loop = true; // ループ再生
+            bgmPlayer.volume = 0.15; // 音量（0.0〜1.0）
+            
+            // BGM読み込み完了イベント
+            bgmPlayer.addEventListener('canplaythrough', function() {
+                console.log("BGM読み込み完了");
+            });
+            
+            // BGM再生エラー処理
+            bgmPlayer.addEventListener('error', function(e) {
+                console.error("BGM再生エラー:", e);
+            });
+            
+            // ページ内クリックでBGM再生（ブラウザの自動再生制限対策）
+            document.addEventListener('click', startBGM, { once: true });
+        }
+
+        // BGM再生開始
+        function startBGM() {
+            if (bgmPlayer) {
+                // playPromiseを使って再生を試みる
+                const playPromise = bgmPlayer.play();
+                
+                // play()がPromiseを返す場合の処理
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log("BGM再生開始");
+                    }).catch(error => {
+                        console.error("BGM自動再生できませんでした:", error);
+                        // BGM再生ボタンを表示するなどの対応も可能
+                    });
+                }
+            }
+        }
+
+        
+        // ゲーム初期化
+        window.onload = initGame;
+    </script>
+</body>
+</html>
