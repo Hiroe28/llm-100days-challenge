@@ -124,7 +124,7 @@
       </div>
     </div>
     
-    <div class="main-area">
+    <div class="main-area" style="justify-content: flex-start; gap: 0;">
       <div class="palette-container">
         <!-- カラーパレット -->
         <div class="palette-section">
@@ -169,6 +169,25 @@
           </div>
         </div>
       </div>
+
+
+
+      <!-- フローティングアクションボタン -->
+      <div class="floating-actions">
+        <button class="floating-btn" id="floatingUndoBtn" title="もとにもどす">
+          <i class="fas fa-undo"></i>
+        </button>
+        <button class="floating-btn" id="floatingCopyBtn" title="コピー">
+          <i class="fas fa-copy"></i>
+        </button>
+        <button class="floating-btn danger" id="floatingDeleteBtn" title="けす">
+          <i class="fas fa-trash"></i>
+        </button>
+        <button class="floating-btn" id="floatingRotateBtn" title="まわす">
+          <i class="fas fa-sync"></i>
+        </button>
+      </div>
+
       
       <div class="canvas-container">
         <svg id="canvas" width="650" height="450"></svg>

@@ -168,6 +168,31 @@ function init() {
   
   // 新しいUI簡略化関数を呼び出し
   simplifyUI();
+
+// パレット折りたたみ機能
+const paletteToggle = document.querySelector('.palette-toggle');
+const paletteContainer = document.querySelector('.palette-container');
+const paletteToggleIcon = document.getElementById('paletteToggleIcon');
+
+if (paletteToggle) {
+  paletteToggle.addEventListener('click', () => {
+    paletteContainer.classList.toggle('collapsed');
+    if (paletteContainer.classList.contains('collapsed')) {
+      paletteToggleIcon.classList.remove('fa-chevron-left');
+      paletteToggleIcon.classList.add('fa-chevron-right');
+    } else {
+      paletteToggleIcon.classList.remove('fa-chevron-right');
+      paletteToggleIcon.classList.add('fa-chevron-left');
+    }
+  });
+}
+
+// フローティングボタンの設定
+document.getElementById('floatingUndoBtn').addEventListener('click', handleUndo);
+document.getElementById('floatingCopyBtn').addEventListener('click', handleCopyShape);
+document.getElementById('floatingDeleteBtn').addEventListener('click', handleDeleteShape);
+document.getElementById('floatingRotateBtn').addEventListener('click', () => adjustRotation(CONFIG.ROTATION_STEP));
+
 }
 
 /**
@@ -1100,18 +1125,45 @@ function initExtended() {
  * 図形イベントリスナーに追加するタッチハンドリング
  */
 // タッチイベントリスナーを修正（passive: falseを削除またはtrueに変更）
+// shapes.js に以下の関数を修正
 function addShapeTouchHandlers(g, shape) {
   g.addEventListener('touchstart', (e) => {
-    handleTouchStart(e, shape);
-  }, { passive: true }); // passiveをtrueに設定
-  
-  g.addEventListener('touchend', (e) => {
-    // e.preventDefault()を削除するか、条件付きで実行
-    if (isMultiSelectMode || Date.now() - touchStartTime >= 500) {
-      e.preventDefault();
+    // タッチ開始位置を記録
+    const touch = e.touches[0];
+    const svgRect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - svgRect.left;
+    const touchY = touch.clientY - svgRect.top;
+    
+    // SVG座標に変換
+    const svgScale = {
+      x: CONFIG.GRID_WIDTH / svgRect.width,
+      y: CONFIG.GRID_HEIGHT / svgRect.height
+    };
+    
+    dragOffset = {
+      x: touchX * svgScale.x - shape.x,
+      y: touchY * svgScale.y - shape.y
+    };
+    
+    draggedShape = shape;
+    transformMode = 'move';
+    
+    // 選択
+    if (!selectedShapeIds.includes(shape.id)) {
+      selectedShapeIds = [shape.id];
+      selectShape(shape.id);
     }
-    handleTouchEnd(e, shape);
-  }, { passive: false });
+    
+    handleTouchStart(e, shape);
+    e.preventDefault(); // この行が重要
+  }, {passive: false});
+  
+  g.addEventListener('touchmove', (e) => {
+    if (draggedShape && transformMode === 'move') {
+      e.preventDefault();
+      handleTouchMove(e);
+    }
+  }, {passive: false});
 }
 
 /**
