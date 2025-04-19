@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content=" キッズタウンビルダー - 子供向け町づくり図形エディタ" />
+  <meta property="og:description" content="ドラッグ＆ドロップで図形を配置し、家や町を自由に作れる子供向けお絵かきアプリ。色の変更、回転、サイズ調整など直感的な操作で創造力を育みます。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day029-kids-town-builder/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day029-kids-town-builder/index.html" />
+  <meta property="og:type" content="website" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content=" キッズタウンビルダー" />
+  <meta name="twitter:description" content="図形や部品を自由に配置して、かわいい家や町を作れる子供向けお絵かきアプリ。直感的な操作で色や大きさを変えたり、回転させたりして、想像力を育みます。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day029-kids-town-builder/screenshot.png" />
+
+  <title> キッズタウンビルダー</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <h1> キッズタウンビルダー</h1>
+    
+    <!-- タブ式コントロールパネル -->
+    <div class="control-tabs">
+      <div class="tab-header">
+        <button id="basicTabBtn" class="tab-btn active"><i class="fas fa-home"></i> 基本</button>
+        <button id="transformTabBtn" class="tab-btn"><i class="fas fa-arrows-alt"></i> 変形</button>
+        <button id="sizeTabBtn" class="tab-btn"><i class="fas fa-expand"></i> サイズ</button>
+        <button id="layerTabBtn" class="tab-btn"><i class="fas fa-layer-group"></i> レイヤー</button>
+      </div>
+      
+      <!-- 基本タブ -->
+      <div id="basicTab" class="control-panel tab-content active">
+        <!-- 履歴コントロール -->
+        <div class="button-group" id="historyControls">
+          <button id="undoBtn" class="control-btn" disabled title="もとにもどす">
+            <i class="fas fa-undo"></i> <span class="btn-text">もどす</span>
+          </button>
+          <button id="redoBtn" class="control-btn" disabled title="やりなおす">
+            <i class="fas fa-redo"></i> <span class="btn-text">やりなおす</span>
+          </button>
+        </div>
+        
+        <!-- 操作コントロール -->
+        <div class="button-group">
+          <button id="copyBtn" class="btn-copy control-btn" disabled title="コピー">
+            <i class="fas fa-copy"></i> <span class="btn-text">コピー</span>
+          </button>
+          <button id="deleteBtn" class="btn-delete control-btn" disabled title="けす">
+            <i class="fas fa-trash"></i> <span class="btn-text">けす</span>
+          </button>
+          <button id="clearBtn" class="btn-clear control-btn" title="ぜんぶけす">
+            <i class="fas fa-trash-alt"></i> <span class="btn-text">ぜんぶけす</span>
+          </button>
+        </div>
+        
+        <!-- グループ化コントロール -->
+        <div class="button-group">
+          <button id="multiSelectBtn" class="control-btn" title="複数選択">
+            <i class="fas fa-object-group"></i> <span class="btn-text">複数選択</span>
+          </button>
+          <button id="groupBtn" class="control-btn" disabled title="グループか">
+            <i class="fas fa-object-group"></i> <span class="btn-text">グループか</span>
+          </button>
+          <button id="ungroupBtn" class="control-btn" disabled title="グループかいじょ">
+            <i class="fas fa-object-ungroup"></i> <span class="btn-text">グループかいじょ</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- 変形タブ -->
+      <div id="transformTab" class="control-panel tab-content">
+        <div class="button-group" id="transformControls">
+          <button id="scaleDownBtn" class="control-btn" disabled title="ちいさく">
+            <i class="fas fa-search-minus"></i> <span class="btn-text">ちいさく</span>
+          </button>
+          <button id="scaleUpBtn" class="control-btn" disabled title="おおきく">
+            <i class="fas fa-search-plus"></i> <span class="btn-text">おおきく</span>
+          </button>
+        </div>
+        <div class="button-group">
+          <button id="rotateLeftBtn" class="control-btn" disabled title="左にまわす">
+            <i class="fas fa-undo"></i> <span class="btn-text">←まわす</span>
+          </button>
+          <button id="rotateRightBtn" class="control-btn" disabled title="右にまわす">
+            <i class="fas fa-redo"></i> <span class="btn-text">まわす→</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- サイズタブ -->
+      <div id="sizeTab" class="control-panel tab-content">
+        <div class="button-group" id="sizeControls">
+          <button id="widthPlusBtn" class="control-btn" disabled title="横幅を大きく">
+            <i class="fas fa-arrows-alt-h"></i> <span class="btn-text">よこ+</span>
+          </button>
+          <button id="widthMinusBtn" class="control-btn" disabled title="横幅を小さく">
+            <i class="fas fa-compress-alt"></i> <span class="btn-text">よこ-</span>
+          </button>
+        </div>
+        <div class="button-group">
+          <button id="heightPlusBtn" class="control-btn" disabled title="高さを大きく">
+            <i class="fas fa-arrows-alt-v"></i> <span class="btn-text">たて+</span>
+          </button>
+          <button id="heightMinusBtn" class="control-btn" disabled title="高さを小さく">
+            <i class="fas fa-compress-alt fa-rotate-90"></i> <span class="btn-text">たて-</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- レイヤータブ -->
+      <div id="layerTab" class="control-panel tab-content">
+        <div class="button-group" id="layerControls">
+          <button id="bringForwardBtn" class="control-btn" disabled title="前に移動">
+            <i class="fas fa-level-up-alt"></i> <span class="btn-text">まえに</span>
+          </button>
+          <button id="sendBackwardBtn" class="control-btn" disabled title="後ろに移動">
+            <i class="fas fa-level-down-alt"></i> <span class="btn-text">うしろに</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="main-area">
+      <div class="palette-container">
+        <!-- カラーパレット -->
+        <div class="palette-section">
+          <div class="palette-header" data-target="colorPalette">
+            <h2><i class="fas fa-paint-brush"></i> いろ</h2>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+          </div>
+          <div class="palette-content" id="colorPaletteContent">
+            <div class="color-grid" id="colorPalette"></div>
+          </div>
+        </div>
+        
+        <!-- フチ色パレット -->
+        <div class="palette-section">
+          <div class="palette-header" data-target="strokeColorPalette">
+            <h2><i class="fas fa-border-style"></i> フチのいろ</h2>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+          </div>
+          <div class="palette-content" id="strokePaletteContent">
+            <div class="color-grid" id="strokeColorPalette"></div>
+          </div>
+        </div>
+        
+        <!-- タブコンテナ（かたち、ぶひん、みちをタブで切り替え） -->
+        <div class="tabs-container">
+          <div class="tab-buttons">
+            <button id="shapesTab" class="tab-button active"><i class="fas fa-shapes"></i> かたち</button>
+            <button id="partsTab" class="tab-button"><i class="fas fa-puzzle-piece"></i> ぶひん</button>
+            <button id="roadsTab" class="tab-button"><i class="fas fa-road"></i> みち</button>
+          </div>
+          
+          <div id="shapesContent" class="tab-content active">
+            <div id="shapeList"></div>
+          </div>
+          
+          <div id="partsContent" class="tab-content">
+            <div id="partsList"></div>
+          </div>
+          
+          <div id="roadsContent" class="tab-content">
+            <div id="roadsList"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="canvas-container">
+        <svg id="canvas" width="650" height="450"></svg>
+        <div id="notification" class="notification"></div>
+      </div>
+    </div>
+    
+    <!-- <div class="hint">
+      ヒント: かたちをクリックしてえらび、ドラッグでうごかせます。□や○をつかって、おうちやまちをつくってみよう！
+    </div> -->
+  </div>
+
+  <!-- JavaScript ファイル -->
+  <script src="js/config.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/shapes.js"></script>
+  <script src="js/controls.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
