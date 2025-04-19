@@ -69,22 +69,21 @@ function initResponsive() {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
-    // モバイルかどうかの判定
-    const isMobile = viewportWidth <= 768;
-    
-    // ゲーム画面のスタイル調整
+    // モバイル用の設定を修正
     if (gameScreen) {
-        gameScreen.style.backgroundSize = isMobile ? 'cover' : 'contain';
+        // すべてのデバイスでcontainに統一
+        gameScreen.style.backgroundSize = 'contain';
         gameScreen.style.backgroundPosition = 'center center';
     }
     
     // エラーオブジェクトのスタイル調整
     document.querySelectorAll('.error-object').forEach(obj => {
-        obj.style.objectFit = isMobile ? 'cover' : 'contain';
+        // すべてのデバイスでcontainに統一
+        obj.style.objectFit = 'contain';
         obj.style.objectPosition = 'center center';
     });
     
-    console.log(`レスポンシブ設定完了: ${viewportWidth}x${viewportHeight}, モバイル: ${isMobile}`);
+    console.log(`レスポンシブ設定完了: ${viewportWidth}x${viewportHeight}`);
 }
 
 /**
