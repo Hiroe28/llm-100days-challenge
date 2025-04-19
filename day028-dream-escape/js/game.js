@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initGame() {
     console.log("ゲーム初期化開始");
     
+
     // アセットのプリロード
     preloadGameAssets();
 
@@ -42,6 +43,11 @@ function initGame() {
     // キャンバス要素の初期化
     hitCanvas = document.getElementById('hitCanvas');
     hitCtx = hitCanvas.getContext('2d');
+
+    initResponsive();
+
+    // リサイズ時の再調整
+    window.addEventListener('resize', initResponsive);    
     
     // 音声の読み込み
     loadSounds();
@@ -53,6 +59,32 @@ function initGame() {
     setupEventListeners();
     
     console.log("ゲーム初期化完了");
+}
+
+/**
+ * レスポンシブ画面対応の初期化
+ */
+function initResponsive() {
+    // ビューポートサイズの取得
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // モバイルかどうかの判定
+    const isMobile = viewportWidth <= 768;
+    
+    // ゲーム画面のスタイル調整
+    if (gameScreen) {
+        gameScreen.style.backgroundSize = isMobile ? 'cover' : 'contain';
+        gameScreen.style.backgroundPosition = 'center center';
+    }
+    
+    // エラーオブジェクトのスタイル調整
+    document.querySelectorAll('.error-object').forEach(obj => {
+        obj.style.objectFit = isMobile ? 'cover' : 'contain';
+        obj.style.objectPosition = 'center center';
+    });
+    
+    console.log(`レスポンシブ設定完了: ${viewportWidth}x${viewportHeight}, モバイル: ${isMobile}`);
 }
 
 /**
@@ -174,6 +206,12 @@ function startStage(stageId) {
     showMessage(`この${stage.name}には3つの「おかしなところ」があります。見つけてください。`);
 }
 
+/**
+ * ステージの間違いオブジェクト読み込み
+ */
+/**
+ * ステージの間違いオブジェクト読み込み
+ */
 function loadStageObjects(stage) {
     // 既存のオブジェクトをクリア
     errorLayer.innerHTML = '';
@@ -182,51 +220,50 @@ function loadStageObjects(stage) {
     // エラーレイヤーを確実に表示
     if (errorLayer) {
         errorLayer.style.display = 'block';
+        errorLayer.style.visibility = 'visible';
         errorLayer.style.opacity = '1';
     }
+    
+    // モバイルかどうかの判定
+    const isMobile = window.innerWidth <= 768;
     
     // 新しいオブジェクトを追加
     stage.errorObjects.forEach(obj => {
         const imgElement = document.createElement('img');
         
-        // 画像読み込み確認用
-        imgElement.onload = function() {
-            console.log(`エラーオブジェクト読み込み完了: ${obj.id}`);
-            // 確実に表示されるようにスタイルを設定
-            this.style.opacity = '1';
-            this.style.visibility = 'visible';
-            this.style.display = 'block';
-        };
-        
-        imgElement.onerror = function() {
-            console.error(`エラーオブジェクト読み込み失敗: ${obj.id}, ${obj.image}`);
-        };
-        
         // 基本スタイルの設定
         imgElement.className = 'error-object';
         imgElement.id = obj.id + 'Wrong';
         imgElement.alt = obj.id;
-        imgElement.style.opacity = '1';
-        imgElement.style.visibility = 'visible';
         imgElement.style.display = 'block';
+        imgElement.style.visibility = 'visible';
+        imgElement.style.opacity = '1';
         
-        // 画像のソースを最後に設定（onloadが先に設定されるようにするため）
+        // モバイル用の調整
+        if (isMobile) {
+            imgElement.style.objectFit = 'cover';
+            imgElement.style.objectPosition = 'center center';
+        } else {
+            imgElement.style.objectFit = 'contain';
+        }
+        
+        // 画像読み込み確認用
+        imgElement.onload = function() {
+            console.log(`エラーオブジェクト読み込み完了: ${obj.id}`);
+            // 再度表示状態を確認
+            this.style.display = 'block';
+            this.style.visibility = 'visible';
+            this.style.opacity = '1';
+        };
+        
+        // 画像のソースを設定
         imgElement.src = obj.image;
         
         errorLayer.appendChild(imgElement);
         errorObjects.push(imgElement);
-        
-        // デバッグ情報
-        console.log(`エラーオブジェクト追加: ${obj.id}, ${obj.image}`);
     });
     
-    // エラーレイヤーの状態を確認
-    console.log('エラーレイヤー:', {
-        display: errorLayer.style.display,
-        opacity: errorLayer.style.opacity,
-        visibility: errorLayer.style.visibility,
-        childCount: errorLayer.childNodes.length
-    });
+    console.log(`エラーオブジェクト設定完了: ${errorObjects.length}個`);
 }
 
 /**
@@ -381,8 +418,10 @@ function handleCorrect(index, x, y) {
     let errorObject = document.getElementById(obj.id + 'Wrong');
     
     if (errorObject) {
-        // アニメーション効果
-        errorObject.style.animation = 'correct 1s ease';
+        // 確実に非表示にする（スタイルを直接上書き）
+        errorObject.style.display = 'block';
+        errorObject.style.visibility = 'visible';
+        errorObject.style.opacity = '1';
         
         // メッセージを表示
         if (stage.correctMessages && stage.correctMessages[obj.id]) {
@@ -393,7 +432,12 @@ function handleCorrect(index, x, y) {
         
         // アニメーション後にフェードアウト
         setTimeout(() => {
-            errorObject.style.opacity = 0;
+            // アニメーション効果を明示的に適用
+            errorObject.style.transition = 'opacity 1s ease';
+            errorObject.style.opacity = '0';
+            errorObject.style.visibility = 'hidden';
+            
+            console.log(`エラーオブジェクトを非表示にしました: ${obj.id}`);
             
             // すべての間違いが見つかったらクリア
             if (gameState.foundErrors === gameState.totalErrors) {

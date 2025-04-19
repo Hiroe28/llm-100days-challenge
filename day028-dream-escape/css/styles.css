@@ -222,25 +222,7 @@ body {
     box-shadow: 0 7px 20px rgba(255, 154, 158, 0.7);
 }
 
-/* オブジェクトスタイル */
-.error-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* 基本的にクリックを通過させる */
-    z-index: 2;
-}
 
-.error-object {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    pointer-events: none;
-    transition: opacity 1.5s ease;
-}
 
 /* チェックマークスタイル */
 .check-mark {
@@ -693,17 +675,6 @@ body {
     transform: scale(1.1);
 }
 
-/* エラーオブジェクトレイヤーの初期透明度を設定 */
-.error-layer {
-    transition: opacity 0.3s ease;
-}
-
-/* エラーオブジェクトの初期表示を調整 */
-.error-object {
-    opacity: 0; /* 初期状態では非表示 */
-    transition: opacity 0.5s ease;
-}
-
 /* プリローダースタイル */
 .preloader {
     position: fixed;
@@ -744,7 +715,7 @@ body {
     visibility: hidden;
 }
 
-/* エラーオブジェクトの表示問題修正 */
+/* エラーオブジェクトの表示問題を完全に修正 */
 .error-layer {
     position: absolute;
     top: 0;
@@ -753,7 +724,9 @@ body {
     height: 100%;
     pointer-events: none;
     z-index: 2;
-    opacity: 1 !important; /* 強制的に表示 */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .error-object {
@@ -762,8 +735,10 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
     pointer-events: none;
-    opacity: 1 !important; /* 強制的に表示 */
-    transition: opacity 1.5s ease;
+    /* 初期状態で確実に表示するための設定 */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1;
+    transition: opacity 1s ease;
 }
