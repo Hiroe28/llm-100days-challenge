@@ -172,6 +172,8 @@ function showFeedback(x, y) {
  * ステージクリア画面表示
  */
 function showClearScreen(stageId) {
+    resetAllScrolls();
+
     console.log("ステージクリア処理を開始");
     
     try {
@@ -212,6 +214,8 @@ function showClearScreen(stageId) {
  * エンディング画面表示
  */
 function showEnding() {
+    resetAllScrolls();
+    
     console.log("エンディング表示処理を開始");
     
     if (!endingScreen) {

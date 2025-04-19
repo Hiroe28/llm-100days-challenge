@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function initGame() {
     console.log("ゲーム初期化開始");
     
+    // アセットのプリロード
+    preloadGameAssets();
+
     // UI要素の初期化
     initUIElements();
     
@@ -121,6 +124,9 @@ function setupEventListeners() {
 /**
  * ステージ開始
  */
+/**
+ * ステージ開始
+ */
 function startStage(stageId) {
     console.log(`ステージ${stageId}を開始します`);
     
@@ -129,6 +135,9 @@ function startStage(stageId) {
     gameState.foundErrors = 0;
     gameState.isStageCleared = false;
     gameState.foundObjects = [];
+    
+    // エラーオブジェクトレイヤーを初期状態で非表示
+    if (errorLayer) errorLayer.style.opacity = '0';
     
     // stageIdが配列の範囲内かチェック
     if (stageId < 1 || stageId > stageSettings.length) {
@@ -145,14 +154,26 @@ function startStage(stageId) {
     // ステージ情報表示
     updateStageInfo(stageId);
     
-    // 背景設定
-    gameScreen.style.backgroundImage = `url('${stage.background}')`;
-    
-    // 間違いオブジェクト設定
-    loadStageObjects(stage);
-    
-    // マスク画像読み込み
-    loadMaskImage(stage.maskImage);
+    // 背景読み込み完了を待機
+    const bgImage = new Image();
+    bgImage.onload = function() {
+        console.log("背景画像の読み込みが完了しました");
+        
+        // 背景設定
+        gameScreen.style.backgroundImage = `url('${stage.background}')`;
+        
+        // 間違いオブジェクト設定
+        loadStageObjects(stage);
+        
+        // マスク画像読み込み
+        loadMaskImage(stage.maskImage);
+        
+        // エラーオブジェクトを表示
+        setTimeout(() => {
+            if (errorLayer) errorLayer.style.opacity = '1';
+        }, 100);
+    };
+    bgImage.src = stage.background;
     
     // もしストーリー画面が表示されていたら消す
     if (storyScreen.style.display !== 'none') {
@@ -167,7 +188,6 @@ function startStage(stageId) {
     // 開始メッセージ
     showMessage(`この${stage.name}には3つの「おかしなところ」があります。見つけてください。`);
 }
-
 /**
  * ステージの間違いオブジェクト読み込み
  */
@@ -426,4 +446,62 @@ function resetGame() {
             console.log("ゲームをリセットしました");
         }, 50);
     }, 500);
+}
+
+/**
+ * ゲームアセットのプリロード
+ */
+function preloadGameAssets() {
+    const preloader = document.getElementById('preloader');
+    
+    // プリロードする画像リスト
+    const imagesToPreload = [];
+    
+    // 各ステージの画像をリストに追加
+    stageSettings.forEach(stage => {
+        imagesToPreload.push(stage.background);
+        imagesToPreload.push(stage.maskImage);
+        
+        stage.errorObjects.forEach(obj => {
+            imagesToPreload.push(obj.image);
+        });
+    });
+    
+    // タイトル・ストーリー・エンディング画像なども追加
+    // （必要に応じて追加）
+    
+    let loadedCount = 0;
+    const totalImages = imagesToPreload.length;
+    
+    // 画像を順次プリロード
+    imagesToPreload.forEach(src => {
+        const img = new Image();
+        img.onload = img.onerror = () => {
+            loadedCount++;
+            
+            // 進捗表示更新
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText) {
+                loadingText.textContent = `読み込み中... ${Math.floor((loadedCount / totalImages) * 100)}%`;
+            }
+            
+            // すべての画像が読み込み完了したら
+            if (loadedCount >= totalImages) {
+                console.log("すべての画像がプリロードされました");
+                
+                // プリローダーを非表示
+                if (preloader) {
+                    preloader.classList.add('hidden');
+                    
+                    // アニメーション完了後に要素を削除
+                    setTimeout(() => {
+                        if (preloader.parentNode) {
+                            preloader.parentNode.removeChild(preloader);
+                        }
+                    }, 500);
+                }
+            }
+        };
+        img.src = src;
+    });
 }
