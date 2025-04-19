@@ -153,7 +153,7 @@ function init() {
   recordHistory('initial state');
   
   // 初期通知
-  showNotification('かんたんおえかきアプリへようこそ！');
+  showNotification('キッズタウンビルダーへようこそ！');
 
   initExtended();
 
@@ -187,11 +187,20 @@ if (paletteToggle) {
   });
 }
 
-// フローティングボタンの設定
+// フローティングボタンの追加設定
 document.getElementById('floatingUndoBtn').addEventListener('click', handleUndo);
 document.getElementById('floatingCopyBtn').addEventListener('click', handleCopyShape);
 document.getElementById('floatingDeleteBtn').addEventListener('click', handleDeleteShape);
 document.getElementById('floatingRotateBtn').addEventListener('click', () => adjustRotation(CONFIG.ROTATION_STEP));
+// 追加ボタンのイベントリスナー
+document.getElementById('floatingScaleUpBtn').addEventListener('click', () => adjustScale(CONFIG.SCALE_STEP));
+document.getElementById('floatingScaleDownBtn').addEventListener('click', () => adjustScale(-CONFIG.SCALE_STEP));
+
+// リサイズイベントにリスナーを追加
+window.addEventListener('resize', adjustFloatingButtonsPosition);
+
+// 初期位置調整を実行
+adjustFloatingButtonsPosition();
 
 }
 
@@ -1294,4 +1303,77 @@ function setupButtonListener(panel, btnId, handler) {
   if (btn) {
     btn.addEventListener('click', handler);
   }
+}
+
+// main.jsに追加する修正コード
+// initの関数の最後に配置するコードを修正
+
+// フローティングボタンのイベントハンドラと位置調整
+function setupFloatingButtons() {
+  // フローティングボタンの要素を取得
+  const floatingBtns = {
+    undo: document.getElementById('floatingUndoBtn'),
+    copy: document.getElementById('floatingCopyBtn'),
+    delete: document.getElementById('floatingDeleteBtn'),
+    rotate: document.getElementById('floatingRotateBtn'),
+    scaleUp: document.getElementById('floatingScaleUpBtn'),
+    scaleDown: document.getElementById('floatingScaleDownBtn')
+  };
+  
+  // イベントリスナーを設定（各ボタンが存在するか確認してから）
+  if (floatingBtns.undo) floatingBtns.undo.addEventListener('click', handleUndo);
+  if (floatingBtns.copy) floatingBtns.copy.addEventListener('click', handleCopyShape);
+  if (floatingBtns.delete) floatingBtns.delete.addEventListener('click', handleDeleteShape);
+  if (floatingBtns.rotate) floatingBtns.rotate.addEventListener('click', () => adjustRotation(CONFIG.ROTATION_STEP));
+  if (floatingBtns.scaleUp) floatingBtns.scaleUp.addEventListener('click', () => adjustScale(CONFIG.SCALE_STEP));
+  if (floatingBtns.scaleDown) floatingBtns.scaleDown.addEventListener('click', () => adjustScale(-CONFIG.SCALE_STEP));
+  
+  // 位置調整
+  adjustFloatingButtonsPosition();
+  
+  // デバッグ用コンソールログ
+  console.log('フローティングボタンをセットアップしました');
+}
+
+// フローティングボタンの位置調整
+function adjustFloatingButtonsPosition() {
+  const canvasContainer = document.querySelector('.canvas-container');
+  const floatingActions = document.querySelector('.floating-actions');
+  
+  if (!canvasContainer || !floatingActions) {
+    console.log('キャンバスコンテナまたはフローティングボタンが見つかりません');
+    return;
+  }
+  
+  // モバイルかどうかで位置調整を変更
+  if (window.innerWidth <= 768) {
+    floatingActions.style.position = 'fixed';
+    floatingActions.style.bottom = '20px';
+    floatingActions.style.top = 'auto';
+    floatingActions.style.left = '0';
+    floatingActions.style.right = '0';
+    floatingActions.style.transform = 'none';
+    floatingActions.style.flexDirection = 'row';
+    floatingActions.style.justifyContent = 'center';
+  } else {
+    floatingActions.style.position = 'absolute';
+    floatingActions.style.top = '50%';
+    floatingActions.style.right = '10px';
+    floatingActions.style.transform = 'translateY(-50%)';
+    floatingActions.style.flexDirection = 'column';
+  }
+}
+
+// DOMContentLoadedイベントリスナー
+document.addEventListener('DOMContentLoaded', () => {
+  // 既存の初期化が完了した後にフローティングボタンをセットアップ
+  setTimeout(setupFloatingButtons, 500);
+});
+
+// リサイズイベントハンドラ
+window.addEventListener('resize', adjustFloatingButtonsPosition);
+
+// 初期ロード時にセットアップ（DOMContentLoadedが既に発火済みの場合用）
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setupFloatingButtons();
 }

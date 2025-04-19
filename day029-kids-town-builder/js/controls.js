@@ -677,25 +677,25 @@ function handleDeleteShape() {
  */
 function handleClearAll() {
   // 確認ダイアログ
-  // if (confirm('ほんとうにぜんぶけしますか？')) {
-  // 操作前の状態を記録
-  recordHistory('before clear all');
-  
-  // 図形配列をクリア
-  shapes = [];
-  
-  // 図形要素だけを取得（グリッド線以外）
-  const shapeElements = Array.from(canvas.querySelectorAll('[id^="shape-"]'));
-  
-  // 図形要素を削除
-  shapeElements.forEach(element => canvas.removeChild(element));
-  
-  // 選択状態をリセット
-  clearSelection();
-  
-  // 通知を表示
-  showNotification('ぜんぶけしました');
-  // }
+  if (confirm('ほんとうにぜんぶけしますか？')) {
+    // 操作前の状態を記録
+    recordHistory('before clear all');
+    
+    // 図形配列をクリア
+    shapes = [];
+    
+    // 図形要素だけを取得（グリッド線以外）
+    const shapeElements = Array.from(canvas.querySelectorAll('[id^="shape-"]'));
+    
+    // 図形要素を削除
+    shapeElements.forEach(element => canvas.removeChild(element));
+    
+    // 選択状態をリセット
+    clearSelection();
+    
+    // 通知を表示
+    showNotification('ぜんぶけしました');
+  }
 }
 
 /**

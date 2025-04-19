@@ -236,23 +236,23 @@ h1:after {
   display: none;
 }
 
-/* メイン領域 */
+/* メインエリアを横並びに設定 */
 .main-area {
   display: flex;
-  flex-grow: 1;
-  gap: 8px;
-  min-height: 0;
+  flex-direction: row; /* 横並びに明示的に指定 */
+  flex-wrap: nowrap; /* 折り返しなし */
+  gap: 10px;
+  min-height: 450px;
+  width: 100%;
 }
 
-/* パレットコンテナ */
+/* パレットコンテナの幅を固定 */
 .palette-container {
-  width: min(250px, 25%);
+  width: 250px;
   min-width: 220px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex-shrink: 0;
+  flex: 0 0 auto; /* 幅を固定 */
 }
+
 
 /* カラーパレット */
 .color-grid {
@@ -371,6 +371,9 @@ h1:after {
   align-items: center;
   overflow: hidden;
   border: 1px solid #e0e0e0;
+  flex: 1; /* 残りのスペースを埋める */
+  height: auto;
+
 }
 
 #canvas {
@@ -563,6 +566,7 @@ h1:after {
   .palette-container {
     width: 100%;
     min-width: 100%;
+    margin-bottom: 10px;
   }
   
   .tab-content {
@@ -571,6 +575,7 @@ h1:after {
   
   .canvas-container {
     min-height: 350px;
+    width: 100%;
   }
   
   h1 {
@@ -625,27 +630,30 @@ h1:after {
   display: none; /* デスクトップでは非表示 */
 }
 
+
 @media (max-width: 768px) {
   .palette-toggle {
     display: flex;
   }
 }
+/* styles.cssの修正部分 - 重複しているスタイルを整理する */
 
 /* フローティングアクションボタン */
 .floating-actions {
-  position: fixed;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  display: none; /* デスクトップでは非表示 */
-  justify-content: center;
-  gap: 10px;
-  z-index: 1000;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  z-index: 10; /* キャンバス上の要素よりも上に表示されるように */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: auto;
 }
 
 .floating-btn {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background-color: var(--primary-color);
   color: white;
@@ -653,8 +661,14 @@ h1:after {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.floating-btn:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .floating-btn.danger {
@@ -662,11 +676,28 @@ h1:after {
 }
 
 .floating-btn i {
-  font-size: 20px;
+  font-size: 16px;
 }
 
+/* モバイル向けスタイル */
 @media (max-width: 768px) {
   .floating-actions {
-    display: flex;
+    position: fixed;
+    bottom: 20px;
+    top: auto;
+    left: 0;
+    right: 0;
+    transform: none;
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .floating-btn {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .floating-btn i {
+    font-size: 20px;
   }
 }

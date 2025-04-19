@@ -124,7 +124,8 @@
       </div>
     </div>
     
-    <div class="main-area" style="justify-content: flex-start; gap: 0;">
+    <!-- index.htmlのmain-area部分を修正 -->
+    <div class="main-area">
       <div class="palette-container">
         <!-- カラーパレット -->
         <div class="palette-section">
@@ -170,28 +171,31 @@
         </div>
       </div>
 
-
-
-      <!-- フローティングアクションボタン -->
-      <div class="floating-actions">
-        <button class="floating-btn" id="floatingUndoBtn" title="もとにもどす">
-          <i class="fas fa-undo"></i>
-        </button>
-        <button class="floating-btn" id="floatingCopyBtn" title="コピー">
-          <i class="fas fa-copy"></i>
-        </button>
-        <button class="floating-btn danger" id="floatingDeleteBtn" title="けす">
-          <i class="fas fa-trash"></i>
-        </button>
-        <button class="floating-btn" id="floatingRotateBtn" title="まわす">
-          <i class="fas fa-sync"></i>
-        </button>
-      </div>
-
-      
       <div class="canvas-container">
         <svg id="canvas" width="650" height="450"></svg>
         <div id="notification" class="notification"></div>
+        
+        <!-- フローティングボタン -->
+        <div class="floating-actions">
+          <button class="floating-btn" id="floatingUndoBtn" title="もとにもどす">
+            <i class="fas fa-undo"></i>
+          </button>
+          <button class="floating-btn" id="floatingCopyBtn" title="コピー">
+            <i class="fas fa-copy"></i>
+          </button>
+          <button class="floating-btn danger" id="floatingDeleteBtn" title="けす">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button class="floating-btn" id="floatingRotateBtn" title="まわす">
+            <i class="fas fa-sync"></i>
+          </button>
+          <button class="floating-btn" id="floatingScaleUpBtn" title="おおきく">
+            <i class="fas fa-search-plus"></i>
+          </button>
+          <button class="floating-btn" id="floatingScaleDownBtn" title="ちいさく">
+            <i class="fas fa-search-minus"></i>
+          </button>
+        </div>
       </div>
     </div>
     
