@@ -136,9 +136,6 @@ function startStage(stageId) {
     gameState.isStageCleared = false;
     gameState.foundObjects = [];
     
-    // エラーオブジェクトレイヤーを初期状態で非表示
-    if (errorLayer) errorLayer.style.opacity = '0';
-    
     // stageIdが配列の範囲内かチェック
     if (stageId < 1 || stageId > stageSettings.length) {
         console.error(`無効なステージID: ${stageId}`);
@@ -154,26 +151,14 @@ function startStage(stageId) {
     // ステージ情報表示
     updateStageInfo(stageId);
     
-    // 背景読み込み完了を待機
-    const bgImage = new Image();
-    bgImage.onload = function() {
-        console.log("背景画像の読み込みが完了しました");
-        
-        // 背景設定
-        gameScreen.style.backgroundImage = `url('${stage.background}')`;
-        
-        // 間違いオブジェクト設定
-        loadStageObjects(stage);
-        
-        // マスク画像読み込み
-        loadMaskImage(stage.maskImage);
-        
-        // エラーオブジェクトを表示
-        setTimeout(() => {
-            if (errorLayer) errorLayer.style.opacity = '1';
-        }, 100);
-    };
-    bgImage.src = stage.background;
+    // 背景設定
+    gameScreen.style.backgroundImage = `url('${stage.background}')`;
+    
+    // 間違いオブジェクト設定
+    loadStageObjects(stage);
+    
+    // マスク画像読み込み
+    loadMaskImage(stage.maskImage);
     
     // もしストーリー画面が表示されていたら消す
     if (storyScreen.style.display !== 'none') {
@@ -188,24 +173,59 @@ function startStage(stageId) {
     // 開始メッセージ
     showMessage(`この${stage.name}には3つの「おかしなところ」があります。見つけてください。`);
 }
-/**
- * ステージの間違いオブジェクト読み込み
- */
+
 function loadStageObjects(stage) {
     // 既存のオブジェクトをクリア
     errorLayer.innerHTML = '';
     errorObjects = [];
     
+    // エラーレイヤーを確実に表示
+    if (errorLayer) {
+        errorLayer.style.display = 'block';
+        errorLayer.style.opacity = '1';
+    }
+    
     // 新しいオブジェクトを追加
     stage.errorObjects.forEach(obj => {
         const imgElement = document.createElement('img');
-        imgElement.src = obj.image;
+        
+        // 画像読み込み確認用
+        imgElement.onload = function() {
+            console.log(`エラーオブジェクト読み込み完了: ${obj.id}`);
+            // 確実に表示されるようにスタイルを設定
+            this.style.opacity = '1';
+            this.style.visibility = 'visible';
+            this.style.display = 'block';
+        };
+        
+        imgElement.onerror = function() {
+            console.error(`エラーオブジェクト読み込み失敗: ${obj.id}, ${obj.image}`);
+        };
+        
+        // 基本スタイルの設定
         imgElement.className = 'error-object';
         imgElement.id = obj.id + 'Wrong';
         imgElement.alt = obj.id;
-        errorLayer.appendChild(imgElement);
+        imgElement.style.opacity = '1';
+        imgElement.style.visibility = 'visible';
+        imgElement.style.display = 'block';
         
+        // 画像のソースを最後に設定（onloadが先に設定されるようにするため）
+        imgElement.src = obj.image;
+        
+        errorLayer.appendChild(imgElement);
         errorObjects.push(imgElement);
+        
+        // デバッグ情報
+        console.log(`エラーオブジェクト追加: ${obj.id}, ${obj.image}`);
+    });
+    
+    // エラーレイヤーの状態を確認
+    console.log('エラーレイヤー:', {
+        display: errorLayer.style.display,
+        opacity: errorLayer.style.opacity,
+        visibility: errorLayer.style.visibility,
+        childCount: errorLayer.childNodes.length
     });
 }
 

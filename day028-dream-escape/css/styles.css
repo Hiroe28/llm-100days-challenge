@@ -743,3 +743,27 @@ body {
     opacity: 0;
     visibility: hidden;
 }
+
+/* エラーオブジェクトの表示問題修正 */
+.error-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 1 !important; /* 強制的に表示 */
+}
+
+.error-object {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    opacity: 1 !important; /* 強制的に表示 */
+    transition: opacity 1.5s ease;
+}
