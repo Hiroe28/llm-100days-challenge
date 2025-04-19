@@ -306,63 +306,91 @@ function handleGameInteraction(e) {
     // スマホかどうか判定
     const isMobile = window.innerWidth <= 768;
     
-    // キャンバスとゲーム画面の比率計算（スマホの場合は調整）
-    let scaleX, scaleY;
-    if (isMobile) {
-        // 表示されている背景画像のサイズを取得
-        const bgWidth = rect.width;
-        const bgHeight = bgWidth * (2/3); // アスペクト比3:2の場合
-        
-        scaleX = hitCanvas.width / bgWidth;
-        scaleY = hitCanvas.height / bgHeight;
+    // デバッグ情報
+    console.log("画面サイズ:", rect.width, "x", rect.height);
+    console.log("マスクサイズ:", hitCanvas.width, "x", hitCanvas.height);
+    
+    // 表示されている背景画像の実際のサイズを計算
+    // アスペクト比を維持した状態での表示サイズ
+    let displayWidth, displayHeight;
+    const canvasAspect = hitCanvas.width / hitCanvas.height;
+    const screenAspect = rect.width / rect.height;
+    
+    if (screenAspect > canvasAspect) {
+        // 高さに合わせる
+        displayHeight = rect.height;
+        displayWidth = displayHeight * canvasAspect;
     } else {
-        scaleX = hitCanvas.width / rect.width;
-        scaleY = hitCanvas.height / rect.height;
+        // 幅に合わせる
+        displayWidth = rect.width;
+        displayHeight = displayWidth / canvasAspect;
     }
     
-    // クリック位置をマスクの座標系に変換
-    const x = Math.floor((e.clientX - rect.left) * scaleX);
-    const y = Math.floor((e.clientY - rect.top) * scaleY);
+    // 画像が中央配置されているため、オフセットを計算
+    const offsetX = (rect.width - displayWidth) / 2;
+    const offsetY = (rect.height - displayHeight) / 2;
     
-    console.log(`座標変換後: (${x}, ${y})`);
+    // クリック位置をキャンバス座標に変換
+    let x, y;
     
-    // 視覚フィードバックを表示
-    showFeedback(e.clientX - rect.left, e.clientY - rect.top);
-    
-    // 座標が範囲内かチェック
-    if (x >= 0 && x < hitCanvas.width && y >= 0 && y < hitCanvas.height) {
-        // キャンバスのピクセル色を取得してヒットテスト
-        const pixel = hitCtx.getImageData(x, y, 1, 1).data;
-        const pixelColor = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
+    // クリック位置が画像内かチェック
+    if (e.clientX - rect.left >= offsetX && 
+        e.clientX - rect.left <= offsetX + displayWidth &&
+        e.clientY - rect.top >= offsetY && 
+        e.clientY - rect.top <= offsetY + displayHeight) {
         
-        console.log(`クリック位置: (${x}, ${y}), 色: ${pixelColor}`);
+        // 画像内の相対位置を計算
+        const relativeX = (e.clientX - rect.left - offsetX) / displayWidth;
+        const relativeY = (e.clientY - rect.top - offsetY) / displayHeight;
         
-        // エラー領域の判定
-        const stage = stageSettings[gameState.currentStage - 1];
-        let errorIndex = -1;
+        // マスクのサイズに変換
+        x = Math.floor(relativeX * hitCanvas.width);
+        y = Math.floor(relativeY * hitCanvas.height);
         
-        for (let i = 0; i < stage.errorObjects.length; i++) {
-            const obj = stage.errorObjects[i];
-            console.log(`比較中: ${obj.id}, 色: ${obj.color}`);
+        console.log(`変換座標: (${x}, ${y})`);
+        
+        // 視覚フィードバックを表示
+        showFeedback(e.clientX - rect.left, e.clientY - rect.top);
+        
+        // 座標が範囲内かチェック
+        if (x >= 0 && x < hitCanvas.width && y >= 0 && y < hitCanvas.height) {
+            // キャンバスのピクセル色を取得してヒットテスト
+            const pixel = hitCtx.getImageData(x, y, 1, 1).data;
+            const pixelColor = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
             
-            // 完全一致だけでなく、近似一致も許容する
-            if (isColorMatch(pixel, obj.color) && !gameState.foundObjects.includes(obj.id)) {
-                errorIndex = i;
-                console.log(`一致しました: ${obj.id}`);
-                break;
+            console.log(`クリック位置: (${x}, ${y}), 色: ${pixelColor}`);
+            
+            // エラー領域の判定
+            const stage = stageSettings[gameState.currentStage - 1];
+            let errorIndex = -1;
+            
+            for (let i = 0; i < stage.errorObjects.length; i++) {
+                const obj = stage.errorObjects[i];
+                console.log(`比較中: ${obj.id}, 色: ${obj.color}`);
+                
+                // 完全一致だけでなく、近似一致も許容する
+                if (isColorMatch(pixel, obj.color) && !gameState.foundObjects.includes(obj.id)) {
+                    errorIndex = i;
+                    console.log(`一致しました: ${obj.id}`);
+                    break;
+                }
             }
-        }
-        
-        if (errorIndex !== -1) {
-            // 正解処理
-            handleCorrect(errorIndex, e.clientX - rect.left, e.clientY - rect.top);
+            
+            if (errorIndex !== -1) {
+                // 正解処理
+                handleCorrect(errorIndex, e.clientX - rect.left, e.clientY - rect.top);
+            } else {
+                // 不正解処理
+                playErrorSound();
+                showMessage("ここには異常はないようです...");
+            }
         } else {
-            // 不正解処理
+            // 範囲外クリック
             playErrorSound();
-            showMessage("ここには異常はないようです...");
+            showMessage("ここには何もないようです...");
         }
     } else {
-        // 範囲外クリック
+        // 画像外クリック
         playErrorSound();
         showMessage("ここには何もないようです...");
     }
