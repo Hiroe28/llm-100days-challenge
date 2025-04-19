@@ -496,12 +496,13 @@ body {
     /* コンテナの高さと幅を調整して全体が見えるようにする */
     .container {
         width: 100%;
-        height: 90vh; /* 高さを調整 */
+        height: 90vh;
         max-height: none;
-        overflow: visible; /* 内容がはみ出てもよいように */
         display: flex;
         justify-content: center;
-        align-items: center;        
+        align-items: center;
+        position: relative;
+        overflow: hidden; /* visible ではなく hidden に修正 */
     }
     
     .title-screen h1 {
@@ -590,23 +591,53 @@ body {
     
     /* ゲーム画面のスタイル修正 - 重要な変更 */
     .game-screen {
-        background-size: contain !important; /* coverからcontainに戻す */
-        background-position: center center;
-        background-repeat: no-repeat;
         width: 100%;
-        height: 0;
-        padding-bottom: 66.67%; /* アスペクト比 3:2 を維持 */
-        position: relative;
-
+        height: 100%; /* 0ではなく100%に修正 */
+        position: absolute;
+        background-size: contain !important;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding-bottom: 0; /* パディングをなくす */
     }
+
+    /* エラーレイヤーの修正 */
+    .error-layer {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 2;
+    }    
 
     /* エラーオブジェクトの表示方法も一致させる */
     .error-object {
-        object-fit: contain !important; /* coverからcontainに戻す */
+        position: absolute;
         width: 100%;
         height: 100%;
+        top: 0;
+        left: 0;
+        object-fit: contain !important;
     }
-
+    .sound-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 44px;
+        height: 44px;
+        z-index: 100; /* z-indexを高く設定 */
+    }
+    
+    .message {
+        position: absolute;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100; /* z-indexを高く設定 */
+        width: 80%;
+        max-width: 300px;
+    }
 }
 
 /* 縦向きモバイル用の調整 */

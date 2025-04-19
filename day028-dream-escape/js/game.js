@@ -303,9 +303,22 @@ function handleGameInteraction(e) {
     // クリック位置を取得
     const rect = gameScreen.getBoundingClientRect();
     
-    // キャンバスとゲーム画面の比率計算
-    const scaleX = hitCanvas.width / rect.width;
-    const scaleY = hitCanvas.height / rect.height;
+    // スマホかどうか判定
+    const isMobile = window.innerWidth <= 768;
+    
+    // キャンバスとゲーム画面の比率計算（スマホの場合は調整）
+    let scaleX, scaleY;
+    if (isMobile) {
+        // 表示されている背景画像のサイズを取得
+        const bgWidth = rect.width;
+        const bgHeight = bgWidth * (2/3); // アスペクト比3:2の場合
+        
+        scaleX = hitCanvas.width / bgWidth;
+        scaleY = hitCanvas.height / bgHeight;
+    } else {
+        scaleX = hitCanvas.width / rect.width;
+        scaleY = hitCanvas.height / rect.height;
+    }
     
     // クリック位置をマスクの座標系に変換
     const x = Math.floor((e.clientX - rect.left) * scaleX);
