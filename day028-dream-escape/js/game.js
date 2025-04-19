@@ -397,6 +397,7 @@ function showHint() {
  * ゲームリセット
  */
 function resetGame() {
+    resetAllScrolls();
     console.log("ゲームをリセットします");
     
     // スクロール位置をリセット
@@ -406,7 +407,7 @@ function resetGame() {
     
     endingScreen.classList.remove('active');
     endingScreen.style.opacity = '0';
-    
+
     setTimeout(() => {
         endingScreen.style.display = 'none';
         titleScreen.style.display = 'flex';

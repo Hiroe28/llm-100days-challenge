@@ -34,29 +34,58 @@ function initUIElements() {
 }
 
 /**
+ * 全画面のスクロールリセット
+ * すべての画面遷移時に呼び出す共通関数
+ */
+function resetAllScrolls() {
+    // すべてのスクロール可能要素をリセット
+    const scrollableElements = [
+      document.getElementById('storyScreen'),
+      document.getElementById('clearScreen'),
+      document.getElementById('endingScreen')
+    ];
+    
+    scrollableElements.forEach(element => {
+      if (element) {
+        // スクロール位置をリセット
+        setTimeout(() => {
+          element.scrollTop = 0;
+        }, 10);
+      }
+    });
+  }
+  
+
+/**
  * ストーリー画面表示
  */
 function showStory() {
-    // スクロール位置をリセット
-    storyScreen.scrollTop = 0;
+    // まず強制的にスクロールリセット
+    resetAllScrolls();
     
     // フェードアウト効果
     titleScreen.style.transition = "opacity 0.8s ease";
     titleScreen.style.opacity = 0;
     
     setTimeout(() => {
-        titleScreen.style.display = 'none';
-        storyScreen.style.display = 'flex';
-        storyScreen.style.opacity = 0; // 初期状態は透明
+      titleScreen.style.display = 'none';
+      storyScreen.style.display = 'flex';
+      storyScreen.style.opacity = 0;
+      
+      // 表示後にも強制的にスクロールリセット
+      resetAllScrolls();
+      
+      // フェードイン
+      setTimeout(() => {
+        storyScreen.style.transition = "opacity 0.8s ease";
+        storyScreen.style.opacity = 1;
+        storyScreen.classList.add('active');
         
-        // 表示後にフェードイン
-        setTimeout(() => {
-            storyScreen.style.transition = "opacity 0.8s ease";
-            storyScreen.style.opacity = 1;
-            storyScreen.classList.add('active');
-        }, 50);
+        // 再度スクロールリセット
+        resetAllScrolls();
+      }, 50);
     }, 800);
-}
+  }
 
 /**
  * ゲーム画面にステージ情報を表示
@@ -240,6 +269,7 @@ function returnToTitle() {
  * 次のステージへ移行
  */
 function goToNextStage() {
+    resetAllScrolls();
     // クリア画面を閉じる
     clearScreen.classList.remove('active');
     clearScreen.style.opacity = 0;
