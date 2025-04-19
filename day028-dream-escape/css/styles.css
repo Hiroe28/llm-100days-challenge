@@ -1,0 +1,679 @@
+/* 全体のスタイル */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Mochiy Pop One', sans-serif;
+    background-color: #e4d6ee;
+    color: #333;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    touch-action: manipulation;
+}
+
+/* コンテナスタイル */
+.container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    height: 85vh; /* 高さを少し調整 */
+    max-height: 600px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.2);
+}
+
+/* ゲーム画面 */
+.game-screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: contain; /* coverからcontainに変更 */
+    background-position: center;
+    background-repeat: no-repeat;
+    display: none;
+    transition: opacity 0.8s ease;
+}
+
+/* タイトル画面 */
+.title-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../assets/title_bg.png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    text-align: center;
+    transition: opacity 0.8s ease;
+}
+
+.title-overlay {
+    background: linear-gradient(to bottom, rgba(80, 19, 108, 0.7), rgba(49, 14, 87, 0.9));
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+.title-content {
+    z-index: 11;
+    padding: 20px;
+    max-width: 90%;
+}
+
+.title-screen h1 {
+    color: #fff;
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.title-screen p {
+    color: #e5d0ff;
+    font-size: 1.2em;
+    margin-bottom: 30px;
+    max-width: 90%;
+}
+
+/* ストーリー画面 */
+.story-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(80, 19, 108, 0.8), rgba(49, 14, 87, 0.9));
+    z-index: 15;
+    overflow-y: auto;
+    display: none;
+    transition: opacity 0.8s ease;
+}
+
+.story-screen.active {
+    display: block;
+}
+
+.story-content {
+    padding: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.story-screen h2 {
+    color: #fff;
+    font-size: 1.8em;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.story-screen p {
+    color: #f5ebff;
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    max-width: 90%;
+    line-height: 1.6;
+}
+
+.story-image {
+    max-width: 70%;
+    height: auto;
+    margin: 15px 0;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.story-button-container {
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    padding-bottom: 20px;
+}
+
+/* ステージ間画面 */
+.stage-transition {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(106, 48, 147, 0.8), rgba(160, 68, 255, 0.7));
+    z-index: 14;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    display: none;
+    transition: opacity 0.8s ease;
+}
+
+.stage-transition.active {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.transition-content {
+    z-index: 15;
+    max-width: 90%;
+}
+
+.stage-transition h2 {
+    color: #fff;
+    font-size: 2em;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.stage-transition p {
+    color: #f5ebff;
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.transition-image {
+    max-width: 70%;
+    height: auto;
+    margin: 15px 0;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* ボタンスタイル */
+.button {
+    background: linear-gradient(to bottom, #ff9a9e, #fad0c4);
+    color: #6a3093;
+    border: none;
+    padding: 12px 30px;
+    font-size: 1.2em;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 154, 158, 0.5);
+    font-family: 'Mochiy Pop One', sans-serif;
+    z-index: 20;
+    -webkit-tap-highlight-color: transparent; /* タップハイライトを無効化 */
+}
+
+.button:hover, .button:active {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 20px rgba(255, 154, 158, 0.7);
+}
+
+/* オブジェクトスタイル */
+.error-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 基本的にクリックを通過させる */
+    z-index: 2;
+}
+
+.error-object {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    transition: opacity 1.5s ease;
+}
+
+/* チェックマークスタイル */
+.check-mark {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background-color: rgba(40, 200, 80, 0.9);
+    border-radius: 50%;
+    z-index: 4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 15px rgba(40, 200, 80, 0.7);
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(1);
+    animation: check-appear 0.5s ease forwards;
+}
+
+.check-mark::before {
+    content: "";
+    width: 30px;
+    height: 15px;
+    border-left: 4px solid white;
+    border-bottom: 4px solid white;
+    transform: rotate(-45deg) translate(3px, -5px);
+}
+
+@keyframes check-appear {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+
+/* ステージ情報バー */
+.stage-info {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(255, 255, 255, 0.85); /* 背景を少し濃く */
+    padding: 5px 15px;
+    border-radius: 20px;
+    z-index: 5;
+    font-weight: bold;
+    color: #6a3093;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* シャドウを強く */
+}
+
+/* プログレスバー */
+.progress-container {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px 15px;
+    border-radius: 20px;
+    z-index: 5;
+}
+
+.progress-text {
+    margin-right: 10px;
+    font-weight: bold;
+    color: #5a2380; /* 文字色を濃く */
+}
+
+.progress-dots {
+    display: flex;
+}
+
+.progress-dot {
+    width: 15px;
+    height: 15px;
+    background-color: #e0d0f0;
+    border-radius: 50%;
+    margin: 0 5px;
+    transition: all 0.3s ease;
+}
+
+.progress-dot.found {
+    background-color: #ff9a9e;
+    box-shadow: 0 0 10px rgba(255, 154, 158, 0.7);
+}
+
+/* クリック領域 */
+.clickable-area {
+    position: absolute;
+    cursor: pointer;
+    z-index: 3;
+}
+
+/* クリア画面 */
+.clear-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(106, 48, 147, 0.9), rgba(160, 68, 255, 0.8));
+    z-index: 20;
+    box-sizing: border-box;
+    display: none;
+    transition: opacity 0.8s ease;
+    overflow-y: auto;
+}
+
+.clear-screen.active {
+    display: block;
+}
+
+.clear-content {
+    padding: 20px;
+    z-index: 21;
+    max-width: 90%;
+    margin: 0 auto;
+    text-align: center;
+    transition: opacity 0.5s ease;
+}
+
+.clear-screen h2 {
+    color: #fff;
+    font-size: 2.2em;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.clear-screen p {
+    color: #f5ebff;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.clear-image {
+    max-width: 60%;
+    height: auto;
+    margin: 15px auto;
+}
+
+#nextStageButton {
+    margin: 20px auto 40px;
+    display: inline-block;
+}
+
+/* エンディング画面 */
+.ending-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(80, 19, 108, 0.8), rgba(49, 14, 87, 0.7));
+    z-index: 25;
+    overflow-y: auto;
+    display: none;
+    transition: opacity 0.8s ease;
+}
+
+.ending-screen.active {
+    display: block;
+}
+
+.ending-content {
+    padding: 30px 20px;
+    position: relative;
+    z-index: 26;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.ending-screen h2 {
+    color: #fff;
+    font-size: 2.2em;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.ending-screen p {
+    color: #f5ebff;
+    font-size: 1.2em;
+    margin-bottom: 25px;
+    max-width: 90%;
+    line-height: 1.7;
+}
+
+.ending-image {
+    max-width: 80%;
+    height: auto;
+    margin: 20px 0;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* テキストメッセージ */
+.message {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-size: 1.1em;
+    color: #6a3093;
+    z-index: 5;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    text-align: center;
+    max-width: 80%;
+}
+
+.message.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+/* 視覚フィードバック */
+.feedback {
+    position: absolute;
+    pointer-events: none;
+    z-index: 4;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    transform: scale(0);
+    animation: feedback 0.8s ease-out;
+}
+
+@keyframes feedback {
+    0% { transform: scale(0); opacity: 0.7; }
+    100% { transform: scale(3); opacity: 0; }
+}
+
+/* サウンドコントロール */
+.sound-control {
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    background-color: rgba(255, 255, 255, 0.7);
+    color: #6a3093;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.5em;
+    cursor: pointer;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sound-control:hover, .sound-control:active {
+    background-color: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+        height: 85vh;
+        max-height: none;
+    }
+    
+    .title-screen h1 {
+        font-size: 1.8em;
+    }
+    
+    .title-screen p {
+        font-size: 1em;
+    }
+    
+    .button {
+        padding: 10px 25px;
+        font-size: 1em;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .hint-button {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2em;
+        top: 10px;
+        right: 10px;
+    }
+
+    
+    .stage-info {
+        top: 10px;
+        left: 10px;
+        font-size: 0.9em;
+        padding: 4px 12px;
+    }
+    
+    .progress-container {
+        bottom: 15px;
+        left: 15px;
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 6px 16px;
+        border-radius: 20px;
+        z-index: 5;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .progress-dot {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .message {
+        bottom: 60px;
+        font-size: 0.9em;
+        padding: 10px 15px;
+    }
+    
+    .check-mark {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .check-mark::before {
+        width: 20px;
+        height: 10px;
+        border-left: 3px solid white;
+        border-bottom: 3px solid white;
+    }
+    
+    .story-screen h2 {
+        font-size: 1.5em;
+    }
+    
+    .story-screen p {
+        font-size: 0.9em;
+    }
+    
+    .ending-screen h2 {
+        font-size: 1.8em;
+    }
+    
+    .ending-screen p {
+        font-size: 1em;
+    }
+    
+    .story-image, .transition-image, .clear-image, .ending-image {
+        max-width: 90%;
+    }
+    
+    /* ゲーム画面サイズ修正 */
+    .game-screen {
+        background-size: cover;
+    }
+}
+
+/* 縦向きモバイル用の調整 */
+@media (max-width: 480px) {
+    .container {
+        height: 90vh;
+        border-radius: 10px;
+    }
+    
+    .title-screen h1 {
+        font-size: 1.5em;
+    }
+    
+    .title-screen p {
+        font-size: 0.85em;
+    }
+    
+    .button {
+        padding: 8px 20px;
+        font-size: 0.9em;
+    }
+    
+    .story-screen h2, .ending-screen h2, .clear-screen h2 {
+        font-size: 1.4em;
+    }
+    
+    .story-screen p, .ending-screen p, .clear-screen p {
+        font-size: 0.85em;
+        line-height: 1.5;
+    }
+    
+    .message {
+        max-width: 90%;
+        font-size: 0.8em;
+        padding: 8px 12px;
+    }
+
+    .sound-button {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2em;
+        top: 10px;
+        right: 10px;
+    }
+    
+
+}
+/* ヒントボタンのスタイルを削除し、音声ボタンのスタイルを調整 */
+.sound-button {
+    position: absolute;
+    top: 20px;
+    right: 20px; /* ヒントボタンと同じ位置に */
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #6a3093;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.5em;
+    cursor: pointer;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sound-button:hover, .sound-button:active {
+    background-color: rgba(255, 255, 255, 0.9);
+    transform: scale(1.1);
+}
