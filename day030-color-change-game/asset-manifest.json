@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/llm-100days-challenge/day030-color-change-game/static/css/main.e08e2273.css",
+    "main.js": "/llm-100days-challenge/day030-color-change-game/static/js/main.85124191.js",
+    "static/js/453.183190b9.chunk.js": "/llm-100days-challenge/day030-color-change-game/static/js/453.183190b9.chunk.js",
+    "index.html": "/llm-100days-challenge/day030-color-change-game/index.html",
+    "main.e08e2273.css.map": "/llm-100days-challenge/day030-color-change-game/static/css/main.e08e2273.css.map",
+    "main.85124191.js.map": "/llm-100days-challenge/day030-color-change-game/static/js/main.85124191.js.map",
+    "453.183190b9.chunk.js.map": "/llm-100days-challenge/day030-color-change-game/static/js/453.183190b9.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e08e2273.css",
+    "static/js/main.85124191.js"
+  ]
+}
