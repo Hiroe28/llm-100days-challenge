@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>太陽系シミュレーション</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- メタ情報 (index.htmlのhead内に追加) -->
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content="太陽系シミュレーション - インタラクティブな3D太陽系探検" />
+  <meta property="og:description" content="美しい3Dグラフィックで太陽系を探検。惑星の自転・公転、情報パネル表示、惑星ツアー機能など充実した機能を搭載。自由に宇宙を旅しよう。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day032-solar-system-3d/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day032-solar-system-3d/index.html" />
+  <meta property="og:type" content="website" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="太陽系シミュレーション" />
+  <meta name="twitter:description" content="美しい3Dグラフィックで太陽系を探検。惑星の自転・公転を再現し、詳細情報表示や惑星ツアー機能を搭載したインタラクティブな宇宙体験。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day032-solar-system-3d/screenshot.png" />
+
+
+</head>
+<body>
+  <div id="loading-container">
+    <div id="loading-bar-container">
+      <div id="loading-bar"></div>
+    </div>
+    <div id="loading-text">テクスチャを読み込み中... <span id="loading-progress">0%</span></div>
+  </div>
+
+  <div id="title">太陽系探検</div>
+  <div id="instructions">操作方法: ドラッグで回転、スクロールでズーム、ダブルクリックで中心移動</div>
+  
+  <div id="info-panel" class="hidden">
+    <h2 id="planet-name">惑星名</h2>
+    <div id="planet-image"></div>
+    <p id="planet-type">種類: </p>
+    <p id="planet-distance">太陽からの距離: </p>
+    <p id="planet-year">公転周期: </p>
+    <p id="planet-day">自転周期: </p>
+    <p id="planet-diameter">直径: </p>
+    <p id="planet-facts">豆知識: </p>
+    <button id="close-panel">閉じる</button>
+  </div>
+
+  <div id="controls-panel">
+    <div class="control-group">
+      <label for="scale-slider">サイズスケール:</label>
+      <input type="range" id="scale-slider" min="0.1" max="10" step="0.1" value="1">
+      <span id="scale-value">1.0</span>
+    </div>
+    <div class="control-group">
+      <label for="distance-slider">距離スケール:</label>
+      <input type="range" id="distance-slider" min="0.5" max="5" step="0.1" value="1">
+      <span id="distance-value">1.0</span>
+    </div>
+    <div class="control-group">
+      <label for="speed-slider">公転速度:</label>
+      <input type="range" id="speed-slider" min="0.1" max="10" step="0.1" value="1">
+      <span id="speed-value">1.0</span>
+    </div>
+
+    <div class="control-group">
+      <label for="rotation-slider">自転速度:</label>
+      <input type="range" id="rotation-slider" min="0.1" max="20" step="0.1" value="5">
+      <span id="rotation-value">5.0</span>
+    </div>
+
+
+    <div class="control-group">
+      <label for="show-orbits">軌道表示:</label>
+      <input type="checkbox" id="show-orbits" checked>
+    </div>
+    <div class="control-group">
+      <label for="show-labels">ラベル表示:</label>
+      <input type="checkbox" id="show-labels" checked>
+    </div>
+    <div class="control-group">
+      <label for="realistic-scale">現実的なスケール:</label>
+      <input type="checkbox" id="realistic-scale">
+    </div>
+  </div>
+
+  <div id="credits">
+    テクスチャ提供: <a href="https://www.solarsystemscope.com/" target="_blank">Solar System Scope</a>
+  </div>
+
+  <!-- Three.js とその拡張ライブラリ（正しい順序で読み込み） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.min.js"></script>
+
+  <!-- アプリケーションのJavaScript -->
+  <script src="js/constants.js"></script>
+  <script src="js/planetData.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
