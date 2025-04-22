@@ -521,30 +521,27 @@ body {
 /* モバイル対応の強化 */
 @media (max-width: 768px) {
   #blocklyArea {
-    height: auto !important;
-    min-height: 400px !important;
+    height: 50vh !important; /* 画面の半分の高さを確保 */
+    min-height: 300px !important;
     max-height: none !important;
-    overflow-y: auto !important; /* ← スクロール可に */
+    position: relative !important;
+    overflow: visible !important;
   }
 
     /* ブロックリー全体の表示領域調整 */
     #blocklyDiv {
-      height: 400px !important;
-      min-height: 400px !important;
-      position: relative !important;
-      max-height: none !important;
-      
-      overflow-y: auto !important; /* ← スクロール可に */
+      position: absolute !important;
+      height: 100% !important;
+      width: 100% !important;
+      z-index: 20 !important;
     }
 
     
     /* ツールボックスの位置調整 */
     .blocklyToolboxDiv {
       height: auto !important;
-      max-height: none !important;
-      min-height: 400px !important;
-      overflow-y: auto !important;
-      z-index: 70 !important; /* 優先度を上げる */
+      position: absolute !important;
+      z-index: 70 !important;
     }
 
     /* ゴミ箱の位置調整 */
@@ -680,3 +677,24 @@ body {
 
 }
 
+.vertical-layout {
+  flex-direction: column !important;
+}
+
+.layout-button {
+  background-color: #7f91dd;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  display: none; /* PCでは非表示 */
+}
+
+/* スマホでのみ表示 */
+@media (max-width: 768px) {
+  .layout-button {
+    display: block;
+  }
+}

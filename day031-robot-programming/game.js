@@ -182,6 +182,8 @@ function initBlockly() {
   
   // リサイズイベントの設定
   window.addEventListener('resize', resizeBlockly);
+  // タッチ最適化設定を呼び出す
+  setTimeout(setupTouchOptimization, 1000);
 }
 /**
  * ウィンドウリサイズ時の調整
@@ -1106,6 +1108,29 @@ function executeCode(code) {
   }
 }
 
+// レイアウト切り替え機能
+function setupLayoutToggle() {
+  const toggleBtn = document.getElementById('toggleLayoutBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      const mainArea = document.querySelector('.main-area');
+      if (mainArea.classList.contains('vertical-layout')) {
+        mainArea.classList.remove('vertical-layout');
+      } else {
+        mainArea.classList.add('vertical-layout');
+      }
+      
+      // レイアウト変更後にBlocklyをリサイズ
+      setTimeout(function() {
+        if (workspace && workspace.getMetrics) {
+          Blockly.svgResize(workspace);
+          onResize();
+        }
+      }, 300);
+    });
+  }
+}
+
 /**
  * 効果音を初期化する関数
  */
@@ -1245,6 +1270,22 @@ function playTestSounds() {
   setTimeout(() => playShootSound(), 600);
   setTimeout(() => playEnemyDefeatSound(), 900);
   setTimeout(() => playClearSound(), 1200);
+}
+
+// タッチデバイス向け設定を追加
+function setupTouchOptimization() {
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    // モバイルデバイスと判断
+    if (workspace) {
+      // タッチ操作用のスペースを広げる
+      Blockly.SNAP_RADIUS = 40; // ブロック同士の接続範囲を広げる
+      Blockly.BUMP_DELAY = 250; // ドラッグ時の反応速度調整
+      
+      // ズーム設定の調整
+      workspace.setScale(1.0); // 初期ズームレベル
+      workspace.zoomControls_.autoPositionHorizontally_ = true;
+    }
+  }
 }
 
 // ゲームを初期化
