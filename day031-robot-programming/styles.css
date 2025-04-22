@@ -579,6 +579,31 @@ body {
       overflow-y: auto !important;
     }
 
+      /* ブロックを大きく表示 */
+      .blocklyBlockCanvas {
+        transform-origin: top left !important;
+      }
+      
+      /* スクロール領域を拡大 */
+      .blocklyScrollbarHorizontal,
+      .blocklyScrollbarVertical {
+        width: 25px !important;
+        height: 25px !important;
+      }
+      
+      /* ブロック移動時のオーバースクロールを防止 */
+      #blocklyArea {
+        overscroll-behavior: contain !important;
+        touch-action: pan-x pan-y !important;
+      }
+      
+      /* ズームボタンを大きく */
+      .blocklyZoom > image {
+        transform: scale(1.5);
+        transform-origin: center;
+      }
+
+
   }
 
 /* styles.css に追加 */

@@ -183,7 +183,52 @@ function initBlockly() {
   // リサイズイベントの設定
   window.addEventListener('resize', resizeBlockly);
   // タッチ最適化設定を呼び出す
-  setTimeout(setupTouchOptimization, 1000);
+  // setTimeout(setupTouchOptimization, 1000);
+
+// Blocklyのモバイル設定
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+  // スマホ向け設定を適用
+  const options = {
+    toolbox: toolboxDom,
+    scrollbars: true,
+    trashcan: true,
+    zoom: {
+      controls: true,
+      wheel: false,
+      startScale: 1.1,  // やや大きめに表示
+      maxScale: 2.0,
+      minScale: 0.7,
+      scaleSpeed: 1.1
+    },
+    grid: {
+      spacing: 40,
+      length: 10,
+      colour: '#ccc',
+      snap: true
+    },
+    move: {
+      scrollbars: true,
+      drag: true,
+      wheel: false
+    },
+    media: 'media/',
+  };
+  
+  workspace = Blockly.inject('blocklyDiv', options);
+  
+  // スナップ感度を上げる（ブロックが近づいたときにくっつきやすくする）
+  Blockly.SNAP_RADIUS = 45;  // デフォルトは25
+} else {
+  // 通常のPC向け設定
+  workspace = Blockly.inject('blocklyDiv', {
+    toolbox: toolboxDom,
+    scrollbars: true,
+    trashcan: true,
+    media: 'media/',
+  });
+}
+
+  
 }
 /**
  * ウィンドウリサイズ時の調整
