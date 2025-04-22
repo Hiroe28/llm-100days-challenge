@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content="ロボットプログラミング - 子ども向けビジュアルプログラミングゲーム" />
+  <meta property="og:description" content="Blocklyを使って、ブロックをドラッグ＆ドロップするだけでロボットを動かすことができるプログラミング学習ゲーム。10段階のステージで基本から応用までの概念を楽しく学べる。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day031-robot-programming/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day031-robot-programming/index.html" />
+  <meta property="og:type" content="website" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ロボットプログラミング" />
+  <meta name="twitter:description" content="Blocklyを使った子ども向けプログラミング学習ゲーム。ブロックをドラッグ＆ドロップするだけで、ロボットを動かして迷路を解いたり敵を倒したりしながらプログラミングの基本概念を楽しく学べる。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day031-robot-programming/screenshot.png" />
+
+  <title>ロボットプログラミング</title>
+  
+  <!-- Blocklyライブラリの読み込み -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/blockly/9.3.3/blockly.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/blockly/9.3.3/blocks.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/blockly/9.3.3/javascript.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/blockly/9.3.3/msg/ja.js" crossorigin="anonymous"></script>
+
+  <!-- スタイルシート -->
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+  
+  <!-- 緊急対応用インラインスタイル -->
+  <style>
+    #blocklyDiv {
+      width: 100% !important;
+      height: 100% !important;
+      position: absolute !important;
+      z-index: 1 !important;
+    }
+    #blocklyArea {
+      background-color: white !important;
+      position: relative !important;
+      min-height: 500px !important; /* PC向けに高さを固定 */
+    }
+    .main-area {
+      display: flex !important;
+      height: calc(100vh - 130px) !important; /* ヘッダーとチュートリアルパネルの高さを引く */
+    }
+    @media (max-width: 768px) {
+      #blocklyArea {
+        min-height: 300px !important;
+      }
+      .main-area {
+        flex-direction: column !important;
+        height: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ロボットプログラミング</h1>
+    <div class="mode-selector">
+      <button id="learningModeBtn" class="mode-button active">学習モード</button>
+      <button id="freeModeBtn" class="mode-button">自由モード</button>
+      <button id="soundBtn" class="sound-button">🔊</button>
+    </div>
+  </header>
+
+  <!-- チュートリアルパネル -->
+  <div id="tutorialPanel" class="tutorial-panel">
+    <div class="tutorial-content">
+      <h3 id="stageTitleText">ステージ1: はじめの一歩</h3>
+      <p id="stageDescriptionText">ロボットを動かしてみよう！まずは「前に進む」ブロックを使ってみよう。</p>
+      <div id="stageHintContainer">
+        <button id="showHintBtn">ヒントを見る</button>
+        <div id="hintContent" class="hint-content" style="display: none;">
+          <p id="hintText">「前に進む」ブロックを左からドラッグして、中央のワークスペースに置いてみよう！</p>
+          <canvas id="hintCanvas" width="300" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインエリアを修正 -->
+  <div class="main-area">
+    <!-- Blocklyエリアだけを簡略化 -->
+    <div id="blocklyArea" style="flex: 1; min-width: 350px; border-right: 3px solid #4a6cd4;">
+      <div id="blocklyDiv"></div>
+    </div>
+
+    <!-- ロボットアリーナ -->
+    <div id="robotArena">
+      <div class="stage-info">
+        <div class="stage-selector">
+          <button id="prevStageBtn" class="nav-button">◀</button>
+          <div id="currentStageText">ステージ1: はじめの一歩</div>
+          <button id="nextStageBtn" class="nav-button">▶</button>
+        </div>
+      </div>
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
+      <div class="control-buttons">
+        <button id="runButton">実行する</button>
+        <button id="resetButton">リセット</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ステージクリア時のオーバーレイ -->
+  <div id="clearOverlay">
+    <div class="clear-content">
+      <h2>ステージクリア！</h2>
+      <p id="clearMessageText">よくできました！次のステージに進もう！</p>
+      <div class="star-container">
+        <span class="star">★</span>
+        <span class="star">★</span>
+        <span class="star">★</span>
+      </div>
+      <button id="nextStageButton">次のステージへ</button>
+    </div>
+  </div>
+
+  <!-- 操作説明オーバーレイ -->
+  <div id="helpOverlay" class="help-overlay">
+    <div class="help-content">
+      <h3>ブロックの使い方</h3>
+      <div class="help-steps">
+        <div class="help-step">
+          <div class="step-number">1</div>
+          <p>左側からブロックをドラッグします</p>
+          <canvas id="helpCanvas1" width="200" height="150"></canvas>
+        </div>
+        <div class="help-step">
+          <div class="step-number">2</div>
+          <p>中央のワークスペースに置きます</p>
+          <canvas id="helpCanvas2" width="200" height="150"></canvas>
+        </div>
+        <div class="help-step">
+          <div class="step-number">3</div>
+          <p>ブロックを組み合わせて命令を作ります</p>
+          <canvas id="helpCanvas3" width="200" height="150"></canvas>
+        </div>
+        <div class="help-step">
+          <div class="step-number">4</div>
+          <p>「実行する」ボタンを押すとロボットが動きます</p>
+          <canvas id="helpCanvas4" width="200" height="150"></canvas>
+        </div>
+      </div>
+      <button id="closeHelpBtn" class="close-button">閉じる</button>
+    </div>
+  </div>
+
+  <!-- 音量設定パネル -->
+  <div id="soundSettingsPanel" class="settings-panel" style="display: none;">
+    <h3>効果音設定</h3>
+    <div class="setting-item">
+      <label>効果音: 
+        <input type="checkbox" id="soundEnabledCheckbox" checked>
+      </label>
+    </div>
+    <div class="setting-item">
+      <label>音量: <span id="volumeValue">50%</span></label>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
+    </div>
+    <div class="setting-buttons">
+      <button id="testSoundBtn">効果音テスト</button>
+      <button id="closeSoundBtn">閉じる</button>
+    </div>
+  </div>
+
+  <!-- JavaScriptの読み込み -->
+  <script src="stages.js"></script>
+  <script src="blocks.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
