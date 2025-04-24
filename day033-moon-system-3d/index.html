@@ -1,90 +1,117 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <title>月の満ち欠けシミュレーション</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta property="og:title" content="月の満ち欠けシミュレーション - 小学生向け天文学習アプリ" />
-  <meta property="og:description" content="太陽・地球・月の位置関係から月の満ち欠けの仕組みをわかりやすく学べる3Dシミュレーション" />
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content="月の満ち欠け3Dシミュレーション" />
+  <meta property="og:description" content="太陽・地球・月の位置関係から月の満ち欠けの仕組みを学べる3Dシミュレーション。今日の月齢表示や視点切替、軌道表示など多彩な機能を搭載。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day033-moon-system-3d/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day033-moon-system-3d/index.html" />
   <meta property="og:type" content="website" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="月の満ち欠け3Dシミュレーション" />
+  <meta name="twitter:description" content="太陽・地球・月の関係を3Dで可視化。宇宙・地球・月の3視点で月相を学べるインタラクティブ教材。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day033-moon-system-3d/screenshot.png" />
+
+
+
+  <title>月の満ち欠け3Dシミュレーション</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="loading-container">
-    <div id="loading-bar-container">
-      <div id="loading-bar"></div>
+  <div class="loading">
+    <h2>読み込み中...</h2>
+    <div class="loading-bar">
+      <div class="loading-progress"></div>
     </div>
-    <div id="loading-text">テクスチャを読み込み中... <span id="loading-progress">0%</span></div>
   </div>
-
-  <div id="title">月の満ち欠けシミュレーション</div>
-  <div id="instructions">操作方法: ドラッグで回転、スクロールでズーム、ダブルクリックで中心移動</div>
   
-  <div id="phases-panel">
-    <h2>月の満ち欠け</h2>
-    <div id="current-phase-info">
-      <div id="phase-name">満月</div>
-      <div id="phase-image"></div>
-      <div id="phase-description">月が地球の反対側にあるとき、太陽の光が月の表面全体を照らします。</div>
+  <div class="title">
+    <h1>月の満ち欠け</h1>
+    <p>太陽・地球・月の位置関係を学びましょう</p>
+  </div>
+  
+  <div id="canvas-container"></div>
+  
+  <!-- 月相情報表示・非表示ボタンを削除（コントロールに移動） -->
+  
+  <!-- 月相情報パネル -->
+  <div class="phase-info">
+    <div id="phase-name">新月</div>
+    <div id="phase-description">
+      月が太陽と同じ方向にあり、太陽の光が月の裏側に当たっているため、地球からは月は見えません。
     </div>
-    <div id="phase-timeline">
-      <button class="phase-button" data-phase="new-moon">新月</button>
-      <button class="phase-button" data-phase="waxing-crescent">三日月</button>
-      <button class="phase-button" data-phase="first-quarter">上弦の月</button>
-      <button class="phase-button" data-phase="waxing-gibbous">十三夜月</button>
-      <button class="phase-button" data-phase="full-moon">満月</button>
-      <button class="phase-button" data-phase="waning-gibbous">十六夜月</button>
-      <button class="phase-button" data-phase="last-quarter">下弦の月</button>
-      <button class="phase-button" data-phase="waning-crescent">二十六夜月</button>
+  </div>
+  
+  <!-- メニュー表示/非表示ボタン -->
+  <button id="toggle-menu" class="menu-button">▼</button>
+  
+  <!-- スマホ用メインコントロールバー -->
+  <div class="mobile-controls">
+    <div class="mobile-tabs">
+      <button class="tab-button active" data-tab="controls">操作・視点</button>
+      <button class="tab-button" data-tab="phases">月相</button>
+    </div>
+    
+    <!-- 操作・視点タブ -->
+    <div class="tab-content active" id="controls-tab">
+      <div class="control-options">
+        <div class="button-row">
+          <button id="play-pause">再生</button>
+          <button id="today-position">今日の月</button>
+        </div>
+        
+        <div class="slider-container">
+          <span class="slider-label">速度:</span>
+          <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1">
+          <span id="speed-value">1.0</span>
+        </div>
+        
+        <div class="toggle-row">
+          <button id="toggle-orbit">軌道: OFF</button>
+          <button id="toggle-info">説明: OFF</button>
+          <button id="toggle-bgm">BGM: OFF</button>
+        </div>
+        
+        <div class="view-buttons">
+          <button class="view-button" data-view="space">宇宙からの視点</button>
+          <button class="view-button active" data-view="earth">地球からの視点</button>
+          <button class="view-button" data-view="moon">月のクローズアップ</button>
+        </div>
+
+      </div>
+    </div>
+    
+    <!-- 月相タブ -->
+    <div class="tab-content" id="phases-tab">
+      <div class="phase-buttons">
+        <button class="phase-button" data-angle="0">新月</button>
+        <button class="phase-button" data-angle="45">三日月</button>
+        <button class="phase-button" data-angle="90">上弦の月</button>
+        <button class="phase-button" data-angle="135">十三夜月</button>
+        <button class="phase-button" data-angle="180">満月</button>
+        <button class="phase-button" data-angle="225">十六夜月</button>
+        <button class="phase-button" data-angle="270">下弦の月</button>
+        <button class="phase-button" data-angle="315">二十六夜月</button>
+      </div>
     </div>
   </div>
 
-  <div id="view-toggle">
-    <button id="space-view" class="view-button active">宇宙からの眺め</button>
-    <button id="earth-view" class="view-button">地球からの眺め</button>
-    <button id="moon-view" class="view-button">月のクローズアップ</button>
-  </div>
-
-  <div id="controls-panel">
-    <div class="control-group">
-      <label for="animation-speed">アニメーション速度:</label>
-      <input type="range" id="animation-speed" min="0" max="10" step="0.1" value="1">
-      <span id="speed-value">1.0</span>
-    </div>
-    <div class="control-group">
-      <label for="show-orbit">軌道表示:</label>
-      <input type="checkbox" id="show-orbit" checked>
-    </div>
-    <div class="control-group">
-      <label for="show-labels">ラベル表示:</label>
-      <input type="checkbox" id="show-labels" checked>
-    </div>
-    <div class="control-group">
-      <button id="play-pause-button">一時停止</button>
-    </div>
-  </div>
-
-  <div id="explanation-panel">
-    <h3>月の満ち欠けのしくみ</h3>
-    <p>月は自分で光を出さず、太陽の光を反射して明るく見えています。月が地球の周りを公転すると、太陽光の当たり方が変わり、地球から見える月の形が変化します。</p>
-    <div id="detailed-explanation"></div>
-  </div>
-
-  <div id="credits">
-    制作: 月の満ち欠けシミュレーションチーム
-  </div>
-
-  <!-- Three.jsとその拡張ライブラリ -->
+  <!-- Three.jsライブラリ -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
   
-  <!-- アプリケーションのJavaScript -->
-  <script src="js/config.js"></script>
-  <script src="js/celestialBodies.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/renderer.js"></script>
-  <script src="js/moonPhases.js"></script>
-  <script src="js/uiControls.js"></script>
-  <script src="js/main.js"></script>
+  <!-- アプリケーションスクリプト -->
+  <script src="moonPhases.js"></script>
+  <script src="celestialBodies.js"></script>
+  <script src="main.js"></script>
+
+  <audio id="background-music" loop>
+    <source src="bgm.mp3" type="audio/mp3">
+  </audio>
+
 </body>
 </html>
