@@ -172,7 +172,7 @@ function createCelestialBodies(scene, earthPivot, moonPivot) {
   return objects;
 }
 
-// 軌道の作成
+
 // 軌道の作成
 function createOrbits(scene, moonPivot, objects) {
   // 地球の軌道

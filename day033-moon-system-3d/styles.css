@@ -1,122 +1,135 @@
 /* 基本スタイル */
 body {
-    margin: 0;
-    overflow: hidden;
-    font-family: 'Meiryo', 'Hiragino Kaku Gothic ProN', sans-serif;
-    background-color: #000;
-    color: #fff;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  #canvas-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-  }
-  
-  /* タイトル */
-  .title {
-    position: fixed;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
-    z-index: 2;
-    width: 90%;
-    max-width: 600px;
-  }
-  
-  .title h1 {
-    font-size: 24px;
-    color: #FFD700;
-    margin-bottom: 2px;
-    margin-top: 5px;
-  }
-  
-  .title p {
-    font-size: 14px;
-    margin-top: 0;
-    margin-bottom: 5px;
-  }
-  
-  /* 月相情報パネル */
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Meiryo', 'Hiragino Kaku Gothic ProN', sans-serif;
+  background-color: #000;
+  color: #fff;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#canvas-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* タイトル */
+.title {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 2;
+  width: 90%;
+  max-width: 600px;
+}
+
+.title h1 {
+  font-size: 24px;
+  color: #FFD700;
+  margin-bottom: 2px;
+  margin-top: 5px;
+}
+
+.title p {
+  font-size: 14px;
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+/* 月相情報パネル */
+.phase-info {
+  position: fixed;
+  top: 110px; /* タイトルの下に移動 */
+  right: 0px; /* 右端にぴったり寄せる - PCでの表示 */
+  left: auto;
+  transform: none;
+  width: 85%;
+  max-width: 350px;
+  background-color: rgba(0, 0, 30, 0.8);
+  border-radius: 10px 0 0 10px; /* 右端なので左側だけ角丸に */
+  padding: 10px;
+  z-index: 2;
+  text-align: center;
+  transition: opacity 0.3s ease;
+}
+
+/* スマホでは中央に表示 */
+@media (max-width: 767px) {
   .phase-info {
-    position: fixed;
-    top: 110px; /* タイトルの下に移動 */
-    right: 0px; /* 右端にぴったり寄せる - PCでの表示 */
-    left: auto;
-    transform: none;
-    width: 85%;
-    max-width: 350px;
-    background-color: rgba(0, 0, 30, 0.8);
-    border-radius: 10px 0 0 10px; /* 右端なので左側だけ角丸に */
-    padding: 10px;
-    z-index: 2;
-    text-align: center;
-    transition: opacity 0.3s ease;
-  }
-  
-  /* スマホでは中央に表示 */
-  @media (max-width: 767px) {
-    .phase-info {
-      right: auto;
-      left: 50%;
-      transform: translateX(-50%);
-      border-radius: 10px;
-      width: 90%;
-      max-width: 450px;
-    }
-  }
-  
-  #phase-name {
-    font-size: 20px;
-    font-weight: bold;
-    color: #FFD700;
-    margin-bottom: 8px;
-  }
-  
-  #phase-description {
-    line-height: 1.5;
-    font-size: 14px;
-    padding: 0 5px;
-  }
-  
-  /* メニュー表示/非表示ボタン */
-  .menu-button {
-    position: fixed;
+    right: auto;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(0, 0, 30, 0.95);
-    color: white;
-    border: none;
-    border-radius: 15px 15px 0 0;
-    padding: 5px 30px;
-    font-size: 16px;
-    cursor: pointer;
-    z-index: 101;
-    display: none; /* デフォルトでは非表示 */
-    transition: all 0.3s ease;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 450px;
+  }
+}
+
+#phase-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 8px;
+}
+
+#phase-description {
+  line-height: 1.5;
+  font-size: 14px;
+  padding: 0 5px;
+}
+
+/* メニュー表示/非表示ボタン */
+.menu-button {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 30, 0.95);
+  color: white;
+  border: none;
+
+  padding: 5px 30px;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 101;
+  display: none; /* デフォルトでは非表示 */
+  transition: all 0.3s ease;
+}
+
+/* モバイルコントロールの位置修正 */
+.mobile-controls {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 300; /* 高さを固定 */
+  background-color: rgba(0, 0, 30, 0.85);
+  z-index: 100;
+
+  transition: transform 0.3s ease;
+}
+  
+
+/* スマホ表示の場合のみボタンを表示 */
+@media (max-width: 767px) {
+  .menu-button {
+    display: block;
+    bottom: 30%; /* 位置を固定値に修正 */
   }
   
-  /* スマホ表示の場合のみボタンを表示 */
-  @media (max-width: 767px) {
-    .menu-button {
-      display: block;
-      bottom: calc(40% + 15px); /* メニューが開いているときの位置 */
-    }
-    
-    .menu-button.closed {
-      bottom: 0; /* 閉じた時は画面下部に配置 */
-    }
-    
-    /* モバイルコントロールが非表示の時の位置調整 */
-    .mobile-controls.hidden {
-      transform: translate(-50%, 100%);
-    }
+  .menu-button.closed {
+    bottom: 0; /* 閉じた時は画面下部に配置 */
+  }
+  
+  /* モバイルコントロールが非表示の時の位置調整 */
+  .mobile-controls.hidden {
+    transform: translateY(100%); /* Y方向に100%移動（下に隠れる） */
   }
   
   /* モバイルコントロールの位置修正 */
@@ -125,254 +138,265 @@ body {
     left: 0;
     bottom: 0;
     width: 100%;
+    height: 30%; /* 高さを固定 */
     background-color: rgba(0, 0, 30, 0.85);
     z-index: 100;
-    border-radius: 15px 15px 0 0;
-    overflow: hidden;
-    max-height: 40%; /* 最大高さを制限 */
+
     overflow-y: auto; /* スクロール可能に */
-    transition: transform 0.3s ease; /* アニメーション追加 */
+    transition: transform 0.3s ease;
+  }
+}
+
+
+.mobile-tabs {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  position: sticky;
+  top: 0;
+  background-color: rgba(0, 0, 30, 0.95);
+  z-index: 101;
+}
+
+.mobile-tabs {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tab-button {
+  flex: 1;
+  background-color: rgba(0, 0, 50, 0.8);
+  color: white;
+  border: none;
+  padding: 12px 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.tab-button.active {
+  background-color: rgba(65, 105, 225, 0.8);
+  font-weight: bold;
+}
+
+.tab-content {
+  display: none;
+  padding: 15px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* 月相ボタン */
+.phase-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.phase-button {
+  background-color: #1F3A93;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.phase-button.active {
+  background-color: #FF9800;
+  font-weight: bold;
+}
+
+/* コントロールオプション */
+.control-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.button-row button {
+  flex: 1;
+  padding: 8px 5px;
+}
+
+.toggle-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.toggle-row button {
+  flex: 1;
+  padding: 8px 5px;
+}
+
+.control-options button {
+  background-color: #4169E1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+/* BGMがオンのときのスタイル */
+#toggle-bgm.active {
+  background-color: #E14169;
+}
+
+#today-position {
+  background-color: #E14169;
+  font-weight: bold;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  margin: 4px 0;
+  justify-content: space-between;
+}
+
+.slider-label {
+  flex: 0 0 40px;
+}
+
+input[type="range"] {
+  flex: 1;
+  margin: 0 8px;
+}
+
+.toggle-options {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-options button {
+  flex: 1;
+  padding: 8px 5px;
+}
+
+.view-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.view-button {
+  background-color: #4169E1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 5px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.view-button.active {
+  background-color: #FF9800;
+  font-weight: bold;
+}
+
+/* ローディング画面 */
+.loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  transition: opacity 1s;
+}
+
+.loading h2 {
+  color: #FFD700;
+  margin-bottom: 20px;
+}
+
+.loading-bar {
+  width: 200px;
+  height: 10px;
+  background-color: #111;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.loading-progress {
+  height: 100%;
+  width: 0%;
+  background-color: #4169E1;
+  transition: width 0.3s;
+}
+
+/* タブレットとデスクトップの調整 */
+@media (min-width: 768px) {
+  .phase-info {
+    top: 80px;
+    right: 20px;
+    width: 300px;
   }
   
-  .mobile-tabs {
-    display: flex;
-    width: 100%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    position: sticky;
-    top: 0;
-    background-color: rgba(0, 0, 30, 0.95);
-    z-index: 101;
+  
+  #toggle-info {
+    top: 80px;
   }
   
-  .mobile-tabs {
-    display: flex;
-    width: 100%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  
-  .tab-button {
-    flex: 1;
-    background-color: rgba(0, 0, 50, 0.8);
-    color: white;
-    border: none;
-    padding: 12px 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .tab-button.active {
-    background-color: rgba(65, 105, 225, 0.8);
-    font-weight: bold;
-  }
-  
-  .tab-content {
-    display: none;
-    padding: 15px;
-  }
-  
-  .tab-content.active {
-    display: block;
-  }
-  
-  /* 月相ボタン */
   .phase-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
   }
   
-  .phase-button {
-    background-color: #1F3A93;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 5px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  .mobile-controls {
+    width: 400px;
+    left: 50%;
+    transform: translateX(-50%);
+
+  }
+}
+
+/* 大画面用の調整 */
+@media (min-width: 1024px) {
+  .title {
+    top: 20px;
   }
   
-  .phase-button.active {
-    background-color: #FF9800;
-    font-weight: bold;
+  .phase-info {
+    top: 20px;
+    right: 20px;
+    width: 280px;
   }
   
-  /* コントロールオプション */
-  .control-options {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px;
+  .mobile-controls {
+    width: 400px;
+    right: 50%;
+    transform: translateX(50%);
   }
-  
-  .button-row {
-    display: flex;
-    gap: 8px;
-    width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .mobile-controls {
+    width: 400px;
+    right: 0; /* ← 右端にぴったり寄せる */
+    left: auto;
+    transform: none; /* ← 中央寄せの指定を解除 */
+
   }
-  
-  .button-row button {
-    flex: 1;
-    padding: 8px 5px;
-  }
-  
-  .toggle-row {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-  }
-  
-  .toggle-row button {
-    flex: 1;
-    padding: 8px 5px;
-  }
-  
-  .control-options button {
-    background-color: #4169E1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  /* BGMがオンのときのスタイル */
-  #toggle-bgm.active {
-    background-color: #E14169;
-  }
-  
-  #today-position {
-    background-color: #E14169;
-    font-weight: bold;
-  }
-  
-  .slider-container {
-    display: flex;
-    align-items: center;
-    margin: 4px 0;
-    justify-content: space-between;
-  }
-  
-  .slider-label {
-    flex: 0 0 40px;
-  }
-  
-  input[type="range"] {
-    flex: 1;
-    margin: 0 8px;
-  }
-  
-  .toggle-options {
-    display: flex;
-    gap: 8px;
-  }
-  
-  .toggle-options button {
-    flex: 1;
-    padding: 8px 5px;
-  }
-  
-  .view-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 5px;
-    margin-top: 8px;
-  }
-  
-  .view-button {
-    background-color: #4169E1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 5px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .view-button.active {
-    background-color: #FF9800;
-    font-weight: bold;
-  }
-  
-  /* ローディング画面 */
-  .loading {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-    transition: opacity 1s;
-  }
-  
-  .loading h2 {
-    color: #FFD700;
-    margin-bottom: 20px;
-  }
-  
-  .loading-bar {
-    width: 200px;
-    height: 10px;
-    background-color: #111;
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  
-  .loading-progress {
-    height: 100%;
-    width: 0%;
-    background-color: #4169E1;
-    transition: width 0.3s;
-  }
-  
-  /* タブレットとデスクトップの調整 */
-  @media (min-width: 768px) {
-    .phase-info {
-      top: 80px;
-      right: 20px;
-      width: 300px;
-    }
-    
-    
-    #toggle-info {
-      top: 80px;
-    }
-    
-    .phase-buttons {
-      grid-template-columns: 1fr 1fr 1fr 1fr;
-    }
-    
-    .mobile-controls {
-      width: 400px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-radius: 15px 15px 0 0;
-    }
-  }
-  
-  /* 大画面用の調整 */
-  @media (min-width: 1024px) {
-    .title {
-      top: 20px;
-    }
-    
-    .phase-info {
-      top: 20px;
-      right: 20px;
-      width: 280px;
-    }
-    
-    .mobile-controls {
-      width: 400px;
-      right: 50%;
-      transform: translateX(50%);
-    }
-  }
+}

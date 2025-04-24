@@ -104,11 +104,7 @@ const moonPhases = [
     // 月相ボタンのアクティブ状態を更新
     document.querySelectorAll('.phase-button').forEach(button => {
       const buttonAngle = parseInt(button.dataset.angle);
-      if (buttonAngle === closestPhase.angle) {
-        button.classList.add('active');
-      } else {
-        button.classList.remove('active');
-      }
+      button.classList.toggle('active', buttonAngle === closestPhase.angle);
     });
   }
   

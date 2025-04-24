@@ -43,6 +43,10 @@ function init() {
   // ドラッグ検知
   controls.addEventListener('start', function() {
     isDragging = true;
+    // ドラッグ開始時に視点ボタンの選択状態を解除
+    document.querySelectorAll('.view-button').forEach(btn => {
+      btn.classList.remove('active');
+    });
   });
   
   controls.addEventListener('end', function() {
@@ -94,12 +98,12 @@ function init() {
     loadingScreen.style.display = 'none';
   }, 1000);
   
+  // アニメーションの開始
+  animate();
+
   // BGMの初期化
   bgmAudio = document.getElementById('background-music');
   bgmAudio.volume = 0.3; // ボリュームを30%に設定
-
-  // アニメーションの開始
-  animate();
 }
 
 // 月の位置を特定の角度に設定する関数
@@ -156,13 +160,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-
-// ラベルの位置を更新
-function updateLabels() {
-  // この関数は使用しないため削除しておく
-}
-
-// UIイベントの設定
+// updateCameraView関数を修正
 function updateCameraView() {
   // ユーザーがカメラを操作した場合、または視点がロックされている場合は自動更新しない
   if (isDragging || userInteracted || viewLocked) return;
@@ -242,8 +240,14 @@ function setupUIEvents() {
   renderer.domElement.addEventListener('wheel', function() {
     userInteracted = true;
     viewLocked = true;
+
+    // ホイール操作時に視点ボタンの選択状態を解除
+    document.querySelectorAll('.view-button').forEach(btn => {
+      btn.classList.remove('active');
+    });    
+
   });
-  
+
   // 視点ボタンのイベントリスナーを修正
   document.querySelectorAll('.view-button').forEach(button => {
     button.addEventListener('click', function() {
@@ -269,6 +273,8 @@ function setupUIEvents() {
       }
     });
   });
+  
+  
   
   // 軌道表示切替ボタン
   document.getElementById('toggle-orbit').addEventListener('click', function() {
@@ -353,6 +359,7 @@ function setupUIEvents() {
     e.preventDefault();
   });
 }
+
 
 // ページが読み込まれたら初期化
 window.addEventListener('load', function() {
