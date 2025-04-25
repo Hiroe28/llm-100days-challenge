@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="ボールころがしパズル - 3D物理パズルゲーム" />
+    <meta property="og:description" content="画面をクリック/タップしてボールを転がし、コインを集めてゴールを目指す3Dパズルゲーム。物理エンジンによるリアルな動きと美しいグラフィックスで没入感のある体験を。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day035-ball-maze-puzzle/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day035-ball-maze-puzzle/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ボールころがしパズル" />
+    <meta name="twitter:description" content="画面をクリック/タップしてボールを転がし、コインを集めてゴールを目指す3Dパズルゲーム。レベルが上がるごとに難易度アップ！" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day035-ball-maze-puzzle/screenshot.png" />
+
+    <title>ボールころがしパズル</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="loading-screen">
+        <h2>ボールころがしパズル</h2>
+        <p>読み込み中...</p>
+        <div id="loading-bar">
+            <div id="loading-progress"></div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="ui-overlay">
+            <!-- 操作モード選択をコメントアウト（クリック操作のみに変更） -->
+            <div id="control-options">
+                <div class="control-option" id="click-control">クリック操作</div>
+                <div class="control-option" id="tilt-control">傾き操作</div>  <!-- ★追加 -->
+              </div>
+            
+            <div id="score-container">
+                <span id="score-label">スコア：</span>
+                <span id="score-value">0</span>
+            </div>
+            
+            <div id="time-container">
+                <span id="time-label">時間：</span>
+                <span id="time-value">00:00</span>
+            </div>
+            
+            <div id="level-container">
+                <span id="level-label">レベル：</span>
+                <span id="level-value">1</span>
+            </div>
+            
+            <div id="controls">
+                <p>画面をクリック/タップしてボールを転がす方向を指定します<br>すべてのコインを集めてから、緑の旗（ゴール）に到達してください！</p>
+            </div>
+            
+            <div id="message-box">
+                <h2 id="message-title">ステージクリア！</h2>
+                <p id="message-text">次のレベルに進みますか？</p>
+                <button id="next-level-button">次のレベル</button>
+                <button id="restart-button">やり直す</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Three.jsをグローバル変数としてCDNから読み込み -->
+    <script src="https://unpkg.com/three@0.157.0/build/three.min.js"></script>
+    
+    <!-- Three.jsのアドオンを個別に読み込み -->
+    <script src="https://unpkg.com/three@0.157.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.157.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <!-- 物理エンジン（Cannon.js）を読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    
+    <!-- ゲームスクリプト（単一ファイルバージョン） -->
+    <script src="js/game.js"></script>
+</body>
+</html>

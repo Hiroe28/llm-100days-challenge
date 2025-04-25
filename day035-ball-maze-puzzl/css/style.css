@@ -1,0 +1,273 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f0f0f0;
+    touch-action: none; /* タッチ操作でのスクロールを防止 */
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+#game-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#ui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#score-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 24px;
+    font-weight: bold;
+    pointer-events: auto;
+}
+
+#time-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#level-container {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 18px;
+}
+
+#controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    pointer-events: auto;
+    max-width: 90%;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+#message-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 20px 30px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 20px;
+    display: none;
+    pointer-events: auto;
+    max-width: 90%;
+    width: 400px;
+    z-index: 100;
+}
+
+#start-button, #next-level-button, #restart-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    margin: 15px 8px 5px 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    pointer-events: auto;
+    transition: background-color 0.2s;
+}
+
+#start-button:hover, #next-level-button:hover, #restart-button:hover {
+    background-color: #388E3C;
+}
+
+#control-options {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    pointer-events: auto;
+    z-index: 10;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.control-option {
+    margin: 0 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 4px;
+}
+
+.control-option:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.option-selected {
+    color: #4CAF50;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#loading-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 24px;
+    z-index: 1000;
+}
+
+#loading-bar {
+    width: 80%;
+    max-width: 400px;
+    height: 20px;
+    background-color: #222;
+    border-radius: 10px;
+    margin-top: 20px;
+    overflow: hidden;
+}
+
+#loading-progress {
+    height: 100%;
+    width: 0%;
+    background-color: #4CAF50;
+    transition: width 0.3s ease-in-out;
+}
+
+#temp-message {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 18px;
+    z-index: 1000;
+    text-align: center;
+    transition: opacity 0.5s;
+    max-width: 90%;
+    line-height: 1.4;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+#debug-info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 1000;
+    border-radius: 5px;
+    line-height: 1.4;
+    display: none;
+}
+
+/* スマホ対応のための追加スタイル */
+@media (max-width: 768px) {
+    #score-container, #time-container {
+        font-size: 18px;
+        padding: 8px 16px;
+    }
+    
+    #level-container {
+        font-size: 16px;
+        padding: 6px 12px;
+    }
+    
+    #controls {
+        font-size: 14px;
+        padding: 10px;
+    }
+    
+    #message-box {
+        font-size: 18px;
+        padding: 15px 20px;
+    }
+    
+    #start-button, #next-level-button, #restart-button {
+        font-size: 16px;
+        padding: 10px 18px;
+    }
+    
+    .control-option {
+        margin: 0 5px;
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+}
+
+.debug-level-button:hover {
+    background-color: #388E3C !important;
+}
+
+#debug-menu {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
