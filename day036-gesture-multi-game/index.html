@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="手のジェスチャーマルチゲーム - お子様向けインタラクティブゲーム" />
+    <meta property="og:description" content="カメラを使った手の動きやタッチで遊べる3つのゲーム（宝探し、虹色お絵かき、音楽ゲーム）を搭載。5歳のお子様でも楽しく遊べる直感的な操作のインタラクティブゲーム。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day036-gesture-multi-game/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day036-gesture-multi-game/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="手のジェスチャーマルチゲーム" />
+    <meta name="twitter:description" content="カメラを使った手の動きやタッチで遊べる宝探し・虹色お絵かき・音楽ゲームの3種類を搭載。5歳のお子様でも楽しめる直感的な操作のインタラクティブゲーム体験。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day036-gesture-multi-game/screenshot.png" />
+
+    <title>手のジェスチャーマルチゲーム</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Kosugi Maru', 'Arial', sans-serif;
+            background-color: #000;
+            color: white;
+        }
+        
+        /* 鏡像表示のための共通クラス */
+        .mirror {
+            transform: scaleX(-1);
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 10;
+            opacity: 0.8; /* カメラ映像を少し透過 */
+        }
+        
+        #hand-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            pointer-events: none;
+        }
+        
+        #game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 15;
+            pointer-events: none;
+        }
+        
+        #drawing-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 15;
+            pointer-events: none;
+            display: none;
+        }
+        
+        #info-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 30;
+            font-size: 16px;
+            max-width: 300px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        #score-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 30;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        #target {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(255, 0, 0, 0.7);
+            z-index: 25;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px red;
+            display: none;
+        }
+        
+        #countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 150px;
+            color: white;
+            z-index: 40;
+            text-shadow: 0 0 20px rgba(0, 0, 255, 0.8);
+            display: none;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 50;
+            text-align: center;
+            display: none;
+            width: 300px;
+            border: 3px solid #4CAF50;
+        }
+        
+        #start-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            z-index: 50;
+            text-align: center;
+            width: 80%;
+            max-width: 500px;
+            border: 3px solid #4CAF50;
+        }
+        
+        #error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 60;
+            text-align: center;
+            display: none;
+            width: 300px;
+            border: 3px solid #f44336;
+        }
+        
+        #mode-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .mode-button {
+            width: 140px;
+            height: 100px;
+            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #2196F3;
+            border: 2px solid #0b7dda;
+        }
+        
+        .mode-button:nth-child(1) {
+            background-color: #FF9800;
+            border-color: #e68a00;
+        }
+        
+        .mode-button:nth-child(2) {
+            background-color: #9C27B0;
+            border-color: #7B1FA2;
+        }
+        
+        .mode-button:nth-child(3) {
+            background-color: #F44336;
+            border-color: #d32f2f;
+        }
+        
+        .mode-icon {
+            font-size: 30px;
+            margin-bottom: 5px;
+        }
+        
+        .animation {
+            position: absolute;
+            font-size: 30px;
+            font-weight: bold;
+            color: yellow;
+            z-index: 35;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            text-shadow: 0 0 10px black;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+        }
+
+        #home-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            z-index: 40;
+            /* display: none; ←開発中は表示 */
+            padding: 0;
+        }
+
+        .home-icon {
+            display: inline-block;
+            transform: translate(2px, 1px); /* ← 横1px・縦1pxだけ微調整 */
+        }
+        
+        /* トレジャーハントモード専用のスタイル */
+        .treasure {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 25;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 0 10px gold);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50,5 L60,40 L95,40 L65,60 L75,95 L50,75 L25,95 L35,60 L5,40 L40,40 Z" fill="gold" stroke="orange" stroke-width="2"/></svg>');
+        }
+        
+        /* お絵かきモード専用のスタイル */
+        #color-palette {
+            position: absolute;
+            bottom: 80px; /* 上部から下部に変更 */
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px; /* 少し広げる */
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px; /* パディングを増やす */
+            border-radius: 20px;
+            z-index: 35;
+            display: none;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        
+        /* 新しく追加する虹色ボタンのスタイル */
+        .rainbow-option {
+            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+            color: white;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* キラキラエフェクトのアニメーション */
+        .sparkle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 16;
+            animation: sparkleAnim 1s linear forwards;
+        }
+        
+        @keyframes sparkleAnim {
+            0% {
+                opacity: 1;
+                transform: scale(0);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+        
+        #clear-drawing {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        /* 新しい色と音のマッチングゲームスタイル */
+        #color-music-container {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            z-index: 25;
+            display: none;
+        }
+        
+        .music-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 3px solid white;
+        }
+        
+        .music-circle.active {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px white;
+        }
+        
+        .music-circle[data-note="C4"] {
+            background-color: #ff4136; /* 赤 (ド) */
+        }
+        
+        .music-circle[data-note="D4"] {
+            background-color: #ff851b; /* オレンジ (レ) */
+        }
+        
+        .music-circle[data-note="E4"] {
+            background-color: #ffdc00; /* 黄色 (ミ) */
+        }
+        
+        .music-circle[data-note="F4"] {
+            background-color: #2ecc40; /* 緑 (ファ) */
+        }
+        
+        .music-circle[data-note="G4"] {
+            background-color: #0074d9; /* 青 (ソ) */
+        }
+        
+        .music-circle[data-note="A4"] {
+            background-color: #b10dc9; /* 紫 (ラ) */
+        }
+        
+        .music-circle[data-note="B4"] {
+            background-color: #f012be; /* ピンク (シ) */
+        }
+        
+        /* 音符の表示 */
+        .circle-note {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            z-index: 26;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+            transform: translate(-50%, -50%);
+            animation: pulse 1s infinite alternate;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+        
+        .hit-result {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px black;
+            z-index: 35;
+            pointer-events: none;
+            animation: fadeOut 1s forwards;
+        }
+        
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.5);
+            }
+        }
+        
+        /* ポインタ表示 */
+        #finger-pointer {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 0, 0, 0.8);
+            border: 2px solid white;
+            border-radius: 50%;
+            z-index: 40;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px red;
+            display: none;
+        }
+        
+        /* スマホ対応のための追加スタイル */
+        @media (max-width: 768px) {
+           
+            .color-option {
+                width: 35px;  /* 元は25px */
+                height: 35px; /* 元は25px */
+                margin: 2px;  /* 間隔を追加 */
+            }
+
+            
+            #score-panel {
+                font-size: 16px;
+                padding: 8px 15px;
+            }
+            
+            .mode-button {
+                width: 120px;
+                height: 80px;
+                font-size: 16px;
+            }
+            
+            .mode-icon {
+                font-size: 24px;
+            }
+            
+            #countdown {
+                font-size: 100px;
+            }
+            
+            .treasure {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .music-circle {
+                width: 60px;
+                height: 60px;
+                font-size: 16px;
+            }
+            
+            #color-music-container {
+                gap: 15px;
+            }
+            
+            #color-palette {
+                padding: 5px;
+            }
+            
+            .color-option {
+                width: 40px;  /* さらに大きく */
+                height: 40px; /* さらに大きく */
+                margin: 3px;  /* 間隔を増やす */
+            }
+            
+            #home-button {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+                line-height: 35px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <!-- 基本的なビデオとキャンバス要素 -->
+        <video id="video" class="mirror" playsinline autoplay></video>
+        <canvas id="hand-canvas" class="mirror"></canvas>
+        <canvas id="game-canvas"></canvas>
+        <canvas id="drawing-canvas"></canvas>
+        
+        <!-- 情報パネル -->
+        <div id="info-panel">
+            <div id="status">手を画面に映して始めよう！</div>
+            <div id="instructions"></div>
+        </div>
+        
+        <!-- スコアパネル -->
+        <div id="score-panel">
+            <div>スコア: <span id="score">0</span></div>
+            <div>残り時間: <span id="timer">30</span></div>
+        </div>
+        
+        <!-- ゲーム要素 -->
+        <div id="finger-pointer"></div>
+        <div id="target"></div>
+        <div id="countdown">3</div>
+        
+        <!-- お絵かきモードのカラーパレット -->
+        <div id="color-palette">
+            <div class="color-option rainbow-option" style="background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);" data-color="rainbow">🌈</div>
+            <div class="color-option" style="background-color: red;" data-color="red"></div>
+            <div class="color-option" style="background-color: blue;" data-color="blue"></div>
+            <div class="color-option" style="background-color: green;" data-color="green"></div>
+            <div class="color-option" style="background-color: yellow;" data-color="yellow"></div>
+            <div class="color-option" style="background-color: purple;" data-color="purple"></div>
+            <div class="color-option" style="background-color: orange;" data-color="orange"></div>
+            <div class="color-option" style="background-color: black;" data-color="black"></div>
+            <div class="color-option" style="background-color: white;" data-color="white"></div>
+            <button id="clear-drawing">クリア</button>
+        </div>
+        
+        <!-- 色と音のマッチングゲーム用の円 -->
+        <div id="color-music-container">
+            <div class="music-circle" data-note="C4" data-label="ド">ド</div>
+            <div class="music-circle" data-note="D4" data-label="レ">レ</div>
+            <div class="music-circle" data-note="E4" data-label="ミ">ミ</div>
+            <div class="music-circle" data-note="F4" data-label="ファ">ファ</div>
+            <div class="music-circle" data-note="G4" data-label="ソ">ソ</div>
+        </div>
+        
+        <!-- ホームボタン -->
+        <button id="home-button"><span class="home-icon">🏠</span></button>
+        
+        <!-- ゲームオーバー画面 -->
+        <div id="game-over">
+            <h2>ゲーム終了</h2>
+            <p>あなたのスコア: <span id="final-score">0</span></p>
+            <button id="restart-button">もう一度遊ぶ</button>
+            <button id="back-to-menu-button">メニューに戻る</button>
+        </div>
+        
+        <!-- スタート画面 -->
+        <div id="start-screen">
+            <h1>手のジェスチャーマルチゲーム</h1>
+            <p>手やタッチで遊べる3つの楽しいゲームがあるよ！</p>
+            <p>遊びたいゲームを選んでね！</p>
+            
+            <div id="mode-buttons">
+                <button class="mode-button" id="treasure-mode">
+                    <span class="mode-icon">💎</span>
+                    宝探し
+                </button>
+                <button class="mode-button" id="draw-mode">
+                    <span class="mode-icon">🎨</span>
+                    お絵かき
+                </button>
+                <button class="mode-button" id="rhythm-mode">
+                    <span class="mode-icon">🎵</span>
+                    音楽ゲーム
+                </button>
+            </div>
+        </div>
+        
+        <!-- エラーメッセージ -->
+        <div id="error-message">
+            <h3>カメラにアクセスできません</h3>
+            <p id="error-details">お使いのデバイスではカメラが利用できないか、許可されていません。</p>
+            <p>引き続きタッチモードでゲームをお楽しみいただけます。</p>
+            <button id="error-ok-button">OK</button>
+        </div>
+    </div>
+
+    <!-- 必要なライブラリの読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        // ゲーム共通の変数
+        let score = 0;
+        let gameTime = 30;
+        let gameActive = false;
+        let timer;
+        let currentMode = null;
+        let isMobileDevice = false;
+        let useCamera = true; // カメラを使用するかどうか
+        
+        // MediaPipe関連の変数
+        let video, hands, handCanvas, handCtx;
+        let camera;
+        
+        // キャンバス関連の変数
+        let gameCanvas, gameCtx;
+        let drawingCanvas, drawingCtx;
+        
+        // 要素の参照
+        let statusDisplay, scoreDisplay, timerDisplay;
+        let countdown, gameOverScreen, finalScoreDisplay;
+        let startScreen, homeButton, colorPalette;
+        let instructionsDisplay, fingerPointer;
+        let errorMessage, errorDetails, errorOkButton;
+        let colorMusicContainer;
+        
+        // 安全領域の設定（UIパネルがある場所を避ける）
+        const safeArea = {
+            top: 150, // 上部のUIパネルの高さ
+            left: 80, // 左側のUIパネルの幅
+            right: 150, // 右側のUIパネルの幅
+            bottom: 80 // 下部の余白
+        };
+        
+        // オーディオコンテキスト（音を鳴らすため）
+        let audioCtx;
+        let currentSound = null;
+        
+        // 音符の周波数マッピング
+        const noteFrequencies = {
+            'C4': 261.63, // ド
+            'D4': 293.66, // レ
+            'E4': 329.63, // ミ
+            'F4': 349.23, // ファ
+            'G4': 392.00, // ソ
+            'A4': 440.00, // ラ
+            'B4': 493.88  // シ
+        };
+        
+        // 虹色のペン用の変数
+        let rainbowMode = true; // デフォルトで虹色モード
+        let rainbowHue = 0; // 色相（0-360）
+        
+        // 虹色用のHSLカラーを生成する関数
+        function getRainbowColor(hue) {
+            return `hsl(${hue}, 100%, 50%)`;
+        }
+        
+        // 音を鳴らす関数
+        function playSound(freq, duration, volume = 0.5) {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // 前の音が鳴っていたら停止
+                if (currentSound) {
+                    currentSound.stop();
+                }
+                
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = freq;
+                gainNode.gain.value = volume;
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.start();
+                
+                // 参照を保持
+                currentSound = oscillator;
+                
+                setTimeout(() => {
+                    oscillator.stop();
+                    // 現在の音と一致する場合のみnullに
+                    if (currentSound === oscillator) {
+                        currentSound = null;
+                    }
+                }, duration);
+                
+                return true;
+            } catch (e) {
+                console.log('オーディオ再生エラー:', e);
+                return false;
+            }
+        }
+        
+        // 簡易的な効果音
+        const sounds = {
+            collect: () => playSound(800, 200, 0.3),
+            success: () => playSound(1200, 300, 0.3),
+            fail: () => playSound(300, 300, 0.3),
+            countdown: () => playSound(600, 200, 0.3),
+            gameOver: () => {
+                playSound(800, 200, 0.3);
+                setTimeout(() => playSound(600, 200, 0.3), 200);
+                setTimeout(() => playSound(400, 400, 0.3), 400);
+            },
+            note: (note) => {
+                const freq = noteFrequencies[note] || 440;
+                return playSound(freq, 500, 0.4);
+            }
+        };
+        
+        // ===== 共通ユーティリティ関数 =====
+        
+        // デバイスタイプの検出
+        function detectMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        // HTTPSかどうかの検出
+        function isSecureContext() {
+            return window.location.protocol === 'https:' || 
+                   window.location.hostname === 'localhost' || 
+                   window.location.hostname === '127.0.0.1';
+        }
+        
+        // スリープ関数
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // 安全な位置を計算（UIと重ならない）
+        function getSafePosition() {
+            const safeWidth = window.innerWidth - safeArea.left - safeArea.right;
+            const safeHeight = window.innerHeight - safeArea.top - safeArea.bottom;
+            
+            return {
+                x: safeArea.left + Math.random() * safeWidth,
+                y: safeArea.top + Math.random() * safeHeight
+            };
+        }
+        
+        // カウントダウン処理
+        async function startCountdown() {
+            countdown.style.display = 'block';
+            countdown.textContent = '3';
+            sounds.countdown();
+            await sleep(1000);
+            countdown.textContent = '2';
+            sounds.countdown();
+            await sleep(1000);
+            countdown.textContent = '1';
+            sounds.countdown();
+            await sleep(1000);
+            countdown.textContent = 'スタート！';
+            sounds.success();
+            await sleep(800);
+            countdown.style.display = 'none';
+            startGame();
+        }
+        
+        // ゲーム開始処理
+        function startGame() {
+            gameActive = true;
+            score = 0; // スコアを必ずリセット
+            scoreDisplay.textContent = score;
+            
+            // ゲームモードに応じて時間と表示設定
+            if (currentMode === 'draw') {
+                gameTime = 60; // お絵かきは長め
+                score_panel.style.display = 'none'; // お絵かきモードではスコア非表示
+            } else {
+                gameTime = 30; // 他のゲームは通常
+                score_panel.style.display = 'block'; // 他のモードではスコア表示
+            }
+            
+            timerDisplay.textContent = gameTime;
+            gameOverScreen.style.display = 'none';
+            
+            // モード別の初期化
+            if (currentMode === 'treasure') {
+                startTreasureHunt();
+            } else if (currentMode === 'draw') {
+                startDrawingMode();
+            } else if (currentMode === 'rhythm') {
+                startColorMusicGame();
+            }
+            
+            // タイマー開始
+            clearInterval(timer); // 念のため既存のタイマーをクリア
+            timer = setInterval(() => {
+                gameTime--;
+                timerDisplay.textContent = gameTime;
+                
+                if (gameTime <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+        
+        // ゲーム終了処理
+        function endGame() {
+            gameActive = false;
+            clearInterval(timer);
+            
+            finalScoreDisplay.textContent = score;
+            gameOverScreen.style.display = 'block';
+            sounds.gameOver();
+            
+            // モード別の終了処理
+            if (currentMode === 'treasure') {
+                endTreasureHunt();
+            } else if (currentMode === 'draw') {
+                endDrawingMode();
+            } else if (currentMode === 'rhythm') {
+                endColorMusicGame();
+            }
+        }
+        
+        // スコア加算時のアニメーション
+        function showScoreAnimation(x, y, points) {
+            const animation = document.createElement('div');
+            animation.className = 'animation';
+            animation.textContent = '+' + points;
+            animation.style.left = x + 'px';
+            animation.style.top = y + 'px';
+            
+            document.body.appendChild(animation);
+            
+            // アニメーション終了後に要素を削除
+            setTimeout(() => {
+                if (animation.parentNode) {
+                    document.body.removeChild(animation);
+                }
+            }, 1000);
+        }
+        
+        // キラキラエフェクトを作成する関数
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = x + 'px';
+            sparkle.style.top = y + 'px';
+            
+            // ランダムな色を設定
+            const hue = Math.random() * 360;
+            sparkle.style.backgroundColor = `hsla(${hue}, 100%, 70%, 0.8)`;
+            
+            document.body.appendChild(sparkle);
+            
+            // アニメーション終了後に要素を削除
+            setTimeout(() => {
+                if (sparkle.parentNode) {
+                    document.body.removeChild(sparkle);
+                }
+            }, 1000);
+        }
+        
+        // ===== トレジャーハントモード =====
+        
+        const treasures = [];
+        const treasureTypes = [
+            { type: 'star', value: 10, color: 'gold' },
+            { type: 'diamond', value: 20, color: 'cyan' },
+            { type: 'ruby', value: 30, color: 'red' }
+        ];
+        
+        function startTreasureHunt() {
+            // 説明を更新
+            instructionsDisplay.innerHTML = `
+                <p>👉 人差し指で宝石をタッチして集めよう！</p>
+                <p>💎 星: 10点、ダイヤ: 20点、ルビー: 30点</p>
+                <p>🌟 たくさん集めると特別な宝石が現れるよ！</p>
+            `;
+            
+            // 既存の宝石をクリア
+            endTreasureHunt();
+            
+            // 最初の宝石を生成
+            createTreasure();
+            
+            // 追加の宝石を生成
+            setTimeout(() => createTreasure(), 500);
+        }
+        
+        function endTreasureHunt() {
+            // 全ての宝石を削除
+            treasures.forEach(treasure => {
+                if (treasure.element && treasure.element.parentNode) {
+                    treasure.element.parentNode.removeChild(treasure.element);
+                }
+            });
+            treasures.length = 0;
+        }
+        
+        function createTreasure() {
+            if (!gameActive || currentMode !== 'treasure') return;
+            
+            // 宝石のタイプをランダムに決める（スコアが高いほど価値の高い宝石が出やすい）
+            let treasureTypeIndex;
+            const rand = Math.random();
+            if (score > 200) {
+                treasureTypeIndex = rand < 0.5 ? 2 : (rand < 0.8 ? 1 : 0);
+            } else if (score > 100) {
+                treasureTypeIndex = rand < 0.3 ? 2 : (rand < 0.7 ? 1 : 0);
+            } else {
+                treasureTypeIndex = rand < 0.1 ? 2 : (rand < 0.4 ? 1 : 0);
+            }
+            
+            const treasureType = treasureTypes[treasureTypeIndex];
+            
+            // 安全な位置に配置（UIと重ならない）
+            const position = getSafePosition();
+            
+            // 宝石の要素を作成
+            const treasureElement = document.createElement('div');
+            treasureElement.className = 'treasure';
+            treasureElement.style.width = '60px';
+            treasureElement.style.height = '60px';
+            treasureElement.style.left = position.x + 'px';
+            treasureElement.style.top = position.y + 'px';
+            
+            // 宝石のタイプに応じて見た目を変更
+            if (treasureType.type === 'star') {
+                treasureElement.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50,5 L60,40 L95,40 L65,60 L75,95 L50,75 L25,95 L35,60 L5,40 L40,40 Z" fill="gold" stroke="orange" stroke-width="2"/></svg>')`;
+            } else if (treasureType.type === 'diamond') {
+                treasureElement.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50,5 L95,40 L50,95 L5,40 Z" fill="cyan" stroke="blue" stroke-width="2"/></svg>')`;
+            } else if (treasureType.type === 'ruby') {
+                treasureElement.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M20,20 L80,20 L95,50 L50,95 L5,50 Z" fill="red" stroke="darkred" stroke-width="2"/></svg>')`;
+            }
+            
+            document.body.appendChild(treasureElement);
+            
+            // 宝石情報をトラッキング
+            const treasure = {
+                position,
+                element: treasureElement,
+                type: treasureType.type,
+                value: treasureType.value,
+                collected: false
+            };
+            
+            treasures.push(treasure);
+            
+            // 一定時間後に自動的に消える
+            setTimeout(() => {
+                if (treasure.element && treasure.element.parentNode && !treasure.collected) {
+                    treasure.element.parentNode.removeChild(treasure.element);
+                    const index = treasures.indexOf(treasure);
+                    if (index !== -1) {
+                        treasures.splice(index, 1);
+                    }
+                    
+                    // 新しい宝石を生成
+                    if (gameActive && currentMode === 'treasure') {
+                        createTreasure();
+                    }
+                }
+            }, 3000 + Math.random() * 2000); // 3〜5秒でランダムに消える
+        }
+        
+        function checkTreasureCollection(fingerPosition) {
+            for (let i = 0; i < treasures.length; i++) {
+                const treasure = treasures[i];
+                if (treasure.collected) continue;
+                
+                // 指先と宝石の距離を計算
+                const distance = Math.sqrt(
+                    Math.pow(fingerPosition.x - treasure.position.x, 2) +
+                    Math.pow(fingerPosition.y - treasure.position.y, 2)
+                );
+                
+                // 宝石に触れた場合（距離を大きめに設定）
+                if (distance < 60) {
+                    // 宝石を集めた処理
+                    treasure.collected = true;
+                    treasure.element.style.animation = 'collect 0.5s forwards';
+                    
+                    // スコアを加算
+                    score += treasure.value;
+                    scoreDisplay.textContent = score;
+                    
+                    // 効果音
+                    sounds.collect();
+                    
+                    // スコアアニメーションを表示
+                    showScoreAnimation(treasure.position.x, treasure.position.y, treasure.value);
+                    
+                    // 宝石を削除
+                    setTimeout(() => {
+                        if (treasure.element && treasure.element.parentNode) {
+                            treasure.element.parentNode.removeChild(treasure.element);
+                            
+                            // 新しい宝石を生成
+                            if (gameActive && currentMode === 'treasure') {
+                                createTreasure();
+                                
+                                // スコアに応じて追加で宝石を生成
+                                if (score > 100 && Math.random() < 0.3) {
+                                    setTimeout(createTreasure, 500);
+                                }
+                            }
+                        }
+                    }, 500);
+                    
+                    // ステータス表示を更新
+                    statusDisplay.textContent = `${treasure.type}の宝石をゲット！ +${treasure.value}ポイント`;
+                    
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // ===== お絵かきモード =====
+        
+        let isDrawing = false;
+        let currentColor = 'red';
+        let brushSize = 5;
+        let lastX = null;
+        let lastY = null;
+        
+        function startDrawingMode() {
+            // キャンバスを表示
+            drawingCanvas.style.display = 'block';
+            colorPalette.style.display = 'flex';
+            
+            // 説明を更新
+            instructionsDisplay.innerHTML = `
+                <p>👉 人差し指を使ってお絵かきしよう！</p>
+                <p>🎨 虹色モードでカラフルに描けるよ</p>
+                <p>✨ キラキラエフェクト付きでかわいく描けるよ！</p>
+            `;
+            
+            // キャンバスをクリア
+            drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            
+            // デフォルトで虹色モードを選択
+            rainbowMode = true;
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(opt => opt.style.borderWidth = '2px');
+            // 虹色ボタンを強調
+            colorOptions[0].style.borderWidth = '4px';
+        }
+        
+        function endDrawingMode() {
+            drawingCanvas.style.display = 'none';
+            colorPalette.style.display = 'none';
+            isDrawing = false;
+            lastX = null;
+            lastY = null;
+        }
+        
+        function setupDrawingEvents() {
+            // 色パレットのイベント設定
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(option => {
+                // クリックイベント
+                option.addEventListener('click', function() {
+                    console.log('色がクリックされました:', this.dataset.color);
+                    
+                    if (this.dataset.color === 'rainbow') {
+                        rainbowMode = true;
+                    } else {
+                        rainbowMode = false;
+                        currentColor = this.dataset.color;
+                    }
+                    
+                    colorOptions.forEach(opt => opt.style.borderWidth = '2px');
+                    this.style.borderWidth = '4px';
+                    sounds.success();
+                });
+                
+                // タッチイベント（モバイル用）
+                option.addEventListener('touchstart', function(e) {
+                    console.log('色がタッチされました:', this.dataset.color);
+                    
+                    if (this.dataset.color === 'rainbow') {
+                        rainbowMode = true;
+                    } else {
+                        rainbowMode = false;
+                        currentColor = this.dataset.color;
+                    }
+                    
+                    colorOptions.forEach(opt => opt.style.borderWidth = '2px');
+                    this.style.borderWidth = '4px';
+                    sounds.success();
+                    e.preventDefault(); // タッチイベントの伝搬を防止
+                });
+            });
+            
+            // クリアボタンにも同様の処理を追加
+            const clearButton = document.getElementById('clear-drawing');
+            clearButton.addEventListener('click', function() {
+                drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                sounds.success();
+            });
+            
+            clearButton.addEventListener('touchstart', function(e) {
+                console.log('クリアボタンがタッチされました');
+                drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                sounds.success();
+                e.preventDefault();
+            });
+        }
+        
+        function draw(x, y) {
+            if (!isDrawing) return;
+            
+            drawingCtx.lineJoin = 'round';
+            drawingCtx.lineCap = 'round';
+            
+            // 虹色モードの場合は色を自動的に変化
+            if (rainbowMode) {
+                rainbowHue = (rainbowHue + 2) % 360;
+                drawingCtx.strokeStyle = getRainbowColor(rainbowHue);
+            } else {
+                drawingCtx.strokeStyle = currentColor;
+            }
+            
+            drawingCtx.lineWidth = brushSize;
+            
+            // 最初のポイントの場合は位置を記録するだけ
+            if (lastX === null || lastY === null) {
+                lastX = x;
+                lastY = y;
+                return;
+            }
+            
+            // 線を描画
+            drawingCtx.beginPath();
+            drawingCtx.moveTo(lastX, lastY);
+            drawingCtx.lineTo(x, y);
+            drawingCtx.stroke();
+            
+            // 描画中にキラキラ効果（ランダムな小さな円）を追加
+            if (Math.random() < 0.2) { // 20%の確率で
+                const sparkleSize = Math.random() * 5 + 2;
+                const sparkleX = x + (Math.random() * 20 - 10);
+                const sparkleY = y + (Math.random() * 20 - 10);
+                
+                drawingCtx.fillStyle = `hsla(${Math.random() * 360}, 100%, 75%, 0.8)`;
+                drawingCtx.beginPath();
+                drawingCtx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
+                drawingCtx.fill();
+                
+                // DOM要素としてのキラキラエフェクトも追加
+                createSparkle(sparkleX, sparkleY);
+            }
+            
+            // 現在位置を更新
+            lastX = x;
+            lastY = y;
+        }
+        
+        // ===== 色と音のマッチングゲーム =====
+        
+        let musicCircles = [];
+        let activeCircleIndex = -1;
+        let sequenceInterval;
+        let currentMelodyIndex = 0;
+        let waitingForInput = false;
+        let comboCount = 0;
+        
+        // メロディのシーケンス（簡単なメロディ）
+        const colorMelodies = [
+            // きらきら星
+            ['C4', 'C4', 'G4', 'G4', 'F4', 'F4', 'G4'],
+            // チューリップ
+            ['C4', 'D4', 'E4', 'C4', 'E4', 'C4', 'E4'],
+            // メリーさんの羊
+            ['E4', 'D4', 'C4', 'D4', 'E4', 'E4', 'E4']
+        ];
+        
+        function startColorMusicGame() {
+            // 色と音のマッチングゲームを表示
+            colorMusicContainer.style.display = 'flex';
+            
+            // 説明を更新
+            instructionsDisplay.innerHTML = `
+                <p>🎵 光った色をタッチしよう！</p>
+                <p>👆 メロディに合わせてタイミングよくタップ！</p>
+                <p>✨ 連続で成功するとボーナススコア！</p>
+            `;
+            
+            // 変数の初期化
+            comboCount = 0;
+            musicCircles = Array.from(document.querySelectorAll('.music-circle'));
+            currentMelodyIndex = 0;
+            activeCircleIndex = -1;
+            waitingForInput = false;
+            
+            // 音楽サークルのタップイベントを設定
+            musicCircles.forEach(circle => {
+                circle.addEventListener('click', function() {
+                    if (!gameActive || !waitingForInput) return;
+                    checkCircleHit(this);
+                });
+            });
+            
+            // シーケンスを開始
+            clearInterval(sequenceInterval);
+            setTimeout(playNextNote, 1000);
+            
+            sequenceInterval = setInterval(() => {
+                if (gameActive && currentMode === 'rhythm') {
+                    if (!waitingForInput) {
+                        playNextNote();
+                    }
+                }
+            }, 2500); // 2.5秒ごとに次の音符を再生
+        }
+        
+        function endColorMusicGame() {
+            clearInterval(sequenceInterval);
+            colorMusicContainer.style.display = 'none';
+            
+            // アクティブな円をリセット
+            resetActiveCircle();
+        }
+        
+        function playNextNote() {
+            if (!gameActive || currentMode !== 'rhythm') return;
+            
+            // ランダムなメロディを選択
+            const melodyIndex = Math.floor(Math.random() * colorMelodies.length);
+            const melody = colorMelodies[melodyIndex];
+            
+            // 現在のメロディインデックスを更新
+            currentMelodyIndex = (currentMelodyIndex + 1) % melody.length;
+            
+            // 音符を再生
+            const note = melody[currentMelodyIndex];
+            
+            // 対応する円を光らせる
+            const circleIndex = findCircleIndexByNote(note);
+            setActiveCircle(circleIndex);
+            
+            // 音を鳴らす
+            sounds.note(note);
+            
+            // 入力待ち状態に
+            waitingForInput = true;
+            
+            // 一定時間後に自動的に次へ進む（タイムアウト）
+            setTimeout(() => {
+                if (waitingForInput && activeCircleIndex === circleIndex) {
+                    // タイムアウト：プレイヤーがタップしなかった
+                    showMissedNote();
+                    resetActiveCircle();
+                    waitingForInput = false;
+                    comboCount = 0;
+                }
+            }, 2000); // 2秒以内にタップしないとミス
+        }
+        
+        function findCircleIndexByNote(note) {
+            for (let i = 0; i < musicCircles.length; i++) {
+                if (musicCircles[i].dataset.note === note) {
+                    return i;
+                }
+            }
+            return 0; // デフォルト
+        }
+        
+        function setActiveCircle(index) {
+            // 以前のアクティブな円をリセット
+            resetActiveCircle();
+            
+            // 新しい円をアクティブに
+            if (index >= 0 && index < musicCircles.length) {
+                musicCircles[index].classList.add('active');
+                activeCircleIndex = index;
+            }
+        }
+        
+        function resetActiveCircle() {
+            if (activeCircleIndex >= 0 && activeCircleIndex < musicCircles.length) {
+                musicCircles[activeCircleIndex].classList.remove('active');
+            }
+            activeCircleIndex = -1;
+        }
+        
+        function checkCircleHit(circle) {
+            // 正しい円がタップされたか
+            const correctCircle = activeCircleIndex >= 0 && 
+                                 musicCircles[activeCircleIndex] === circle;
+            
+            if (correctCircle) {
+                // 音を鳴らす
+                sounds.note(circle.dataset.note);
+                
+                // スコアを加算
+                const basePoints = 20;
+                let points = basePoints;
+                
+                // コンボボーナス
+                comboCount++;
+                if (comboCount > 1) {
+                    points = Math.floor(points * (1 + Math.min(comboCount, 10) * 0.1));
+                }
+                
+                score += points;
+                scoreDisplay.textContent = score;
+                
+                // 結果表示
+                const circleRect = circle.getBoundingClientRect();
+                const x = circleRect.left + circleRect.width / 2;
+                const y = circleRect.top;
+                
+                let resultText = "GREAT!";
+                if (comboCount > 1) {
+                    resultText += ` x${comboCount}`;
+                }
+                
+                showHitResult(x, y, resultText, 'lime');
+                showScoreAnimation(x, y - 30, points);
+                
+                // ステータス更新
+                statusDisplay.textContent = `${circle.dataset.label}の音を鳴らした！ +${points}ポイント`;
+                
+                // アクティブ状態をリセット
+                resetActiveCircle();
+                waitingForInput = false;
+            } else {
+                // 間違った円がタップされた
+                sounds.fail();
+                
+                const circleRect = circle.getBoundingClientRect();
+                const x = circleRect.left + circleRect.width / 2;
+                const y = circleRect.top;
+                
+                showHitResult(x, y, "MISS", 'red');
+                
+                // コンボリセット
+                comboCount = 0;
+                
+                // アクティブ状態をリセット
+                resetActiveCircle();
+                waitingForInput = false;
+            }
+        }
+        
+        function showMissedNote() {
+            if (activeCircleIndex >= 0 && activeCircleIndex < musicCircles.length) {
+                const circle = musicCircles[activeCircleIndex];
+                const circleRect = circle.getBoundingClientRect();
+                const x = circleRect.left + circleRect.width / 2;
+                const y = circleRect.top;
+                
+                showHitResult(x, y, "TOO LATE", 'red');
+                sounds.fail();
+            }
+        }
+        
+        function showHitResult(x, y, text, color) {
+            const resultElement = document.createElement('div');
+            resultElement.className = 'hit-result';
+            resultElement.style.left = x + 'px';
+            resultElement.style.top = (y - 30) + 'px';
+            resultElement.style.color = color;
+            resultElement.textContent = text;
+            
+            document.body.appendChild(resultElement);
+            
+            // アニメーション終了後に要素を削除
+            setTimeout(() => {
+                if (resultElement.parentNode) {
+                    document.body.removeChild(resultElement);
+                }
+            }, 1000);
+        }
+        
+        // ===== MediaPipeの初期化 =====
+        
+        function initMediaPipe() {
+            video = document.getElementById('video');
+            handCanvas = document.getElementById('hand-canvas');
+            handCtx = handCanvas.getContext('2d');
+            
+            gameCanvas = document.getElementById('game-canvas');
+            gameCtx = gameCanvas.getContext('2d');
+            
+            drawingCanvas = document.getElementById('drawing-canvas');
+            drawingCtx = drawingCanvas.getContext('2d');
+            
+            // キャンバスのサイズを設定
+            handCanvas.width = window.innerWidth;
+            handCanvas.height = window.innerHeight;
+            gameCanvas.width = window.innerWidth;
+            gameCanvas.height = window.innerHeight;
+            drawingCanvas.width = window.innerWidth;
+            drawingCanvas.height = window.innerHeight;
+            
+            // カメラが使えない環境ではカメラ初期化をスキップ
+            if (!useCamera) {
+                return setupTouchEvents();
+            }
+            
+            try {
+                // MediaPipeが使用可能か確認
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('getUserMediaがサポートされていません');
+                }
+                
+                // Hands APIの設定
+                hands = new Hands({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                    }
+                });
+                
+                hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                
+                hands.onResults(onResults);
+                
+                // カメラの設定
+                camera = new Camera(video, {
+                    onFrame: async () => {
+                        try {
+                            await hands.send({image: video});
+                        } catch (e) {
+                            console.error('Handsの処理中にエラー:', e);
+                        }
+                    },
+                    width: 1280,
+                    height: 720
+                });
+                
+                // カメラ起動
+                camera.start().catch(error => {
+                    console.error('カメラ起動エラー:', error);
+                    showCameraError('カメラを起動できませんでした: ' + error.message);
+                });
+                
+            } catch (error) {
+                console.error('MediaPipe初期化エラー:', error);
+                showCameraError('カメラ機能を初期化できませんでした: ' + error.message);
+            }
+            
+            // リサイズイベント
+            window.addEventListener('resize', () => {
+                handCanvas.width = window.innerWidth;
+                handCanvas.height = window.innerHeight;
+                gameCanvas.width = window.innerWidth;
+                gameCanvas.height = window.innerHeight;
+                drawingCanvas.width = window.innerWidth;
+                drawingCanvas.height = window.innerHeight;
+            });
+        }
+        
+        // カメラエラーを表示
+        function showCameraError(message) {
+            errorDetails.textContent = message;
+            errorMessage.style.display = 'block';
+            useCamera = false;
+            setupTouchEvents();
+        }
+        
+        // MediaPipeの結果処理
+        function onResults(results) {
+            // キャンバスをクリア
+            handCtx.clearRect(0, 0, handCanvas.width, handCanvas.height);
+            gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+            
+            // 手が検出された場合
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const handLandmarks = results.multiHandLandmarks[0];
+                const handedness = results.multiHandedness[0].label;
+                
+                // 手の認識を描画
+                drawHand(handCtx, handLandmarks, handedness);
+                
+                // 人差し指の位置を取得
+                const indexFinger = handLandmarks[8];  // 人差し指の先端
+                
+                // 画面座標に変換（鏡像反転を考慮）
+                const indexFingerPosition = {
+                    x: (1 - indexFinger.x) * handCanvas.width, // x座標を反転
+                    y: indexFinger.y * handCanvas.height
+                };
+                
+                // 人差し指が上がっているかの簡易判定
+                const wrist = handLandmarks[0]; // 手首
+                const indexDIP = handLandmarks[7]; // 人差し指の第2関節
+                const isIndexUp = indexFinger.y < indexDIP.y && indexFinger.y < wrist.y;
+                
+                // 指ポインターを表示
+                fingerPointer.style.display = 'block';
+                fingerPointer.style.left = indexFingerPosition.x + 'px';
+                fingerPointer.style.top = indexFingerPosition.y + 'px';
+                
+                // もしスタート画面が表示されている場合、手が検出されたらカウントダウンを開始
+                if (startScreen.style.display !== 'none' && currentMode) {
+                    // ゲームモードが選択されていることを確認
+                    if (countdown.style.display !== 'block') {
+                        statusDisplay.textContent = 'ゲームを開始します！';
+                        startScreen.style.display = 'none';
+                        homeButton.style.display = 'block';
+                        startCountdown();
+                    }
+                }
+                
+                // ゲームが進行中の場合、モードに応じた処理を実行
+                if (gameActive) {
+                    if (currentMode === 'treasure') {
+                        // トレジャーハントモード: 宝石との当たり判定
+                        if (isIndexUp) {
+                            checkTreasureCollection(indexFingerPosition);
+                        }
+                    } else if (currentMode === 'draw') {
+                        // お絵かきモード: 描画処理
+                        if (isIndexUp) {
+                            isDrawing = true;
+                            draw(indexFingerPosition.x, indexFingerPosition.y);
+                        } else {
+                            isDrawing = false;
+                            lastX = null;
+                            lastY = null;
+                        }
+                    } else if (currentMode === 'rhythm') {
+                        // 色と音のマッチングゲーム: サークルとの当たり判定
+                        if (isIndexUp && waitingForInput) {
+                            // 指先と各サークルとの当たり判定
+                            for (let i = 0; i < musicCircles.length; i++) {
+                                const circle = musicCircles[i];
+                                const rect = circle.getBoundingClientRect();
+                                const circleCenterX = rect.left + rect.width / 2;
+                                const circleCenterY = rect.top + rect.height / 2;
+                                
+                                const distance = Math.sqrt(
+                                    Math.pow(indexFingerPosition.x - circleCenterX, 2) +
+                                    Math.pow(indexFingerPosition.y - circleCenterY, 2)
+                                );
+                                
+                                if (distance < rect.width / 2 + 20) {
+                                    // サークルに触れた
+                                    checkCircleHit(circle);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // 手が検出されない場合はポインターを非表示に
+                fingerPointer.style.display = 'none';
+                
+                // 手が検出されない場合はステータス表示を更新
+                if (startScreen.style.display === 'none' && !gameActive) {
+                    statusDisplay.textContent = '手を画面に映してください';
+                }
+                
+                // お絵かきモードの場合、描画を停止
+                if (currentMode === 'draw') {
+                    isDrawing = false;
+                    lastX = null;
+                    lastY = null;
+                }
+            }
+        }
+        
+        // 手の認識を描画する関数
+        function drawHand(ctx, landmarks, handedness) {
+            // 手のランドマークを描画
+            ctx.fillStyle = handedness === 'Left' ? 'rgba(0, 255, 0, 0.7)' : 'rgba(0, 0, 255, 0.7)';
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            
+            // 各ランドマークを描画
+            for (const landmark of landmarks) {
+                // キャンバスは既にmirrorクラスで反転しているため、座標はそのまま使用
+                const x = landmark.x * ctx.canvas.width;
+                const y = landmark.y * ctx.canvas.height;
+                
+                // 円を描画
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            // 指の接続線を描画
+            ctx.strokeStyle = handedness === 'Left' ? 'rgba(0, 255, 0, 0.7)' : 'rgba(0, 0, 255, 0.7)';
+            ctx.lineWidth = 3;
+            
+            // 親指
+            drawConnection(ctx, landmarks, 0, 1);
+            drawConnection(ctx, landmarks, 1, 2);
+            drawConnection(ctx, landmarks, 2, 3);
+            drawConnection(ctx, landmarks, 3, 4);
+            
+            // 人差し指
+            drawConnection(ctx, landmarks, 0, 5);
+            drawConnection(ctx, landmarks, 5, 6);
+            drawConnection(ctx, landmarks, 6, 7);
+            drawConnection(ctx, landmarks, 7, 8);
+            
+            // 中指
+            drawConnection(ctx, landmarks, 5, 9);
+            drawConnection(ctx, landmarks, 9, 10);
+            drawConnection(ctx, landmarks, 10, 11);
+            drawConnection(ctx, landmarks, 11, 12);
+            
+            // 薬指
+            drawConnection(ctx, landmarks, 9, 13);
+            drawConnection(ctx, landmarks, 13, 14);
+            drawConnection(ctx, landmarks, 14, 15);
+            drawConnection(ctx, landmarks, 15, 16);
+            
+            // 小指
+            drawConnection(ctx, landmarks, 13, 17);
+            drawConnection(ctx, landmarks, 17, 18);
+            drawConnection(ctx, landmarks, 18, 19);
+            drawConnection(ctx, landmarks, 19, 20);
+            
+            // 手のひらの接続
+            drawConnection(ctx, landmarks, 0, 17);
+            drawConnection(ctx, landmarks, 5, 9);
+            drawConnection(ctx, landmarks, 9, 13);
+            drawConnection(ctx, landmarks, 13, 17);
+        }
+        
+        // ランドマーク間の接続線を描画
+        function drawConnection(ctx, landmarks, index1, index2) {
+            const start = landmarks[index1];
+            const end = landmarks[index2];
+            
+            ctx.beginPath();
+            ctx.moveTo(start.x * ctx.canvas.width, start.y * ctx.canvas.height);
+            ctx.lineTo(end.x * ctx.canvas.width, end.y * ctx.canvas.height);
+            ctx.stroke();
+        }
+        
+        // モバイルデバイス用のタッチイベント
+        function setupTouchEvents() {
+            // タッチ操作のフォールバック
+            document.addEventListener('touchstart', handleTouch);
+            document.addEventListener('touchmove', handleTouch);
+            
+            function handleTouch(event) {
+                // タッチ座標を取得
+                const touch = event.touches[0];
+                if (!touch) return;
+                
+                const touchPosition = {
+                    x: touch.clientX,
+                    y: touch.clientY
+                };
+                
+                // 指ポインターを表示
+                fingerPointer.style.display = 'block';
+                fingerPointer.style.left = touchPosition.x + 'px';
+                fingerPointer.style.top = touchPosition.y + 'px';
+                
+                // タッチされた要素を取得
+                const element = document.elementFromPoint(touchPosition.x, touchPosition.y);
+                
+                // デバッグ用 - タッチした要素の情報を表示
+                console.log('タッチされた要素:', element);
+                if (element) {
+                    console.log('要素のクラス:', element.className);
+                    console.log('要素のID:', element.id);
+                }
+                
+                // 色選択の処理を追加
+                if (element && element.classList.contains('color-option')) {
+                    console.log('色選択が検出されました:', element.dataset.color);
+                    // 色を変更
+                    if (element.dataset.color === 'rainbow') {
+                        rainbowMode = true;
+                    } else {
+                        rainbowMode = false;
+                        currentColor = element.dataset.color;
+                    }
+                    
+                    // 選択された色を強調表示
+                    const colorOptions = document.querySelectorAll('.color-option');
+                    colorOptions.forEach(opt => opt.style.borderWidth = '2px');
+                    element.style.borderWidth = '4px';
+                    
+                    // 効果音を鳴らす
+                    sounds.success();
+                    
+                    // 以降の処理をスキップ
+                    e.preventDefault();
+                    return;
+                }
+                
+                // クリアボタンの処理
+                if (element && element.id === 'clear-drawing') {
+                    console.log('クリアボタンが押されました');
+                    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                    sounds.success();
+                    event.preventDefault();
+                    return;
+                }
+                
+                // 既存のbutton要素の処理
+                if (element && element.tagName === 'BUTTON') {
+                    return; // ボタンはそのままクリックイベントを処理
+                }
+                
+                // （以下は元のコードと同じ）
+                // ゲームが進行中の場合のみ処理
+                if (gameActive) {
+                    // モードに応じた処理
+                    if (currentMode === 'treasure') {
+                        checkTreasureCollection(touchPosition);
+                    } else if (currentMode === 'draw') {
+                        isDrawing = true;
+                        draw(touchPosition.x, touchPosition.y);
+                    } else if (currentMode === 'rhythm') {
+                        // 各サークルとの当たり判定
+                        if (waitingForInput) {
+                            const element = document.elementFromPoint(touchPosition.x, touchPosition.y);
+                            if (element && element.classList.contains('music-circle')) {
+                                checkCircleHit(element);
+                            }
+                        }
+                    }
+                } else if (startScreen.style.display !== 'none' && currentMode) {
+                    // スタート画面表示中でモード選択済みの場合
+                    startScreen.style.display = 'none';
+                    homeButton.style.display = 'block';
+                    startCountdown();
+                }
+                
+                // イベントの伝播を停止
+                event.preventDefault();
+            }
+            
+            document.addEventListener('touchend', function() {
+                // お絵かきモードの場合、描画を停止
+                if (currentMode === 'draw') {
+                    isDrawing = false;
+                    lastX = null;
+                    lastY = null;
+                }
+                
+                // 指ポインターを非表示
+                fingerPointer.style.display = 'none';
+            });
+        }
+        
+        // ===== 初期化処理 =====
+        
+        function init() {
+            // モバイルデバイスの検出
+            isMobileDevice = detectMobileDevice();
+            
+            // HTTPSまたはlocalhost以外の環境ではカメラを無効化
+            if (!isSecureContext()) {
+                useCamera = false;
+                console.warn('安全でないコンテキストではカメラは使用できません。HTTPSまたはlocalhostで実行してください。');
+            }
+            
+            // 要素の参照を取得
+            statusDisplay = document.getElementById('status');
+            scoreDisplay = document.getElementById('score');
+            timerDisplay = document.getElementById('timer');
+            countdown = document.getElementById('countdown');
+            gameOverScreen = document.getElementById('game-over');
+            finalScoreDisplay = document.getElementById('final-score');
+            startScreen = document.getElementById('start-screen');
+            homeButton = document.getElementById('home-button');
+            colorPalette = document.getElementById('color-palette');
+            instructionsDisplay = document.getElementById('instructions');
+            fingerPointer = document.getElementById('finger-pointer');
+            errorMessage = document.getElementById('error-message');
+            errorDetails = document.getElementById('error-details');
+            errorOkButton = document.getElementById('error-ok-button');
+            colorMusicContainer = document.getElementById('color-music-container');
+            score_panel = document.getElementById('score-panel');
+            
+            // エラーOKボタンのイベント
+            errorOkButton.addEventListener('click', function() {
+                errorMessage.style.display = 'none';
+            });
+            
+            // モバイルデバイスの場合
+            if (isMobileDevice) {
+                // UIの調整
+                safeArea.top = 120; // モバイルでは少し小さく
+                
+                // ユーザー体験のためにタッチで先にオーディオコンテキストを初期化
+                document.addEventListener('touchstart', function initAudio() {
+                    // 一時的なビープ音を鳴らして初期化
+                    if (!audioCtx) {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const oscillator = audioCtx.createOscillator();
+                        const gainNode = audioCtx.createGain();
+                        gainNode.gain.value = 0;  // 無音
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+                        oscillator.start();
+                        oscillator.stop(audioCtx.currentTime + 0.01);
+                    }
+                    document.removeEventListener('touchstart', initAudio);
+                }, { once: true });
+            }
+            
+            // MediaPipeの初期化
+            initMediaPipe();
+            
+            // 各モードボタンのイベント設定
+            document.getElementById('treasure-mode').addEventListener('click', () => {
+                currentMode = 'treasure';
+                startScreen.style.display = 'none';
+                homeButton.style.display = 'block';
+                startCountdown();
+            });
+            
+            document.getElementById('draw-mode').addEventListener('click', () => {
+                currentMode = 'draw';
+                startScreen.style.display = 'none';
+                homeButton.style.display = 'block';
+                startCountdown();
+            });
+            
+            document.getElementById('rhythm-mode').addEventListener('click', () => {
+                currentMode = 'rhythm';
+                startScreen.style.display = 'none';
+                homeButton.style.display = 'block';
+                startCountdown();
+            });
+            
+            // リスタートボタンのイベント
+            document.getElementById('restart-button').addEventListener('click', () => {
+                gameOverScreen.style.display = 'none';
+                startCountdown();
+            });
+            
+            // メニューに戻るボタンのイベント
+            document.getElementById('back-to-menu-button').addEventListener('click', () => {
+                gameOverScreen.style.display = 'none';
+                startScreen.style.display = 'block';
+                homeButton.style.display = 'none';
+                
+                // 現在のモードをクリーンアップ
+                if (currentMode === 'treasure') {
+                    endTreasureHunt();
+                } else if (currentMode === 'draw') {
+                    endDrawingMode();
+                } else if (currentMode === 'rhythm') {
+                    endColorMusicGame();
+                }
+                
+                currentMode = null;
+            });
+            
+            // ホームボタンのイベント
+            homeButton.addEventListener('click', () => {
+                // もしゲームが進行中なら終了
+                if (gameActive) {
+                    clearInterval(timer);
+                    gameActive = false;
+                }
+                
+                startScreen.style.display = 'block';
+                homeButton.style.display = 'none';
+                
+                // 現在のモードをクリーンアップ
+                if (currentMode === 'treasure') {
+                    endTreasureHunt();
+                } else if (currentMode === 'draw') {
+                    endDrawingMode();
+                } else if (currentMode === 'rhythm') {
+                    endColorMusicGame();
+                }
+                
+                currentMode = null;
+            });
+                        
+            // タッチイベント設定
+            setupTouchEvents();
+
+            // お絵かきモード用のイベント設定
+            setupDrawingEvents();
+        }
+        
+        // ページ読み込み時に初期化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
