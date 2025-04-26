@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- OGP (Open Graph Protocol) -->
-    <meta property="og:title" content="手のジェスチャーマルチゲーム - お子様向けインタラクティブゲーム" />
+    <meta property="og:title" content="手のジェスチャーマルチゲーム" />
     <meta property="og:description" content="カメラを使った手の動きやタッチで遊べる3つのゲーム（宝探し、虹色お絵かき、音楽ゲーム）を搭載。5歳のお子様でも楽しく遊べる直感的な操作のインタラクティブゲーム。" />
     <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day036-gesture-multi-game/screenshot.png" />
     <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day036-gesture-multi-game/index.html" />
@@ -280,7 +280,6 @@
             height: 50px;
             font-size: 24px;
             z-index: 40;
-            /* display: none; ←開発中は表示 */
             padding: 0;
         }
 
@@ -306,16 +305,19 @@
         /* お絵かきモード専用のスタイル */
         #color-palette {
             position: absolute;
-            bottom: 80px; /* 上部から下部に変更 */
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 12px; /* 少し広げる */
+            gap: 12px;
             background-color: rgba(0, 0, 0, 0.7);
-            padding: 15px; /* パディングを増やす */
+            padding: 15px;
             border-radius: 20px;
             z-index: 35;
             display: none;
+            flex-wrap: wrap; /* 折り返しを可能に */
+            justify-content: center; /* 中央寄せ */
+            max-width: 500px; /* 最大幅を設定 */
         }
         
         .color-option {
@@ -324,6 +326,7 @@
             border-radius: 50%;
             border: 2px solid white;
             cursor: pointer;
+            margin: 3px; /* すべての画面サイズで余白を追加 */
         }
         
         /* 新しく追加する虹色ボタンのスタイル */
@@ -370,15 +373,16 @@
             border-radius: 5px;
             cursor: pointer;
             margin-left: 10px;
+            margin-top: 5px; /* 上部に余白を追加 */
         }
         
         /* 新しい色と音のマッチングゲームスタイル */
         #color-music-container {
             position: absolute;
-            top: 50%;
+            top: 25%; /* 上部に配置するよう変更 */
             left: 0;
             right: 0;
-            transform: translateY(-50%);
+            transform: none; /* Y方向の変換を削除 */
             display: flex;
             justify-content: center;
             gap: 30px;
@@ -498,17 +502,21 @@
         
         /* スマホ対応のための追加スタイル */
         @media (max-width: 768px) {
-           
-            .color-option {
-                width: 35px;  /* 元は25px */
-                height: 35px; /* 元は25px */
-                margin: 2px;  /* 間隔を追加 */
+            /* 説明パネルをコンパクトに */
+            #info-panel {
+                top: 5px;
+                left: 5px;
+                font-size: 12px;
+                padding: 5px;
+                max-width: 150px;
+                opacity: 0.8;
             }
-
             
             #score-panel {
                 font-size: 16px;
                 padding: 8px 15px;
+                top: 5px;
+                right: 5px;
             }
             
             .mode-button {
@@ -530,6 +538,7 @@
                 height: 60px;
             }
             
+            /* 音楽ゲームのサークルを小さく、間隔を狭く */
             .music-circle {
                 width: 60px;
                 height: 60px;
@@ -538,23 +547,38 @@
             
             #color-music-container {
                 gap: 15px;
+                top: 20%; /* さらに上部に */
             }
             
+            /* カラーパレットを改善 */
             #color-palette {
-                padding: 5px;
+                padding: 8px;
+                bottom: 65px;
+                flex-wrap: wrap;
+                justify-content: center;
+                max-width: 90%;
+                gap: 5px;
             }
             
             .color-option {
-                width: 40px;  /* さらに大きく */
-                height: 40px; /* さらに大きく */
-                margin: 3px;  /* 間隔を増やす */
+                width: 40px;  /* 大きく */
+                height: 40px; /* 大きく */
+                margin: 3px;
+            }
+            
+            #clear-drawing {
+                margin: 8px auto 3px auto;
+                display: block;
+                width: 80px;
             }
             
             #home-button {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-                line-height: 35px;
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+                bottom: 15px;
+                left: 15px;
+                display: flex !important; /* スマホでも確実に表示 */
             }
         }
     </style>
@@ -829,7 +853,7 @@
             // ゲームモードに応じて時間と表示設定
             if (currentMode === 'draw') {
                 gameTime = 60; // お絵かきは長め
-                score_panel.style.display = 'none'; // お絵かきモードではスコア非表示
+                score_panel.style.display = 'block'; // お絵かきモードでもスコア表示（修正）
             } else {
                 gameTime = 30; // 他のゲームは通常
                 score_panel.style.display = 'block'; // 他のモードではスコア表示
@@ -927,11 +951,9 @@
         ];
         
         function startTreasureHunt() {
-            // 説明を更新
+            // 説明を更新（シンプルに）
             instructionsDisplay.innerHTML = `
-                <p>👉 人差し指で宝石をタッチして集めよう！</p>
-                <p>💎 星: 10点、ダイヤ: 20点、ルビー: 30点</p>
-                <p>🌟 たくさん集めると特別な宝石が現れるよ！</p>
+                <p>👉 人差し指で宝石をタッチ！</p>
             `;
             
             // 既存の宝石をクリア
@@ -1065,7 +1087,7 @@
                     }, 500);
                     
                     // ステータス表示を更新
-                    statusDisplay.textContent = `${treasure.type}の宝石をゲット！ +${treasure.value}ポイント`;
+                    statusDisplay.textContent = `${treasure.type}の宝石をゲット！ +${treasure.value}点`;
                     
                     return true;
                 }
@@ -1087,11 +1109,9 @@
             drawingCanvas.style.display = 'block';
             colorPalette.style.display = 'flex';
             
-            // 説明を更新
+            // 説明を更新（シンプルに）
             instructionsDisplay.innerHTML = `
-                <p>👉 人差し指を使ってお絵かきしよう！</p>
-                <p>🎨 虹色モードでカラフルに描けるよ</p>
-                <p>✨ キラキラエフェクト付きでかわいく描けるよ！</p>
+                <p>👉 人差し指で描こう！</p>
             `;
             
             // キャンバスをクリア
@@ -1238,11 +1258,9 @@
             // 色と音のマッチングゲームを表示
             colorMusicContainer.style.display = 'flex';
             
-            // 説明を更新
+            // 説明を更新（シンプルに）
             instructionsDisplay.innerHTML = `
-                <p>🎵 光った色をタッチしよう！</p>
-                <p>👆 メロディに合わせてタイミングよくタップ！</p>
-                <p>✨ 連続で成功するとボーナススコア！</p>
+                <p>🎵 光った色をタッチ！</p>
             `;
             
             // 変数の初期化
@@ -1379,7 +1397,7 @@
                 showScoreAnimation(x, y - 30, points);
                 
                 // ステータス更新
-                statusDisplay.textContent = `${circle.dataset.label}の音を鳴らした！ +${points}ポイント`;
+                statusDisplay.textContent = `${circle.dataset.label}の音を鳴らした！ +${points}点`;
                 
                 // アクティブ状態をリセット
                 resetActiveCircle();
@@ -1750,7 +1768,7 @@
                     sounds.success();
                     
                     // 以降の処理をスキップ
-                    e.preventDefault();
+                    event.preventDefault();
                     return;
                 }
                 
