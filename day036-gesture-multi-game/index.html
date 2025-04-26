@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- OGP (Open Graph Protocol) -->
-    <meta property="og:title" content="手のジェスチャーマルチゲーム" />
+    <meta property="og:title" content="手のジェスチャーマルチゲーム - お子様向けインタラクティブゲーム" />
     <meta property="og:description" content="カメラを使った手の動きやタッチで遊べる3つのゲーム（宝探し、虹色お絵かき、音楽ゲーム）を搭載。5歳のお子様でも楽しく遊べる直感的な操作のインタラクティブゲーム。" />
     <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day036-gesture-multi-game/screenshot.png" />
     <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day036-gesture-multi-game/index.html" />
@@ -366,14 +366,19 @@
         }
         
         #clear-drawing {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
             background-color: #f44336;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
-            margin-left: 10px;
-            margin-top: 5px; /* 上部に余白を追加 */
+            z-index: 35;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: none;
         }
         
         /* 新しい色と音のマッチングゲームスタイル */
@@ -550,7 +555,7 @@
                 top: 20%; /* さらに上部に */
             }
             
-            /* カラーパレットを改善 */
+            /* カラーパレット（非表示） */
             #color-palette {
                 padding: 8px;
                 bottom: 65px;
@@ -558,6 +563,7 @@
                 justify-content: center;
                 max-width: 90%;
                 gap: 5px;
+                display: none;
             }
             
             .color-option {
@@ -566,10 +572,13 @@
                 margin: 3px;
             }
             
+            /* スマホ用クリアボタン */
             #clear-drawing {
-                margin: 8px auto 3px auto;
-                display: block;
-                width: 80px;
+                padding: 10px 15px;
+                font-size: 16px;
+                right: 15px;
+                bottom: 15px;
+                width: auto;
             }
             
             #home-button {
@@ -609,8 +618,8 @@
         <div id="target"></div>
         <div id="countdown">3</div>
         
-        <!-- お絵かきモードのカラーパレット -->
-        <div id="color-palette">
+        <!-- お絵かきモードのカラーパレット（非表示） -->
+        <div id="color-palette" style="display: none;">
             <div class="color-option rainbow-option" style="background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);" data-color="rainbow">🌈</div>
             <div class="color-option" style="background-color: red;" data-color="red"></div>
             <div class="color-option" style="background-color: blue;" data-color="blue"></div>
@@ -620,8 +629,10 @@
             <div class="color-option" style="background-color: orange;" data-color="orange"></div>
             <div class="color-option" style="background-color: black;" data-color="black"></div>
             <div class="color-option" style="background-color: white;" data-color="white"></div>
-            <button id="clear-drawing">クリア</button>
         </div>
+        
+        <!-- お絵かきモード用クリアボタン（右下に配置） -->
+        <button id="clear-drawing">クリア</button>
         
         <!-- 色と音のマッチングゲーム用の円 -->
         <div id="color-music-container">
@@ -1107,7 +1118,10 @@
         function startDrawingMode() {
             // キャンバスを表示
             drawingCanvas.style.display = 'block';
-            colorPalette.style.display = 'flex';
+            // カラーパレットは非表示（虹色モードのみ使用）
+            colorPalette.style.display = 'none';
+            // クリアボタンを表示
+            document.getElementById('clear-drawing').style.display = 'block';
             
             // 説明を更新（シンプルに）
             instructionsDisplay.innerHTML = `
@@ -1117,17 +1131,14 @@
             // キャンバスをクリア
             drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             
-            // デフォルトで虹色モードを選択
+            // デフォルトで虹色モードを設定
             rainbowMode = true;
-            const colorOptions = document.querySelectorAll('.color-option');
-            colorOptions.forEach(opt => opt.style.borderWidth = '2px');
-            // 虹色ボタンを強調
-            colorOptions[0].style.borderWidth = '4px';
         }
         
         function endDrawingMode() {
             drawingCanvas.style.display = 'none';
             colorPalette.style.display = 'none';
+            document.getElementById('clear-drawing').style.display = 'none';
             isDrawing = false;
             lastX = null;
             lastY = null;
