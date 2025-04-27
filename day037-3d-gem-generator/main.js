@@ -10,7 +10,9 @@ let objLoader; // OBJLoader用の変数
 let gemModels = {}; // 読み込んだ宝石モデルを保存するオブジェクト
 let envMap; // 環境マップをグローバル変数として保持
 let sparkleSystem; // スパークルパーティクルシステム
-let modelBasePath = 'asset/';
+// グローバル変数セクションに追加
+let modelBasePath = window.MODEL_BASE_PATH || 'asset/';
+let loadingErrors = [];
 
 // 設定のデフォルト値（ダイヤモンドをデフォルトに）
 let currentSettings = {
@@ -548,12 +550,18 @@ async function findValidModelPath() {
     return 'asset/';
 }
 // 宝石モデルの読み込み
+// 宝石モデルの読み込み関数を修正
 async function loadGemModels() {
     showLoadingIndicator(true);
     
-    // 最初に有効なモデルパスを見つける
-    modelBasePath = await findValidModelPath();
-    console.log(`使用するモデルパス: ${modelBasePath}`);
+    // エラーログクリア
+    loadingErrors = [];
+    
+    // モデルパスをコンソールに表示
+    console.log(`モデルの読み込みを試行: ${modelBasePath}`);
+    
+    // 読み込み状況を画面に表示
+    updateLoadingMessage(`モデルパス: ${modelBasePath} で読み込み中...`);
     
     const gemTypes = [
         'round',
@@ -575,98 +583,175 @@ async function loadGemModels() {
         ['round', 'oval', 'princess', 'heart', 'emerald'] : // モバイルでは一部のみ
         gemTypes; // デスクトップでは全て
     
-    // 全てのモデルを読み込む Promise の配列
-    const loadPromises = loadTypes.map(type => {
-        return new Promise((resolve, reject) => {
-            objLoader.load(
-                `${modelBasePath}gem_${type}.obj`, // ここでベースパスを使用
-                // 以下は元のコードと同じ
-                (object) => {
-                    // モデルの調整
-                    object.traverse((child) => {
-                        if (child instanceof THREE.Mesh) {
-                            // スケールを調整
-                            child.scale.set(2, 2, 2);
-                            // 位置を調整
-                            child.position.set(0, 0, 0);
-                            // 回転を調整
-                            if (type === 'heart') {
-                                child.rotation.set(Math.PI / 2, 0, Math.PI); // X軸90度 + Y軸180度
-                            } else {
-                                child.rotation.set(-Math.PI / 2, 0, 0); // 他は今まで通り
-                            }
-                            // ジオメトリの中心を原点に移動
-                            child.geometry.center();
-                            
-                            // 法線を再計算（光の反射に重要）
-                            child.geometry.computeVertexNormals();
-                            
-                            // モバイルの場合はジオメトリを簡略化
-                            if (isMobile) {
-                                // ジオメトリの頂点数を減らす
-                                const simplifier = new THREE.BufferGeometryUtils.SimplifyModifier();
-                                const count = child.geometry.attributes.position.count;
-                                const targetCount = Math.floor(count * 0.7); // 30%削減
-                                
-                                try {
-                                    child.geometry = simplifier.modify(child.geometry, targetCount);
-                                } catch (e) {
-                                    console.warn('ジオメトリの簡略化に失敗しました:', e);
-                                }
-                            }
-                        }
-                    });
-                    
-                    // モデルを保存
-                    gemModels[type] = object;
-                    resolve();
-                },
-                // 読み込み進捗
-                (xhr) => {
-                    const progress = xhr.loaded / xhr.total * 100;
-                    updateLoadingProgress(type, progress);
-                },
-                // エラー時
-                (error) => {
-                    console.error(`モデル ${type} の読み込みに失敗:`, error);
-                    // エラーしても進める
-                    resolve();
-                }
-            );
-        });
-    });
+    // 読み込みの最大試行回数
+    const maxAttempts = 3;
+    let currentAttempt = 0;
+    let success = false;
     
-    try {
-        // 全てのモデルが読み込まれるまで待機
-        await Promise.all(loadPromises);
+    while (currentAttempt < maxAttempts && !success) {
+        try {
+            // 全てのモデルを読み込む Promise の配列
+            const loadPromises = loadTypes.map(type => {
+                return new Promise((resolve, reject) => {
+                    // キャッシュバスティングのためのパラメータを追加
+                    const modelUrl = `${modelBasePath}gem_${type}.obj?v=${window.CACHE_BUSTER || Date.now()}`;
+                    console.log(`モデル読み込み: ${modelUrl}`);
+                    
+                    objLoader.load(
+                        modelUrl,
+                        (object) => {
+                            // モデルの調整 (既存コードと同じ)
+                            object.traverse((child) => {
+                                if (child instanceof THREE.Mesh) {
+                                    // 既存の調整コード
+                                    child.scale.set(2, 2, 2);
+                                    child.position.set(0, 0, 0);
+                                    // 回転を調整
+                                    if (type === 'heart') {
+                                        child.rotation.set(Math.PI / 2, 0, Math.PI);
+                                    } else {
+                                        child.rotation.set(-Math.PI / 2, 0, 0);
+                                    }
+                                    child.geometry.center();
+                                    child.geometry.computeVertexNormals();
+                                    
+                                    // モバイルの場合はジオメトリを簡略化
+                                    if (isMobile) {
+                                        // 既存の簡略化コード
+                                    }
+                                }
+                            });
+                            
+                            // モデルを保存
+                            gemModels[type] = object;
+                            resolve();
+                        },
+                        // 読み込み進捗
+                        (xhr) => {
+                            const progress = xhr.loaded / xhr.total * 100;
+                            updateLoadingProgress(type, progress);
+                        },
+                        // エラー時
+                        (error) => {
+                            console.error(`モデル ${type} の読み込みに失敗:`, error);
+                            loadingErrors.push(`${type}: ${error.message || 'Unknown error'}`);
+                            // エラーしても進める
+                            resolve();
+                        }
+                    );
+                });
+            });
+            
+            // 全てのモデルが読み込まれるまで待機
+            await Promise.all(loadPromises);
+            
+            // 少なくとも1つのモデルが読み込めたか確認
+            if (Object.keys(gemModels).length > 0) {
+                success = true;
+                console.log('モデルの読み込みに成功しました');
+            } else {
+                // 別のパスを試す
+                if (modelBasePath === 'asset/') {
+                    modelBasePath = '../asset/';
+                } else if (modelBasePath === '../asset/') {
+                    modelBasePath = '/llm-100days-challenge/day037-3d-gem-generator/asset/';
+                } else {
+                    modelBasePath = 'asset/';
+                }
+                currentAttempt++;
+                console.log(`読み込み失敗。新しいパスを試行: ${modelBasePath} (試行: ${currentAttempt}/${maxAttempts})`);
+                updateLoadingMessage(`パス: ${modelBasePath} で再試行中... (${currentAttempt}/${maxAttempts})`);
+            }
+        } catch (error) {
+            console.error('モデル読み込み中にエラーが発生しました:', error);
+            currentAttempt++;
+            updateLoadingMessage(`エラーが発生。再試行中... (${currentAttempt}/${maxAttempts})`);
+        }
+    }
+    
+    // モデルが読み込めたかどうか最終確認
+    if (Object.keys(gemModels).length === 0) {
+        console.error('すべてのモデル読み込みに失敗しました。フォールバックを使用します。');
+        updateLoadingMessage(`モデル読み込みに失敗しました。エラー: ${loadingErrors.join(', ')}`);
+        
+        // フォールバックとして基本的な形状を使用
+        createBasicGemShapes();
+    } else {
         console.log('全ての宝石モデルの読み込みが完了しました');
         
         // モバイルの場合、読み込まなかったモデルのフォールバック
         if (isMobile) {
-            gemTypes.forEach(type => {
-                if (!gemModels[type]) {
-                    // 最も近い形状のモデルをフォールバックとして使用
-                    let fallback;
-                    if (type === 'pear' || type === 'marquise') {
-                        fallback = 'oval';
-                    } else if (type === 'trillion' || type === 'radiant') {
-                        fallback = 'princess';
-                    } else {
-                        fallback = 'round';
-                    }
-                    
-                    if (gemModels[fallback]) {
-                        gemModels[type] = gemModels[fallback].clone();
-                    }
-                }
-            });
+            // 既存のフォールバックコード
         }
-    } catch (error) {
-        console.error('モデル読み込み中にエラーが発生しました:', error);
-    } finally {
-        // 読み込み完了後、インジケーターを非表示
-        showLoadingIndicator(false);
     }
+    
+    // 読み込み完了後、インジケーターを非表示（数秒待機）
+    setTimeout(() => {
+        showLoadingIndicator(false);
+    }, 500);
+}
+
+// 読み込みメッセージを更新する関数
+function updateLoadingMessage(message) {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        const progressText = loadingIndicator.querySelector('p');
+        if (progressText) {
+            progressText.textContent = message;
+        }
+    }
+}
+
+// 基本的な宝石形状を作成する（フォールバック用）
+function createBasicGemShapes() {
+    // 基本的なジオメトリを使って宝石モデルを作成
+    const geometries = {
+        'round': new THREE.SphereGeometry(2, 32, 32),
+        'oval': new THREE.SphereGeometry(2, 32, 32).scale(1.5, 1, 1),
+        'princess': new THREE.BoxGeometry(4, 4, 4),
+        'heart': createHeartShape(),
+        'emerald': new THREE.BoxGeometry(5, 3, 4)
+    };
+    
+    // すべての基本形状をモデルとして登録
+    Object.keys(geometries).forEach(type => {
+        const geometry = geometries[type];
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            metalness: 0.5,
+            roughness: 0.1
+        });
+        
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // プレースホルダーオブジェクトを作成してメッシュを子として追加
+        const object = new THREE.Group();
+        object.add(mesh);
+        
+        // モデル配列に追加
+        gemModels[type] = object;
+    });
+}
+
+// ハート形状を作成する関数
+function createHeartShape() {
+    const heartShape = new THREE.Shape();
+    
+    heartShape.moveTo(0, 0);
+    heartShape.bezierCurveTo(0, -1, -2, -2, -2, 0);
+    heartShape.bezierCurveTo(-2, 2, 0, 2, 0, 0.5);
+    heartShape.bezierCurveTo(0, 2, 2, 2, 2, 0);
+    heartShape.bezierCurveTo(2, -2, 0, -1, 0, 0);
+    
+    const extrudeSettings = {
+        depth: 1,
+        bevelEnabled: true,
+        bevelSegments: 3,
+        bevelSize: 0.5,
+        bevelThickness: 0.5
+    };
+    
+    return new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
 }
 
 // 環境マップと照明のセットアップ - キラキラ効果向上

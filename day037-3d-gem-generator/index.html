@@ -47,6 +47,7 @@
                 <div id="loading-indicator" class="loading-indicator">
                     <div class="spinner"></div>
                     <p>宝石モデル読み込み中...</p>
+                    <div id="loading-error" class="loading-error" style="display: none; color: red; margin-top: 10px; font-size: 0.8rem;"></div>
                 </div>
                 
                 <!-- 自動回転ボタン -->
@@ -181,8 +182,18 @@
             <div class="saved-gems-list" id="saved-gems-list"></div>
         </div>
     </div>
-    
-    <!-- タブ切り替え用のスクリプト -->
+    <script>
+        // リポジトリ構造に合わせたパス設定
+        window.MODEL_BASE_PATH = './asset/';  // デフォルトパス
+        
+        // リポジトリ内での実行を検出する
+        if (window.location.href.includes('llm-100days-challenge')) {
+            window.MODEL_BASE_PATH = '/llm-100days-challenge/day037-3d-gem-generator/asset/';
+        }
+        
+        // キャッシュバスティング用のパラメータ
+        window.CACHE_BUSTER = Date.now();
+    </script>    <!-- タブ切り替え用のスクリプト -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const tabButtons = document.querySelectorAll('.tab-button');
