@@ -10,6 +10,7 @@ let objLoader; // OBJLoader用の変数
 let gemModels = {}; // 読み込んだ宝石モデルを保存するオブジェクト
 let envMap; // 環境マップをグローバル変数として保持
 let sparkleSystem; // スパークルパーティクルシステム
+const BASE_URL = document.querySelector('base')?.href || window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
 
 // 設定のデフォルト値（ダイヤモンドをデフォルトに）
 let currentSettings = {
@@ -542,7 +543,7 @@ async function loadGemModels() {
     const loadPromises = loadTypes.map(type => {
         return new Promise((resolve, reject) => {
             objLoader.load(
-                `asset/gem_${type}.obj`,
+                `${BASE_URL}asset/gem_${type}.obj`,
                 (object) => {
                     // モデルの調整
                     object.traverse((child) => {
