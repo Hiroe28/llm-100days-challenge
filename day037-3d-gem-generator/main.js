@@ -10,7 +10,7 @@ let objLoader; // OBJLoader用の変数
 let gemModels = {}; // 読み込んだ宝石モデルを保存するオブジェクト
 let envMap; // 環境マップをグローバル変数として保持
 let sparkleSystem; // スパークルパーティクルシステム
-const BASE_URL = document.querySelector('base')?.href || window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+let modelBasePath = 'asset/';
 
 // 設定のデフォルト値（ダイヤモンドをデフォルトに）
 let currentSettings = {
@@ -515,9 +515,45 @@ function updateLoadingProgress(type, progress) {
     }
 }
 
+// 有効なモデルパスを見つける関数
+async function findValidModelPath() {
+    // 可能性のあるモデルパスのリスト
+    const possiblePaths = [
+        'asset/',                                       // 同じディレクトリ
+        '../asset/',                                    // 親ディレクトリ
+        'day037-3d-gem-generator/asset/',              // サブディレクトリ
+        '/llm-100days-challenge/day037-3d-gem-generator/asset/', // 絶対パス
+        '/mount/src/llm-100days-challenge/day037-3d-gem-generator/asset/' // 別の絶対パス
+    ];
+    
+    // 最も基本的なモデルのパスを使ってテスト
+    const testModelFile = 'gem_round.obj';
+    
+    for (const path of possiblePaths) {
+        try {
+            // モデルファイルの存在を確認するためにHEADリクエストを送信
+            const response = await fetch(`${path}${testModelFile}`, { method: 'HEAD' });
+            if (response.ok) {
+                console.log(`有効なパスを発見: ${path}`);
+                return path;
+            }
+        } catch (error) {
+            console.warn(`パスのテスト中にエラー: ${path}`, error);
+            // エラーでも次のパスを試す
+        }
+    }
+    
+    // どのパスも成功しなかった場合はデフォルトを返す
+    console.warn('有効なパスが見つかりませんでした。デフォルトパスを使用します。');
+    return 'asset/';
+}
 // 宝石モデルの読み込み
 async function loadGemModels() {
     showLoadingIndicator(true);
+    
+    // 最初に有効なモデルパスを見つける
+    modelBasePath = await findValidModelPath();
+    console.log(`使用するモデルパス: ${modelBasePath}`);
     
     const gemTypes = [
         'round',
@@ -543,7 +579,8 @@ async function loadGemModels() {
     const loadPromises = loadTypes.map(type => {
         return new Promise((resolve, reject) => {
             objLoader.load(
-                `${BASE_URL}asset/gem_${type}.obj`,
+                `${modelBasePath}gem_${type}.obj`, // ここでベースパスを使用
+                // 以下は元のコードと同じ
                 (object) => {
                     // モデルの調整
                     object.traverse((child) => {
