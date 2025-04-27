@@ -579,9 +579,10 @@ async function loadGemModels() {
     const isMobile = isMobileDevice();
     
     // モバイルでは必要なモデルだけを読み込む
-    const loadTypes = isMobile ? 
-        ['round', 'oval', 'princess', 'heart', 'emerald'] : // モバイルでは一部のみ
-        gemTypes; // デスクトップでは全て
+    // const loadTypes = isMobile ? 
+    //     ['round', 'oval', 'princess', 'heart', 'emerald'] : // モバイルでは一部のみ
+    //     gemTypes; // デスクトップでは全て
+    const loadTypes = gemTypes; // すべての環境で全モデルを読み込む
     
     // 読み込みの最大試行回数
     const maxAttempts = 3;
