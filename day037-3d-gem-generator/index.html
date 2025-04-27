@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6a1b9a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="3D宝石ジェネレーター - インタラクティブな宝石カスタマイズツール" />
+    <meta property="og:description" content="Three.jsで作られた美しい3D宝石をカスタマイズ。9種類の形状、カラーパレット、物理特性の調整、誕生石機能など。リアルな輝きを放つ宝石を作成して画像保存も可能。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day037-3d-gem-generator/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day037-3d-gem-generator/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="3D宝石ジェネレーター" />
+    <meta name="twitter:description" content="Three.jsで作られた美しい3D宝石をカスタマイズ。9種類の形状、カラーパレット、物理特性の調整、誕生石機能など。リアルな輝きを放つ宝石を作成して画像保存も可能。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day037-3d-gem-generator/screenshot.png" />
+
+    <title>3D宝石ジェネレーター</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Three.jsとOrbitControls、OBJLoaderをCDNから直接読み込み -->
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="main.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>3D宝石ジェネレーター</h1>
+        
+        <div class="app-container">
+            <div class="gem-container" id="gem-container">
+                <!-- 読み込み中の表示 -->
+                <div id="loading-indicator" class="loading-indicator">
+                    <div class="spinner"></div>
+                    <p>宝石モデル読み込み中...</p>
+                </div>
+                
+                <!-- 自動回転ボタン -->
+                <button id="auto-rotate" class="auto-rotate-button">
+                    <span class="button-icon">🔄</span>
+                    <span class="button-text">自動回転</span>
+                </button>
+            </div>
+            
+            <div class="controls-panel">
+                <!-- タブナビゲーション -->
+                <div class="tab-navigation">
+                    <button class="tab-button active" data-tab="basic">基本設定</button>
+                    <button class="tab-button" data-tab="special">誕生石</button>
+                </div>
+                
+                <!-- 基本設定タブ -->
+                <div class="tab-content active" id="basic-tab">
+                    <div class="form-group">
+                        <label for="shape">宝石の形</label>
+                        <select id="shape">
+                            <option value="round">ラウンド</option>
+                            <option value="oval">オーバル</option>
+                            <option value="princess">プリンセス</option>
+                            <option value="pear">ペア</option>
+                            <option value="marquise">マーキース</option>
+                            <option value="heart">ハート</option>
+                            <option value="trillion">トリリオン</option>
+                            <option value="radiant">ラディアント</option>
+                            <option value="emerald">エメラルド</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="color">宝石の色</label>
+                        <div class="color-control">
+                            <input type="color" id="color" value="#ffffff">
+                            <div id="color-palette" class="color-palette">
+                                <!-- カラーパレットはJavaScriptで生成 -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sparkle-intensity">輝きの強さ</label>
+                        <div class="slider-container">
+                            <input type="range" id="sparkle-intensity" min="0" max="2" step="0.1" value="1.0">
+                            <span id="sparkle-value" class="slider-value">1.0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="roughness">光沢</label>
+                        <div class="slider-container">
+                            <input type="range" id="roughness" min="0" max="1" step="0.01" value="0.01">
+                            <span id="roughness-value" class="slider-value">0.01</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="transmission">透明度</label>
+                        <div class="slider-container">
+                            <input type="range" id="transmission" min="0" max="1" step="0.01" value="0.95">
+                            <span id="transmission-value" class="slider-value">0.95</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ior">屈折率</label>
+                        <div class="slider-container">
+                            <input type="range" id="ior" min="1" max="2.5" step="0.01" value="2.417">
+                            <span id="ior-value" class="slider-value">2.417</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 誕生石タブ -->
+                <div class="tab-content" id="special-tab">
+                    <div class="birthstone-section">
+                        <div class="form-group">
+                            <label for="birthstone-selector">誕生月を選択</label>
+                            <select id="birthstone-selector">
+                                <option value="">-- 誕生月を選択 --</option>
+                                <!-- JavaScriptで生成 -->
+                            </select>
+                        </div>
+                        
+                        <div id="birthstone-info" class="info-box"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="background-selector">背景スタイル</label>
+                        <select id="background-selector">
+                            <option value="default">シンプル（ダーク）</option>
+                            <option value="gradient">グラデーション</option>
+                            <option value="stars">星空</option>
+                            <option value="luxury">高級感</option>
+                            <option value="abstract">抽象的</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="gem-presets">
+                    <div class="preset-buttons">
+                        <button id="preset-diamond" class="preset-button">ダイヤモンド</button>
+                        <button id="preset-ruby" class="preset-button">ルビー</button>
+                        <button id="preset-sapphire" class="preset-button">サファイア</button>
+                        <button id="preset-emerald" class="preset-button">エメラルド</button>
+                        <button id="preset-amethyst" class="preset-button">アメジスト</button>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="save-image" class="action-button">
+                        <span class="button-icon">📷</span>
+                        <span class="button-text">画像保存</span>
+                    </button>
+                    <button id="save-settings" class="action-button">
+                        <span class="button-icon">⚙️</span>
+                        <span class="button-text">設定保存</span>
+                    </button>
+                    <button id="load-settings" class="action-button">
+                        <span class="button-icon">📂</span>
+                        <span class="button-text">設定読込</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="saved-gems">
+            <h2>保存した宝石</h2>
+            <div class="saved-gems-list" id="saved-gems-list"></div>
+        </div>
+    </div>
+    
+    <!-- タブ切り替え用のスクリプト -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // スクロールをスムーズにする
+            const tabNavigation = document.querySelector('.tab-navigation');
+            if (tabNavigation && window.innerWidth <= 767) {
+                tabNavigation.style.overflowX = 'auto';
+                tabNavigation.style.WebkitOverflowScrolling = 'touch';
+                tabNavigation.style.scrollBehavior = 'smooth';
+                tabNavigation.style.scrollSnapType = 'x mandatory';
+            }
+            
+            tabButtons.forEach(button => {
+                // タップ領域の拡大
+                button.style.padding = window.innerWidth <= 767 ? '10px 15px' : '8px 15px';
+                button.style.scrollSnapAlign = 'start';
+                
+                button.addEventListener('click', () => {
+                    // アクティブなタブを非アクティブに
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // クリックされたタブをアクティブに
+                    button.classList.add('active');
+                    const tabId = button.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // スワイプでタブ切り替え機能
+            let startX = 0;
+            let currentX = 0;
+            
+            tabNavigation.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+            });
+            
+            tabNavigation.addEventListener('touchmove', (e) => {
+                currentX = e.touches[0].clientX;
+            });
+            
+            tabNavigation.addEventListener('touchend', () => {
+                const diff = startX - currentX;
+                const tabs = document.querySelectorAll('.tab-button');
+                const activeTab = document.querySelector('.tab-button.active');
+                const activeIndex = Array.from(tabs).indexOf(activeTab);
+                
+                if (Math.abs(diff) > 50) { // 十分なスワイプ距離
+                    if (diff > 0 && activeIndex < tabs.length - 1) {
+                        // 右にスワイプ -> 次のタブ
+                        tabs[activeIndex + 1].click();
+                    } else if (diff < 0 && activeIndex > 0) {
+                        // 左にスワイプ -> 前のタブ
+                        tabs[activeIndex - 1].click();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
