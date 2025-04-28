@@ -1,0 +1,437 @@
+:root {
+    --reticle-color: rgba(0, 255, 200, 0.8);
+    --reticle-size: 100px;
+    --grid-color: rgba(50, 150, 150, 0.2);
+    --hud-color: rgba(0, 255, 200, 0.8);
+    --locked-color: rgba(255, 50, 50, 0.8);
+    --health-color: rgba(50, 255, 100, 0.8);
+    --warning-color: rgba(255, 150, 0, 0.8);
+    --charge-color: rgba(255, 230, 0, 0.8);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #000;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    color: var(--hud-color);
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* グリッド線 */
+.grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 1;
+}
+
+/* レーダー波紋 */
+.radar-waves {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 5px;
+    height: 5px;
+    z-index: 2;
+}
+
+.radar-wave {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid var(--reticle-color);
+    border-radius: 50%;
+    opacity: 0;
+    width: 5px;
+    height: 5px;
+    animation: radar-wave-anim 4s linear infinite;
+}
+
+.radar-wave:nth-child(2) {
+    animation-delay: 1s;
+}
+
+.radar-wave:nth-child(3) {
+    animation-delay: 2s;
+}
+
+.radar-wave:nth-child(4) {
+    animation-delay: 3s;
+}
+
+@keyframes radar-wave-anim {
+    0% {
+        width: 5px;
+        height: 5px;
+        opacity: 0.8;
+    }
+    100% {
+        width: 1000px;
+        height: 1000px;
+        opacity: 0;
+    }
+}
+
+/* 敵とエフェクトコンテナ */
+#enemies-container, #effects-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+/* パネル共通スタイル */
+.panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 20, 40, 0.85);
+    border: 2px solid var(--reticle-color);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.5);
+    min-width: 300px;
+}
+
+.panel h2 {
+    color: var(--reticle-color);
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px var(--reticle-color);
+}
+
+.panel p {
+    margin: 10px 0;
+    color: white;
+}
+
+.panel button {
+    background-color: rgba(0, 100, 100, 0.6);
+    color: white;
+    border: 1px solid var(--reticle-color);
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin: 10px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s;
+}
+
+.panel button:hover {
+    background-color: rgba(0, 150, 150, 0.8);
+    box-shadow: 0 0 10px var(--reticle-color);
+}
+
+.hidden {
+    display: none;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    :root {
+        --reticle-size: 80px;
+    }
+
+    .grid {
+        background-size: 30px 30px;
+    }
+
+    .panel {
+        width: 90%;
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --reticle-size: 60px;
+    }
+
+    .grid {
+        background-size: 20px 20px;
+    }
+
+    .panel button {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+/* main.cssに追加 */
+/* モバイル向け表示調整 */
+@media (max-width: 767px) {
+    /* 全体的なサイズ調整 */
+    :root {
+      --reticle-size: 60px;
+    }
+    
+    /* ゲームUI位置の調整 */
+    .hud-charge-container {
+      bottom: 80px;
+      left: 10px;
+      width: 120px;
+    }
+    
+    .hud-ammo {
+      bottom: 80px;
+      right: 10px;
+    }
+    
+    .hud-weapon {
+      bottom: 60px;
+      right: 10px;
+    }
+    
+    /* コントロールを画面下部に固定 */
+    .controls {
+        position: fixed;
+        bottom: 15px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        z-index: 100;
+        padding: 5px;
+        background-color: rgba(0, 10, 20, 0.7);
+        width: 100%;
+    }
+    
+    .control-button {
+        padding: 8px 12px;
+        font-size: 11px;
+        display: inline-block; /* 確実に表示されるように */
+        opacity: 1; /* 透明度を確実に設定 */
+        visibility: visible; /* 非表示になっていないことを確保 */
+    }
+  }
+
+
+/* main.css に追加 */
+/* モバイル 100vh バグ対策 */
+html, body {
+    height: 100dvh;          /* Chrome / Safari 115+ */
+    height: 100svh;          /* iOS 15+ */
+    min-height: 100vh;       /* フォールバック */
+    overflow-x: hidden;      /* 横だけ止める */
+    overflow-y: auto;        /* 縦スクロール許可 */
+  }
+  
+  /* HUDをビューポート基準に固定 */
+  .hud-container {
+    position: fixed;         /* absoluteからfixedに変更 */
+    inset: 0;                /* 上下左右すべて0に設定 */
+    pointer-events: none;
+  }
+  
+  /* モバイル向け底部のUIを確実に表示 */
+  @media (max-width: 767px) {
+    .controls {
+      position: fixed;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background-color: rgba(0, 10, 20, 0.8);
+      padding: 10px 0;
+    }
+    
+    .hud-charge-container {
+      position: fixed;
+      bottom: 70px;
+      left: 10px;
+      z-index: 25;
+    }
+    
+    .hud-ammo, .hud-weapon {
+      position: fixed;
+      z-index: 25;
+    }
+    
+    .hud-ammo {
+      bottom: 70px;
+      right: 10px;
+    }
+    
+    .hud-weapon {
+      bottom: 45px;
+      right: 10px;
+    }
+  }
+
+
+/* main.cssに追加 - モバイルUIの確実な表示 */
+@media (max-width: 767px) {
+    /* HUD要素の表示を確保 */
+    .hud-charge-container {
+        position: fixed;
+        bottom: 100px;
+        left: 10px;
+        width: 120px;
+        z-index: 25;
+        display: block !important;
+        visibility: visible !important;
+    }
+    
+    /* 武器選択ボタンを確実に表示 */
+    .controls {
+        position: fixed;
+        bottom: 70px;  /* iPhoneのナビゲーションバーを考慮して高さを調整 */
+        left: 0;
+        right: 0;
+        display: flex !important;
+        justify-content: center;
+        z-index: 30;
+        background-color: rgba(0, 10, 20, 0.8);
+        padding: 10px 0;
+        width: 100%;
+    }
+    
+    .control-button {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        padding: 15px 20px;  /* パディングを増やす */
+        margin: 0 8px;       /* 間隔を広げる */
+        font-size: 16px;     /* フォントサイズを大きく */
+        min-width: 80px;     /* 最小幅を設定 */
+        border-width: 2px;   /* 境界線を太く */
+    }
+
+    /* ボタンの背景色を少し濃くして視認性向上 */
+    .control-button.active {
+        background-color: rgba(0, 120, 120, 0.8);
+        box-shadow: 0 0 15px var(--reticle-color);
+    }
+    
+    /* ステータス表示の視認性向上 */
+    .hud-text {
+        text-shadow: 0 0 8px var(--hud-color), 0 0 12px var(--hud-color);
+        font-size: 16px;
+    }
+}
+
+/* Safariでのスクロール問題対策 */
+body {
+    position: fixed;  /* 本体を固定 */
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* ヘルプボタンを常に表示 */
+.help-button {
+    position: fixed;  /* absoluteからfixedに変更 */
+    top: 20px;
+    right: 20px;
+    z-index: 50;     /* 重なり順を上げる */
+}
+
+/* 同様にリロードボタンも常に表示 */
+.reload-button {
+    position: fixed;  /* absoluteからfixedに変更 */
+    right: 20px;
+    bottom: 150px;    /* 少し位置を上げる */
+    z-index: 50;
+}
+
+/* ゲームエリアのモバイル対応を強化 */
+@media (max-width: 767px) {
+    #game-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    /* ゲーム要素の配置を調整 */
+    .grid {
+        position: fixed;
+    }
+    
+    .radar-waves {
+        position: fixed;
+    }
+    
+    /* ヘッダー部分の表示を確保 */
+    .hud-score, .hud-level, .hud-status {
+        position: fixed;
+        z-index: 25;
+        font-size: 14px;
+        font-weight: bold;
+    }
+}
+
+html, body {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.game-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+}
+
+
+@media (max-width: 767px) {
+    .controls {
+        position: fixed;
+        bottom: 20px;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background-color: rgba(0, 10, 20, 0.8);
+        padding: 15px 0;
+        display: flex !important;
+        justify-content: center;
+        visibility: visible !important;
+    }
+    
+    .control-button {
+        padding: 15px 20px;
+        margin: 0 10px;
+        font-size: 16px;
+        min-width: 80px;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
+    }
+}

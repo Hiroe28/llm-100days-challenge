@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイバーディフェンス - 遊び方</title>
+    <style>
+        :root {
+            --main-color: rgba(0, 255, 200, 0.8);
+            --secondary-color: rgba(255, 0, 100, 0.8);
+            --bg-color: #000;
+            --grid-color: rgba(50, 150, 150, 0.2);
+            --highlight-color: rgba(255, 220, 0, 0.8);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            width: 90%;
+            padding: 40px 20px;
+            margin: 20px 0;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--main-color);
+            text-shadow: 0 0 10px var(--main-color);
+        }
+        
+        .section {
+            margin: 30px 0;
+            border: 1px solid var(--main-color);
+            padding: 20px;
+            border-radius: 5px;
+            background-color: rgba(0, 50, 50, 0.3);
+        }
+        
+        .section-title {
+            color: var(--main-color);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px var(--main-color);
+        }
+        
+        .instruction-list {
+            list-style-type: none;
+        }
+        
+        .instruction-list li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .instruction-list li::before {
+            content: ">";
+            color: var(--highlight-color);
+            margin-right: 10px;
+        }
+        
+        .enemy-desc {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .enemy-icon {
+            width: 30px;
+            height: 30px;
+            margin-right: 15px;
+            border-radius: 50%;
+        }
+        
+        .byte-icon {
+            background-color: rgba(0, 255, 200, 0.3);
+            border: 2px solid rgba(0, 255, 200, 0.8);
+            box-shadow: 0 0 5px rgba(0, 255, 200, 0.5);
+        }
+        
+        .block-icon {
+            background-color: rgba(255, 102, 0, 0.3);
+            border: 2px solid rgba(255, 102, 0, 0.8);
+            box-shadow: 0 0 5px rgba(255, 102, 0, 0.5);
+            border-radius: 20%;
+        }
+        
+        .cluster-icon {
+            background-color: rgba(255, 204, 0, 0.3);
+            border: 2px solid rgba(255, 204, 0, 0.8);
+            box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        
+        .firewall-icon {
+            background-color: rgba(204, 0, 255, 0.3);
+            border: 2px solid rgba(204, 0, 255, 0.8);
+            box-shadow: 0 0 5px rgba(204, 0, 255, 0.5);
+        }
+        
+        .boss-icon {
+            background-color: rgba(255, 0, 51, 0.3);
+            border: 2px solid rgba(255, 0, 51, 0.8);
+            box-shadow: 0 0 5px rgba(255, 0, 51, 0.5);
+            clip-path: polygon(50% 0%, 80% 30%, 100% 50%, 80% 70%, 50% 100%, 20% 70%, 0% 50%, 20% 30%);
+        }
+        
+        .weapon-desc {
+            margin-bottom: 15px;
+        }
+        
+        .weapon-name {
+            color: var(--highlight-color);
+            font-weight: bold;
+        }
+        
+        .back-button {
+            background-color: rgba(0, 50, 50, 0.6);
+            color: var(--main-color);
+            border: 2px solid var(--main-color);
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+            text-transform: uppercase;
+            margin-top: 20px;
+            display: block;
+            margin: 30px auto;
+        }
+        
+        .back-button:hover {
+            background-color: rgba(0, 100, 100, 0.4);
+            box-shadow: 0 0 15px var(--main-color);
+            transform: translateY(-2px);
+        }
+        
+        /* レスポンシブデザイン */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+            
+            .content {
+                padding: 30px 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .section-title {
+                font-size: 1.2rem;
+            }
+            
+            .content {
+                padding: 20px 10px;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- グリッド背景 -->
+    <div class="grid"></div>
+    
+    <!-- メインコンテンツ -->
+    <div class="content">
+        <h1 class="title">サイバーディフェンス - 遊び方</h1>
+        
+        <div class="section">
+            <h2 class="section-title">ゲームの目的</h2>
+            <p>あなたはサイバーセキュリティシステムの防衛担当者です。画面中央のシステムに向かって迫りくる様々なサイバー攻撃を、照準システムを使って排除していきましょう。</p>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">基本操作</h2>
+            <ul class="instruction-list">
+                <li>マウスを動かして照準を操作します</li>
+                <li>クリックで攻撃を実行します</li>
+                <li>数字キー[1][2][3]または画面下部のボタンで武器を切り替えます</li>
+                <li>リロードは[R]キーまたは[4]キー、あるいは画面右下のRボタンで実行できます</li>
+                <li>[ESC]キーでゲームを一時停止します</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">敵の種類</h2>
+            
+            <div class="enemy-desc">
+                <div class="enemy-icon byte-icon"></div>
+                <div>
+                    <strong>バイト型</strong> - 小型で素早い基本的な敵。通常攻撃が効果的。
+                </div>
+            </div>
+            
+            <div class="enemy-desc">
+                <div class="enemy-icon block-icon"></div>
+                <div>
+                    <strong>ブロック型</strong> - 耐久力が高い敵。スナイパー攻撃が効果的。
+                </div>
+            </div>
+            
+            <div class="enemy-desc">
+                <div class="enemy-icon cluster-icon"></div>
+                <div>
+                    <strong>クラスター型</strong> - 撃破すると小型の敵に分裂する。早めに排除しよう。
+                </div>
+            </div>
+            
+            <div class="enemy-desc">
+                <div class="enemy-icon firewall-icon"></div>
+                <div>
+                    <strong>ファイアウォール型</strong> - シールドを持つ敵。レーダー攻撃が効果的。
+                </div>
+            </div>
+            
+            <div class="enemy-desc">
+                <div class="enemy-icon boss-icon"></div>
+                <div>
+                    <strong>マルウェアボス</strong> - 5レベルごとに出現する強力な敵。全ての武器を駆使して撃破しよう。
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">武器システム</h2>
+            
+            <div class="weapon-desc">
+                <p><span class="weapon-name">通常照準 [1]</span>：標準的な攻撃。広範囲・低威力。バイト型に効果的。</p>
+            </div>
+            
+            <div class="weapon-desc">
+                <p><span class="weapon-name">スナイパー照準 [2]</span>：精密攻撃。狭範囲・高威力。ブロック型に効果的。</p>
+            </div>
+            
+            <div class="weapon-desc">
+                <p><span class="weapon-name">レーダー照準 [3]</span>：範囲攻撃。全方向・中威力。チャージ時間が必要だが、ファイアウォール型のシールドに効果的。</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">ゲームの流れ</h2>
+            <ul class="instruction-list">
+                <li>敵はランダムに画面の外から現れ、中央に向かって進みます</li>
+                <li>敵が中央に到達するとシールドにダメージを与えます</li>
+                <li>シールドが0%になるとゲームオーバーです</li>
+                <li>スコアを獲得してレベルアップすると、より強力な敵が出現するようになります</li>
+                <li>5レベルごとにボス敵が出現します</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">ヒント</h2>
+            <ul class="instruction-list">
+                <li>敵のタイプに合わせた武器を選ぶことで効率的に撃破できます</li>
+                <li>一度に画面に敵が多く出現した場合は、レーダー攻撃が有効です</li>
+                <li>武器の弾切れに注意し、適切なタイミングでリロードしましょう</li>
+                <li>ボス戦の前にできるだけシールドを回復しておきましょう</li>
+            </ul>
+        </div>
+        
+        <!-- <button class="back-button" onclick="window.location.href='menu.html'">メニューに戻る</button> -->
+        <button class="back-button" onclick="window.location.href=Utils.getPagePath('menu.html')">メニューに戻る</button>
+    </div>
+</body>
+</html>

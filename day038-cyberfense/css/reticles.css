@@ -1,0 +1,248 @@
+/* 照準コンテナ */
+.reticle-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: var(--reticle-size);
+    height: var(--reticle-size);
+    z-index: 10;
+    animation: reticle-vibration 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes reticle-vibration {
+    0%, 100% { transform: translate(-50%, -50%); }
+    25% { transform: translate(calc(-50% - 2px), calc(-50% + 2px)); }
+    50% { transform: translate(calc(-50% + 1px), calc(-50% - 1px)); }
+    75% { transform: translate(calc(-50% + 2px), calc(-50% + 1px)); }
+}
+
+/* 照準マーク共通スタイル */
+.reticle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none; /* 初期状態では非表示 */
+}
+
+.reticle.active {
+    display: block;
+}
+
+/* 通常照準 */
+.reticle-normal .circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    border: 2px solid var(--reticle-color);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--reticle-color);
+}
+
+.reticle-normal .horizontal-line {
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    width: 90%;
+    height: 1px;
+    background-color: var(--reticle-color);
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-normal .vertical-line {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    width: 1px;
+    height: 90%;
+    background-color: var(--reticle-color);
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-normal .dots {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 90%;
+}
+
+.reticle-normal .dot {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background-color: var(--reticle-color);
+    border-radius: 50%;
+    box-shadow: 0 0 3px var(--reticle-color);
+}
+
+.reticle-normal .dot:nth-child(1) {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.reticle-normal .dot:nth-child(2) {
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.reticle-normal .dot:nth-child(3) {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+}
+
+.reticle-normal .dot:nth-child(4) {
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+}
+
+/* スナイパースコープ型照準 */
+.reticle-sniper .outer-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    height: 95%;
+    border: 1px solid var(--reticle-color);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-sniper .middle-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 70%;
+    border: 1px solid var(--reticle-color);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-sniper .inner-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10%;
+    height: 10%;
+    border: 1px solid var(--reticle-color);
+    background-color: rgba(0, 255, 200, 0.2);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-sniper .cross-horizontal {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: var(--reticle-color);
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-sniper .cross-vertical {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1px;
+    height: 100%;
+    background-color: var(--reticle-color);
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-sniper .measurement {
+    position: absolute;
+    font-size: 8px;
+    color: var(--reticle-color);
+}
+
+.reticle-sniper .measurement:nth-child(6) {
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.reticle-sniper .measurement:nth-child(7) {
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.reticle-sniper .measurement:nth-child(8) {
+    top: 50%;
+    left: 10%;
+    transform: translateY(-50%);
+}
+
+.reticle-sniper .measurement:nth-child(9) {
+    top: 50%;
+    right: 10%;
+    transform: translateY(-50%);
+}
+
+/* レーダー型照準 */
+.reticle-radar .outer-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 90%;
+    border: 2px solid var(--reticle-color);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--reticle-color);
+}
+
+.reticle-radar .segment {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    width: 45%;
+    height: 1px;
+    background-color: var(--reticle-color);
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-radar .inner-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20%;
+    height: 20%;
+    border: 1px solid var(--reticle-color);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--reticle-color);
+}
+
+.reticle-radar .scanner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+    width: 45%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--reticle-color), transparent);
+    animation: scanner-rotation 4s linear infinite;
+}
+
+@keyframes scanner-rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

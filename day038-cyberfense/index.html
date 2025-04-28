@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="サイバーディフェンス - サイバー空間防衛シューティングゲーム" />
+    <meta property="og:description" content="3種類の武器を切り替えながら迫りくるサイバー攻撃を防ぐWebゲーム。敵の種類に合わせた戦略で高得点を狙おう！" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day038-cyberfense/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day038-cyberfense/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="サイバーディフェンス" />
+    <meta name="twitter:description" content="3種類の武器を駆使してサイバー攻撃から防衛するWebゲーム。敵の種類に合わせた戦略で高得点を目指せ！" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day038-cyberfense/screenshot.png" />
+
+    <title>サイバーディフェンス</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/reticles.css">
+    <link rel="stylesheet" href="css/enemies.css">
+    <link rel="stylesheet" href="css/hud.css">
+    <link rel="stylesheet" href="css/game-improvements.css">
+    
+</head>
+<body>
+    <!-- ゲームコンテナ -->
+    <div id="game-container">
+        <!-- グリッド背景 -->
+        <div class="grid"></div>
+
+        <!-- レーダー波紋 -->
+        <div class="radar-waves">
+            <div class="radar-wave"></div>
+            <div class="radar-wave"></div>
+            <div class="radar-wave"></div>
+            <div class="radar-wave"></div>
+        </div>
+
+        <!-- 敵コンテナ -->
+        <div id="enemies-container"></div>
+
+        <!-- エフェクトコンテナ -->
+        <div id="effects-container"></div>
+
+        <!-- 照準コンテナ -->
+        <div class="reticle-container">
+            <!-- 通常照準 -->
+            <div class="reticle reticle-normal active">
+                <div class="circle"></div>
+                <div class="horizontal-line"></div>
+                <div class="vertical-line"></div>
+                <div class="dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+
+            <!-- スナイパースコープ型照準 -->
+            <div class="reticle reticle-sniper">
+                <div class="outer-circle"></div>
+                <div class="middle-circle"></div>
+                <div class="inner-circle"></div>
+                <div class="cross-horizontal"></div>
+                <div class="cross-vertical"></div>
+                <div class="measurement">200</div>
+                <div class="measurement">600</div>
+                <div class="measurement">400</div>
+                <div class="measurement">800</div>
+            </div>
+
+            <!-- レーダー型照準 -->
+            <div class="reticle reticle-radar">
+                <div class="outer-circle"></div>
+                <div class="segment" style="transform: rotate(0deg);"></div>
+                <div class="segment" style="transform: rotate(45deg);"></div>
+                <div class="segment" style="transform: rotate(90deg);"></div>
+                <div class="segment" style="transform: rotate(135deg);"></div>
+                <div class="inner-circle"></div>
+                <div class="scanner"></div>
+            </div>
+        </div>
+
+        <!-- HUDコンテナ -->
+        <div class="hud-container">
+            <div class="hud-text hud-score">SCORE: 0</div>
+            <div class="hud-text hud-level">LEVEL: 1</div>
+            <div class="hud-text hud-ammo">AMMO: 30/30</div>
+            <div class="hud-text hud-health">SHIELD: 100%</div>
+            <div class="hud-text hud-weapon">WEAPON: NORMAL</div>
+            <div class="hud-text hud-lock">LOCK ON</div>
+            <div class="hud-text hud-status">STATUS: READY</div>
+            <div class="hud-charge-container">
+                <div class="hud-charge-label">CHARGE</div>
+                <div class="hud-charge-bar">
+                    <div class="hud-charge-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 照準切り替えコントロール -->
+        <div class="controls">
+            <button class="control-button active" data-weapon="normal">NORMAL</button>
+            <button class="control-button" data-weapon="sniper">SNIPER</button>
+            <button class="control-button" data-weapon="radar">RADAR</button>
+        </div>
+
+        <!-- ゲームオーバーパネル (最初は非表示) -->
+        <div id="game-over-panel" class="panel hidden">
+            <h2>ネットワーク侵害</h2>
+            <p>最終スコア: <span id="final-score">0</span></p>
+            <p>到達レベル: <span id="final-level">1</span></p>
+            <button id="retry-button">リトライ</button>
+            <button id="menu-button">メニューに戻る</button>
+        </div>
+
+        <!-- ポーズパネル (最初は非表示) -->
+        <div id="pause-panel" class="panel hidden">
+            <h2>一時停止</h2>
+            <button id="resume-button">ゲームを再開</button>
+            <button id="sound-toggle">サウンド: ON</button>
+            <button id="quit-button">終了</button>
+        </div>
+    </div>
+
+    <!-- スクリプト読み込み -->
+    <script src="js/utils.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/hud.js"></script>  <!-- HUDを先に読み込む -->
+    <script src="js/targeting.js"></script>
+    <script src="js/weapons.js"></script>
+    <script src="js/enemies.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/mobile-adjustments.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // モバイル検出
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // メニューからの遷移チェック
+            const fromMenu = new URLSearchParams(window.location.search).has('difficulty');
+            
+            if (!fromMenu) {
+                // メニューからの遷移でなければメニューへリダイレクト
+                // Utils.getPagePathを使用
+                window.location.href = Utils.getPagePath('pages/menu.html');
+            } else {
+                // メニューからの場合は通常どおりゲーム初期化
+                Game.init();
+            }
+        });
+    </script>
+</body>
+</html>
