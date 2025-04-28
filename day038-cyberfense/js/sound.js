@@ -53,11 +53,16 @@ const Sound = (function() {
     
     // 初期化
     // sound.js の修正
+    // sound.js の init 関数の改善
     function init() {
         try {
+            console.log('Initializing sound system');
+            
             // AudioContextの作成
             window.AudioContext = window.AudioContext || window.webkitAudioContext;
             audioContext = new AudioContext();
+            
+            console.log('AudioContext created, initial state:', audioContext.state);
             
             // マスターボリュームノード
             masterVolumeNode = audioContext.createGain();
@@ -67,10 +72,17 @@ const Sound = (function() {
             // サウンドの読み込みをPromise化
             soundsLoadedPromise = loadAllSoundsAsync();
             
+            // サウンドのロード完了をログ
+            soundsLoadedPromise.then(() => {
+                console.log('All sounds loaded successfully. BGM buffers:', Object.keys(bgmBuffers));
+            }).catch(err => {
+                console.error('Error loading sounds:', err);
+            });
+            
             // ユーザーインタラクション待機の改善
             waitForUserInteraction();
         } catch (e) {
-            console.error('Web Audio API is not supported in this browser', e);
+            console.error('Web Audio API error:', e);
         }
     }
 
@@ -156,31 +168,32 @@ const Sound = (function() {
     }
     
     // BGM再生関数を非同期に修正
+    // sound.js の playBgm 関数の改善
     async function playBgm(id, loop = true) {
         if (isMuted) return;
         if (currentBgm === id) return;
         
-        // 現在のBGMを停止
-        stopBgm();
-        
         try {
-            // AudioContextの状態確認
+            // ユーザーインタラクション確認のためのログ追加
+            console.log('Playing BGM:', id, 'AudioContext state:', audioContext.state);
+            
+            // AudioContextが停止していたら再開
             if (audioContext.state === 'suspended') {
+                console.log('Resuming AudioContext');
                 await audioContext.resume();
             }
             
-            // サウンドの読み込み完了を待つ
-            if (soundsLoadedPromise) {
-                await soundsLoadedPromise;
-            }
-            
-            // 新しいBGMが読み込まれていない場合はスキップ
+            // サウンドの読み込み確認
             if (!bgmBuffers[id]) {
-                console.warn(`BGM "${id}" is not loaded yet`);
+                console.error(`BGM "${id}" is not loaded. Available BGMs:`, Object.keys(bgmBuffers));
+                // ファイルパスを確認するためのログ
+                console.log('BGM path:', Utils.getAssetPath(`assets/sounds/bgm/${id}.mp3`));
                 return;
             }
             
-            // 以下は既存のコード（BGM再生処理）...
+            // 以下、既存のBGM再生コード
+            stopBgm();
+            
             const source = audioContext.createBufferSource();
             source.buffer = bgmBuffers[id];
             source.loop = loop;
@@ -192,6 +205,7 @@ const Sound = (function() {
             gainNode.connect(masterVolumeNode);
             
             source.start(0);
+            console.log('BGM started successfully:', id);
             
             currentBgm = id;
             currentBgmSource = source;
