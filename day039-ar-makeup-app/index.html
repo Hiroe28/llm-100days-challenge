@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="リアルタイムARメイクアップ - ブラウザで簡単バーチャルメイク体験" />
+    <meta property="og:description" content="カメラを通して顔を認識し、リアルタイムで口紅・チーク・アイシャドウを適用。アクセサリーの追加や背景変更も可能なブラウザベースのARメイクアップアプリ。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day039-ar-makeup-app/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day039-ar-makeup-app/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="リアルタイムARメイクアップ" />
+    <meta name="twitter:description" content="カメラを通して顔を認識し、リアルタイムでメイクやアクセサリーを試せるウェブアプリ。スナップショットで気に入った姿を保存できます。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day039-ar-makeup-app/screenshot.png" />
+
+    <title>リアルタイムARメイクアップ</title>
+    <style>
+        :root {
+            --primary-color: #6a11cb;
+            --primary-light: #9d6ee3;
+            --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --secondary-color: #fd746c;
+            --secondary-gradient: linear-gradient(135deg, #fd746c 0%, #ff9068 100%);
+            --text-color: #333;
+            --text-light: #666;
+            --bg-color: #f9f9f9;
+            --panel-bg: #ffffff;
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.05), 0 5px 15px rgba(0, 0, 0, 0.03);
+            --shadow-strong: 0 15px 35px rgba(106, 17, 203, 0.1), 0 5px 15px rgba(106, 17, 203, 0.05);
+            --border-radius: 16px;
+            --border-radius-small: 8px;
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --spacing-xs: 5px;
+            --spacing-sm: 10px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 80px; /* フッタースペース確保 */
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-lg);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin-bottom: var(--spacing-xl);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            transition: box-shadow var(--transition-normal);
+        }
+        
+        .video-container:hover {
+            box-shadow: var(--shadow-strong);
+        }
+        
+        #input-video {
+            width: 100%;
+            height: auto;
+            transform: scaleX(-1);
+            background-color: #000;
+            display: block;
+        }
+        
+        #output-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: var(--spacing-lg);
+            background-color: var(--panel-bg);
+            border-radius: 50px;
+            padding: 6px;
+            box-shadow: var(--shadow-soft);
+            max-width: 640px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all var(--transition-normal);
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        
+        .tab i {
+            font-size: 18px;
+            opacity: 0.8;
+            transition: opacity var(--transition-normal);
+        }
+        
+        .tab:hover {
+            background-color: rgba(106, 17, 203, 0.05);
+            color: var(--primary-color);
+        }
+        
+        .tab:hover i {
+            opacity: 1;
+        }
+        
+        .tab.active {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .tab.active i {
+            opacity: 1;
+        }
+        
+        .tab-content {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 640px;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        /* メイクアップタブ内のcontrol-panelだけに横並びを適用 */
+        #makeup-tab .control-panel {
+            flex-direction: row; /* 横並びに変更 */
+            flex-wrap: nowrap; /* 折り返さない */
+            gap: var(--spacing-md); /* パネル間の間隔 */
+            max-width: 100%; /* 幅制限を解除 */
+            justify-content: space-between; /* 均等に配置 */
+        }
+
+        /* メイクアップタブ内のパネルにのみサイズ調整を適用 */
+        #makeup-tab .panel {
+            flex: 1; /* 各パネルが均等に幅を取る */
+            min-width: 0; /* コンテンツがはみ出る問題の防止 */
+            max-width: calc(33.33% - var(--spacing-md)); /* 3等分 */
+        }
+        
+        .panel {
+            background-color: var(--panel-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .panel:hover {
+            box-shadow: var(--shadow-strong);
+            transform: translateY(-2px);
+        }
+        
+        .panel-header {
+            padding: var(--spacing-lg);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: background-color var(--transition-normal);
+        }
+        
+        .panel-header:hover {
+            background-color: rgba(106, 17, 203, 0.03);
+        }
+        
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .panel-title i {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+        
+        .panel-toggle {
+            font-size: 18px;
+            color: var(--text-light);
+            transition: transform var(--transition-normal);
+        }
+        
+        .panel.open .panel-toggle {
+            transform: rotate(180deg);
+        }
+        
+        .panel-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-normal);
+            padding: 0 var(--spacing-lg);
+        }
+        
+        .panel.open .panel-content {
+            max-height: 500px;
+            padding: var(--spacing-lg);
+        }
+        
+        .option-group {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .option-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .option-header label {
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-left: var(--spacing-sm);
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .color-option {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all var(--transition-normal);
+            position: relative;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .color-option.selected {
+            border-color: var(--primary-color);
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-shadow: 0 0 2px rgba(0,0,0,0.8);
+            font-size: 16px;
+        }
+        
+        .color-tooltip {
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+            z-index: 100;
+        }
+        
+        .color-option:hover .color-tooltip {
+            opacity: 1;
+        }
+        
+        .intensity-slider {
+            width: 100%;
+            margin-top: var(--spacing-sm);
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #f0f0f0;
+            outline: none;
+        }
+        
+        .intensity-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+        
+        .intensity-slider::-webkit-slider-thumb:hover,
+        .intensity-slider:active::-webkit-slider-thumb {
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(106, 17, 203, 0.3);
+        }
+        
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-xs);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .preset-button {
+            background-color: white;
+            color: var(--text-color);
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: center;
+            font-size: 14px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .preset-button i {
+            font-size: 16px;
+            opacity: 0.7;
+        }
+        
+        .preset-button:hover {
+            background-color: #f5f5f5;
+            border-color: #d0d0d0;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .preset-button.active {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2);
+        }
+        
+        .preset-button.active i {
+            opacity: 1;
+        }
+        
+        .accessory-options, .decoration-options, .background-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+        
+        .accessory-option, .decoration-option, .background-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform var(--transition-normal);
+        }
+        
+        .accessory-option:hover, .decoration-option:hover, .background-option:hover {
+            transform: translateY(-3px);
+        }
+        
+        .accessory-preview, .decoration-preview, .background-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--border-radius-small);
+            background-color: #f0f0f0;
+            border: 2px solid transparent;
+            transition: all var(--transition-normal);
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .accessory-option.selected .accessory-preview,
+        .decoration-option.selected .decoration-preview,
+        .background-option.selected .background-preview {
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2);
+        }
+        
+        .accessory-name, .decoration-name, .background-name {
+            margin-top: var(--spacing-sm);
+            font-size: 12px;
+            text-align: center;
+            color: var(--text-color);
+        }
+        
+        .none-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            color: #999;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            z-index: 100;
+        }
+        
+        .sample-mode-message {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .snapshot-button-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: none; /* モバイルのみ表示 */
+        }
+        
+        .button {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+            transition: all var(--transition-normal);
+            font-weight: 500;
+        }
+        
+        .button i {
+            font-size: 18px;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(106, 17, 203, 0.4);
+        }
+        
+        .button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
+        }
+        
+        .button.floating {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .button.floating i {
+            font-size: 24px;
+        }
+        
+        .footer {
+            display: flex;
+            justify-content: center;
+            padding: var(--spacing-lg);
+            background-color: var(--panel-bg);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 900;
+        }
+        
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: var(--spacing-lg);
+            }
+            
+            .preset-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .button {
+                width: 100%;
+            }
+            
+            .footer {
+                display: none; /* モバイルではフローティングボタンを使用 */
+            }
+            
+            .snapshot-button-container {
+                display: block;
+            }
+            
+            .tab {
+                padding: 8px;
+                font-size: 12px;
+            }
+            
+            .tab i {
+                font-size: 16px;
+            }
+            
+            .panel-header {
+                padding: var(--spacing-md);
+            }
+            
+            .panel.open .panel-content {
+                padding: var(--spacing-md);
+            }
+            #makeup-tab .control-panel {
+                flex-direction: column; /* モバイルでは縦並びに戻す */
+            }
+            
+            #makeup-tab .panel {
+                max-width: 100%; /* モバイルでは幅制限を解除 */
+            }
+
+        }
+        
+        /* アニメーション */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes slide-up {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        .slide-up {
+            animation: slide-up 0.5s forwards;
+        }
+
+        /* head-optionsクラスと関連要素のスタイルを追加 */
+        .head-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+
+        .head-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform var(--transition-normal);
+        }
+
+        .head-option:hover {
+            transform: translateY(-3px);
+        }
+
+        .head-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--border-radius-small);
+            background-color: #f0f0f0;
+            border: 2px solid transparent;
+            transition: all var(--transition-normal);
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .head-option.selected .head-preview {
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.2);
+        }
+
+        .head-name {
+            margin-top: var(--spacing-sm);
+            font-size: 12px;
+            text-align: center;
+            color: var(--text-color);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <h1>リアルタイムARメイクアップ</h1>
+        
+        <div class="video-container">
+            <video id="input-video" autoplay playsinline></video>
+            <canvas id="output-canvas"></canvas>
+            <div class="loading" id="loading" style="display: none;">処理中...</div>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab active" data-tab="makeup">
+                <i class="fas fa-magic"></i>
+                <span>メイク</span>
+            </div>
+            <div class="tab" data-tab="accessories">
+                <i class="fas fa-glasses"></i>
+                <span>アクセサリー</span>
+            </div>
+            <div class="tab" data-tab="head">
+                <i class="fas fa-hat-wizard"></i>
+                <span>あたま</span>
+            </div>
+            <div class="tab" data-tab="background">
+                <i class="fas fa-image"></i>
+                <span>背景</span>
+            </div>
+        </div>
+        
+        <div class="tab-content active" id="makeup-tab">
+            <div class="preset-buttons">
+                <button class="preset-button" data-preset="natural">
+                    <i class="fas fa-leaf"></i>
+                    <span>ナチュラル</span>
+                </button>
+                <button class="preset-button" data-preset="glamour">
+                    <i class="fas fa-star"></i>
+                    <span>グラマラス</span>
+                </button>
+                <button class="preset-button" data-preset="cute">
+                    <i class="fas fa-heart"></i>
+                    <span>キュート</span>
+                </button>
+                <button class="preset-button" data-preset="clear">
+                    <i class="fas fa-eraser"></i>
+                    <span>クリア</span>
+                </button>
+            </div>
+            
+            <div class="control-panel">
+                <div class="panel open">
+                    <div class="panel-header">
+                        <h3 class="panel-title">
+                            <i class="fas fa-kiss"></i>
+                            <span>口紅</span>
+                        </h3>
+                        <div class="panel-toggle">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="option-group">
+                            <div class="option-header">
+                                <label>効果</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="lipstick-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="color-options" id="lipstick-colors">
+                                <div class="color-option selected" style="background-color: #e91e63;" data-color="#e91e63" data-name="ピンク">
+                                    <div class="color-tooltip">ピンク</div>
+                                </div>
+                                <div class="color-option" style="background-color: #d32f2f;" data-color="#d32f2f" data-name="レッド">
+                                    <div class="color-tooltip">レッド</div>
+                                </div>
+                                <div class="color-option" style="background-color: #ff5722;" data-color="#ff5722" data-name="コーラル">
+                                    <div class="color-tooltip">コーラル</div>
+                                </div>
+                                <div class="color-option" style="background-color: #7b1fa2;" data-color="#7b1fa2" data-name="プラム">
+                                    <div class="color-tooltip">プラム</div>
+                                </div>
+                                <div class="color-option" style="background-color: #ff9800;" data-color="#ff9800" data-name="オレンジ">
+                                    <div class="color-tooltip">オレンジ</div>
+                                </div>
+                                <div class="color-option" style="background-color: #f06292;" data-color="#f06292" data-name="ローズピンク">
+                                    <div class="color-tooltip">ローズピンク</div>
+                                </div>
+
+                            </div>
+                            <label>透明度: <span id="lipstick-opacity-value">50%</span></label>
+                            <input type="range" min="0" max="100" value="50" class="intensity-slider" id="lipstick-opacity">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">
+                            <i class="fas fa-smile"></i>
+                            <span>チーク</span>
+                        </h3>
+                        <div class="panel-toggle">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="option-group">
+                            <div class="option-header">
+                                <label>効果</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="blush-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="color-options" id="blush-colors">
+                                <div class="color-option selected" style="background-color: #f8bbd0;" data-color="#f8bbd0" data-name="ライトピンク">
+                                    <div class="color-tooltip">ライトピンク</div>
+                                </div>
+                                <div class="color-option" style="background-color: #ffccbc;" data-color="#ffccbc" data-name="ピーチ">
+                                    <div class="color-tooltip">ピーチ</div>
+                                </div>
+                                <div class="color-option" style="background-color: #e57373;" data-color="#e57373" data-name="ローズ">
+                                    <div class="color-tooltip">ローズ</div>
+                                </div>
+                                <div class="color-option" style="background-color: #ff8a65;" data-color="#ff8a65" data-name="コーラル">
+                                    <div class="color-tooltip">コーラル</div>
+                                </div>
+                                <div class="color-option" style="background-color: #ffb74d;" data-color="#ffb74d" data-name="アプリコット">
+                                    <div class="color-tooltip">アプリコット</div>
+                                </div>
+                                <div class="color-option" style="background-color: #f48fb1;" data-color="#f48fb1" data-name="ソフトローズ">
+                                    <div class="color-tooltip">ソフトローズ</div>
+                                </div>
+
+                            </div>
+                            <label>透明度: <span id="blush-opacity-value">40%</span></label>
+                            <input type="range" min="0" max="100" value="40" class="intensity-slider" id="blush-opacity">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">
+                            <i class="fas fa-eye"></i>
+                            <span>アイシャドウ</span>
+                        </h3>
+                        <div class="panel-toggle">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="option-group">
+                            <div class="option-header">
+                                <label>効果</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="eyeshadow-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="color-options" id="eyeshadow-colors">
+                                <div class="color-option selected" style="background-color: #bcaaa4;" data-color="#bcaaa4" data-name="ナチュラル">
+                                    <div class="color-tooltip">ナチュラル</div>
+                                </div>
+                                <div class="color-option" style="background-color: #8d6e63;" data-color="#8d6e63" data-name="ブラウン">
+                                    <div class="color-tooltip">ブラウン</div>
+                                </div>
+                                <div class="color-option" style="background-color: #9e9e9e;" data-color="#9e9e9e" data-name="グレー">
+                                    <div class="color-tooltip">グレー</div>
+                                </div>
+                                <div class="color-option" style="background-color: #9fa8da;" data-color="#9fa8da" data-name="ラベンダー">
+                                    <div class="color-tooltip">ラベンダー</div>
+                                </div>
+                                <div class="color-option" style="background-color: #80deea;" data-color="#80deea" data-name="ブルー">
+                                    <div class="color-tooltip">ブルー</div>
+                                </div>
+                                <div class="color-option" style="background-color: #f9a825;" data-color="#f9a825" data-name="シャンパンゴールド">
+                                    <div class="color-tooltip">シャンパンゴールド</div>
+                                </div>
+
+                            </div>
+                            <label>透明度: <span id="eyeshadow-opacity-value">40%</span></label>
+                            <input type="range" min="0" max="100" value="40" class="intensity-slider" id="eyeshadow-opacity">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="accessories-tab">
+            <div class="panel open">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <i class="fas fa-glasses"></i>
+                        <span>アクセサリー</span>
+                    </h3>
+                    <div class="panel-toggle">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="option-group">
+                        <div class="option-header">
+                            <label>効果</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="accessory-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="accessory-options">
+                            <div class="accessory-option selected" data-type="none">
+                                <div class="accessory-preview none-preview">
+                                    <i class="fas fa-ban"></i>
+                                </div>
+                                <div class="accessory-name">なし</div>
+                            </div>
+                            <div class="accessory-option" data-type="earrings">
+                                <div class="accessory-preview" style="background-image: url('img/earring-right.png');"></div>
+                                <div class="accessory-name">イヤリング1</div>
+                            </div>
+                            <div class="accessory-option" data-type="earrings2">
+                                <div class="accessory-preview" style="background-image: url('img/earring2-right.png');"></div>
+                                <div class="accessory-name">イヤリング2</div>
+                            </div>
+                            <div class="accessory-option" data-type="necklace">
+                                <div class="accessory-preview" style="background-image: url('img/necklace.png');"></div>
+                                <div class="accessory-name">ネックレス1</div>
+                            </div>
+                            <div class="accessory-option" data-type="necklace2">
+                                <div class="accessory-preview" style="background-image: url('img/necklace2.png');"></div>
+                                <div class="accessory-name">ネックレス2</div>
+                            </div>
+                            <div class="accessory-option" data-type="glasses">
+                                <div class="accessory-preview" style="background-image: url('img/glasses.png');"></div>
+                                <div class="accessory-name">メガネ</div>
+                            </div>
+                            <!-- <div class="accessory-option" data-type="choker">
+                                <div class="accessory-preview" style="background-image: url('img/choker.png');"></div>
+                                <div class="accessory-name">チョーカー</div>
+                            </div> -->
+                            <div class="accessory-option" data-type="sunglasses">
+                                <div class="accessory-preview" style="background-image: url('img/sunglasses.png');"></div>
+                                <div class="accessory-name">サングラス</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="head-tab">
+            <div class="panel open">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <i class="fas fa-hat-wizard"></i>
+                        <span>あたま</span>
+                    </h3>
+                    <div class="panel-toggle">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="option-group">
+                        <div class="option-header">
+                            <label>効果</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="head-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="head-options">
+                            <div class="head-option selected" data-type="none">
+                                <div class="head-preview none-preview">
+                                    <i class="fas fa-ban"></i>
+                                </div>
+                                <div class="head-name">なし</div>
+                            </div>
+                            <div class="head-option" data-type="animalEars">
+                                <div class="head-preview" style="background-image: url('img/cat-ears.png');"></div>
+                                <div class="head-name">猫耳</div>
+                            </div>
+                            <div class="head-option" data-type="rabbitEars">
+                                <div class="head-preview" style="background-image: url('img/rabbit-ears.png');"></div>
+                                <div class="head-name">うさぎ耳</div>
+                            </div>
+                            <div class="head-option" data-type="flowerCrown">
+                                <div class="head-preview" style="background-image: url('img/flower-crown.png');"></div>
+                                <div class="head-name">花冠</div>
+                            </div>
+                            <div class="head-option" data-type="tiara">
+                                <div class="head-preview" style="background-image: url('img/tiara.png');"></div>
+                                <div class="head-name">ティアラ</div>
+                            </div>
+                            <div class="head-option" data-type="hairpin">
+                                <div class="head-preview" style="background-image: url('img/hairpin.png');"></div>
+                                <div class="head-name">ヘアピン</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="background-tab">
+            <div class="panel open">
+                <div class="panel-header">
+                    <h3 class="panel-title">
+                        <i class="fas fa-image"></i>
+                        <span>背景</span>
+                    </h3>
+                    <div class="panel-toggle">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="option-group">
+                        <div class="option-header">
+                            <label>効果</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="background-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="background-options">
+                            <div class="background-option selected" data-type="none">
+                                <div class="background-preview none-preview">
+                                    <i class="fas fa-ban"></i>
+                                </div>
+                                <div class="background-name">なし</div>
+                            </div>
+                            <div class="background-option" data-type="beach">
+                                <div class="background-preview" style="background-image: url('img/bg-beach.png');"></div>
+                                <div class="background-name">ビーチ</div>
+                            </div>
+                            <div class="background-option" data-type="citynight">
+                                <div class="background-preview" style="background-image: url('img/bg-citynight.png');"></div>
+                                <div class="background-name">夜景</div>
+                            </div>
+                            <div class="background-option" data-type="forest">
+                                <div class="background-preview" style="background-image: url('img/bg-forest.png');"></div>
+                                <div class="background-name">森</div>
+                            </div>
+                            <div class="background-option" data-type="blur">
+                                <div class="background-preview" style="background-image: url('img/bg-blur.png');"></div>
+                                <div class="background-name">ぼかし</div>
+                            </div>
+                            <div class="background-option" data-type="cafe">
+                                <div class="background-preview" style="background-image: url('img/bg-cafe.png');"></div>
+                                <div class="background-name">カフェ</div>
+                            </div>
+                            <div class="background-option" data-type="sakura">
+                                <div class="background-preview" style="background-image: url('img/bg-sakura.png');"></div>
+                                <div class="background-name">桜</div>
+                            </div>
+                            <div class="background-option" data-type="party">
+                                <div class="background-preview" style="background-image: url('img/bg-party.png');"></div>
+                                <div class="background-name">パーティ</div>
+                            </div>
+                            <div class="background-option" data-type="sunset">
+                                <div class="background-preview" style="background-image: url('img/bg-sunset.png');"></div>
+                                <div class="background-name">夕焼け</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PC用フッター固定ボタン -->
+        <div class="footer">
+            <button id="snapshot-button" class="button">
+                <i class="fas fa-camera"></i>
+                <span>スナップショットを撮る</span>
+            </button>
+        </div>
+        
+        <!-- スマホ用フローティングボタン -->
+        <div class="snapshot-button-container">
+            <button id="snapshot-button-mobile" class="button floating pulse">
+                <i class="fas fa-camera"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MediaPipe関連ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
+    
+    <!-- メインスクリプト -->
+    <script src="script.js"></script>
+</body>
+</html>
