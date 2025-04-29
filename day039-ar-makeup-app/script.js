@@ -110,6 +110,14 @@ const FACEMESH_LANDMARKS = {
     chin: 152
 };
 
+// 画面回転の監視
+window.addEventListener('orientationchange', () => {
+    // 回転後に少し待ってからサイズ調整
+    setTimeout(() => {
+        adjustCanvasSize();
+    }, 300);
+});
+
 // アプリケーションの初期化
 async function init() {
     // DOM要素の取得
@@ -161,7 +169,10 @@ async function init() {
         // キャンバスサイズの調整
         adjustCanvasSize();
         // リサイズイベントリスナーの追加
-        window.addEventListener('resize', adjustCanvasSize);
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(adjustCanvasSize, 300);
+        });
     } catch (error) {
         console.error('カメラ開始エラー:', error);
         handleCameraError(error);
@@ -223,29 +234,25 @@ function calculateFaceScale(landmarks) {
 
 // カメラのセットアップ
 function setupCamera() {
-    // モバイルブラウザのチェック
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
     try {
-        // MediaDevices APIが利用可能かチェック
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            throw new Error('お使いのブラウザはカメラにアクセスできません。最新のブラウザを使用するか、HTTPSで接続してください。');
-        }
+        // モバイルデバイスの確認
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
-        camera = new Camera(video, {
+        // モバイルではより適切な設定を使用
+        const cameraOptions = {
             onFrame: async () => {
-                // 背景処理が有効な場合、Selfie Segmentationを使用
                 if (backgroundSettings.enabled && backgroundSettings.type !== 'none') {
                     await selfieSegmentation.send({image: video});
-                    // 背景処理の後にFaceMeshも実行するのは、onSegmentationResultsの中で行う
                 } else {
-                    // 背景処理が無効な場合は直接FaceMeshを実行
                     await faceMesh.send({image: video});
                 }
             },
-            width: 640,
-            height: 480
-        });
+            // モバイルとPCで適切な解像度を設定
+            width: isMobile ? 720 : 640,
+            height: isMobile ? 1280 : 480
+        };
+        
+        camera = new Camera(video, cameraOptions);
     } catch (error) {
         console.error('カメラセットアップエラー:', error);
         handleCameraError(error);
@@ -370,28 +377,38 @@ async function loadImages() {
 
 // キャンバスサイズの調整
 function adjustCanvasSize() {
-    // カメラの実際のフレームサイズを使用
+    // ビデオコンテナのサイズを取得
+    const videoContainer = document.querySelector('.video-container');
+    const containerWidth = videoContainer.clientWidth;
+    
+    // ビデオのアスペクト比を計算
     const videoWidth = video.videoWidth || 640;
     const videoHeight = video.videoHeight || 480;
+    const videoAspect = videoWidth / videoHeight;
     
-    // 物理ピクセル比を考慮（Retina対応）
+    // コンテナの幅に基づいてキャンバスの高さを計算
+    const canvasWidth = containerWidth;
+    const canvasHeight = containerWidth / videoAspect;
+    
+    // デバイスピクセル比を考慮
     const ratio = window.devicePixelRatio || 1;
     
-    // 内部キャンバスサイズをカメラ実寸に合わせる
-    canvas.width = videoWidth * ratio;
-    canvas.height = videoHeight * ratio;
+    // 内部サイズを設定
+    canvas.width = canvasWidth * ratio;
+    canvas.height = canvasHeight * ratio;
     
-    // CSS表示サイズは従来通り調整可能に
-    canvas.style.width = '100%';
-    canvas.style.height = 'auto';
+    // CSSサイズも明示的に設定
+    canvas.style.width = `${canvasWidth}px`;
+    canvas.style.height = `${canvasHeight}px`;
     
-    // 描画時の座標系も調整
+    // 描画コンテキストのスケールを調整
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // リセット
     ctx.scale(ratio, ratio);
     
-    console.log(`キャンバスサイズ調整: 内部サイズ ${canvas.width}x${canvas.height}, 表示サイズ ${canvas.clientWidth}x${canvas.clientHeight}, 比率 ${ratio}`);
-    
-    // キャンバスサイズが変わったときは一度画面を消去
+    // キャンバスをクリア
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    console.log(`キャンバスサイズ調整: ${canvasWidth}x${canvasHeight}, 比率:${ratio}`);
 }
 
 // イベントリスナーの設定
@@ -487,6 +504,15 @@ function setupEventListeners() {
         adjustCanvasSize();
         console.log('ウィンドウサイズ変更を検出しました');
     });
+
+    // 画面回転の監視
+    window.addEventListener('orientationchange', () => {
+        // 回転後に少し待ってからサイズ調整
+        setTimeout(() => {
+            adjustCanvasSize();
+        }, 300);
+    });
+
 
 }
 
@@ -957,13 +983,30 @@ function onFaceMeshResults(results) {
     if (!results.multiFaceLandmarks?.length) return;
     const landmarks = results.multiFaceLandmarks[0];
     
-    // 顔のスケールを計算 - 追加
     faceScale = calculateFaceScale(landmarks);
     
-    // 背景合成がオフのときだけクリア
     if (!backgroundSettings.enabled) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height); // 元映像も描く
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 画像を適切に描画（アスペクト比を維持）
+        const imgWidth = results.image.width;
+        const imgHeight = results.image.height;
+        const imgAspect = imgWidth / imgHeight;
+        const canvasAspect = canvas.width / canvas.height;
+        
+        let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+        
+        if (canvasAspect > imgAspect) {
+            drawWidth = canvas.width;
+            drawHeight = drawWidth / imgAspect;
+            offsetY = (canvas.height - drawHeight) / 2;
+        } else {
+            drawHeight = canvas.height;
+            drawWidth = drawHeight * imgAspect;
+            offsetX = (canvas.width - drawWidth) / 2;
+        }
+        
+        ctx.drawImage(results.image, offsetX, offsetY, drawWidth, drawHeight);
     }
     
     // バーチャルメイクアップを適用
