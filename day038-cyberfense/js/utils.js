@@ -121,6 +121,7 @@ const Utils = (function() {
         isMobile,
         formatNumber,
         getAssetPath,   // 新しく追加した関数
+        getPagePath,    // この行を追加！
         BASE_PATH       // ベースパスも公開
     };
 })();

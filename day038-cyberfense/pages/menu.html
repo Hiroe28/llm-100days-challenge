@@ -257,7 +257,7 @@
     </div>
     
     <div class="footer">© 2025 サイバーディフェンス</div>
-    
+
     <script>
         // ボタンイベント設定
         document.getElementById('start-button').addEventListener('click', () => {
@@ -265,10 +265,13 @@
             window.location.href = Utils.getPagePath('index.html');
         });
         
-        document.getElementById('instructions-button').addEventListener('click', () => {
-            // 同じディレクトリ内の移動でもUtils.getPagePathを使用
-            window.location.href = Utils.getPagePath('instructions.html');
+        document.getElementById('start-button').addEventListener('click', () => {
+            window.location.href = '../index.html?difficulty=' + selectedDifficulty;
         });
+        document.getElementById('instructions-button').addEventListener('click', () => {
+            window.location.href = 'instructions.html';
+        });
+
         
         // サウンド設定の読み込みと保存
         const soundToggleButton = document.getElementById('sound-toggle');
@@ -326,10 +329,14 @@
             // それも見つからない場合は何もしない（エラー回避）
         }
 
-        // ゲーム開始ボタンのイベント修正
+        // ゲーム開始ボタン
         document.getElementById('start-button').addEventListener('click', () => {
-            // 選択された難易度をURLパラメータとして渡す
-            window.location.href = `../index.html?difficulty=${selectedDifficulty}`;
+            window.location.href = '../index.html?difficulty=' + selectedDifficulty;
+        });
+
+        // 遊び方ボタン
+        document.getElementById('instructions-button').addEventListener('click', () => {
+            window.location.href = 'instructions.html';
         });
 
     </script>
