@@ -8,6 +8,9 @@ const Game = (function() {
     let gameLoopId = null;
     let lastFrameTime = 0;
     let isPaused = false;
+    let isBossBgmPlaying = false;
+    let isBossFight = false; // ボス戦フラグ
+
     
     // DOM要素
     const gameContainer = document.getElementById('game-container');
@@ -72,9 +75,7 @@ const Game = (function() {
 
 
 
-
-    // 難易度設定を適用する関数
-    // game.jsのapplyDifficulty関数を修正
+    // 難易度設定を適用する関数を修正
     function applyDifficulty(difficulty) {
         // ローカルストレージに保存
         localStorage.setItem('cyberfense-difficulty', difficulty);
@@ -84,18 +85,18 @@ const Game = (function() {
             case 'easy':
                 // 敵の出現間隔を長く、敵の速度と耐久力を下げる
                 Enemies.setSpawnInterval(3500);  // 3000から3500に延長
-                Enemies.setEnemyMultiplier(0.6); // 0.7から0.6に減少
+                Enemies.setEnemyMultiplier(0.5); // 0.6から0.5に減少
                 playerHealth = 100;              // 初期シールド
                 break;
             case 'normal':
                 Enemies.setSpawnInterval(2500);  // 2000から2500に延長
-                Enemies.setEnemyMultiplier(0.8); // 1.0から0.8に減少
+                Enemies.setEnemyMultiplier(0.7); // 0.8から0.7に減少
                 playerHealth = 100;
                 break;
             case 'hard':
                 // 敵の出現間隔を短く、敵の速度と耐久力を上げる
                 Enemies.setSpawnInterval(2000);  // 1500から2000に延長
-                Enemies.setEnemyMultiplier(1.0); // 1.3から1.0に減少
+                Enemies.setEnemyMultiplier(0.9); // 1.0から0.9に減少
                 playerHealth = 90;               // 80から90に増加
                 break;
         }
@@ -221,7 +222,26 @@ const Game = (function() {
             gameOver();
             return;
         }
-        
+
+        // ボス戦状態の確認と調整
+        if (isBossFight) {
+            // ボスの存在確認
+            const bossList = Enemies.getEnemies().filter(enemy => 
+                enemy.type === Enemies.ENEMY_TYPES.BOSS
+            );
+            
+            // ボスがいなくなった場合
+            if (bossList.length === 0) {
+                console.log('ボスがいなくなりました: 通常BGMに戻します');
+                isBossFight = false; // フラグをリセット
+                
+                // レベルに応じたBGMに戻す
+                const bgm = level >= 10 ? 'game_intense' : 'game_normal';
+                Sound.stopBgm();
+                Sound.playBgm(bgm);
+            }
+        }
+
         // 次のフレーム要求
         gameLoopId = requestAnimationFrame(gameLoop);
     }
@@ -246,13 +266,27 @@ const Game = (function() {
     
     // ボス出現
     function spawnBoss() {
-        Sound.playBgm('boss_battle');
+        console.log('ボス出現イベント開始');
+        isBossFight = true; // ボス戦フラグを立てる
+        
+        // ボスBGM切り替えを強制
+        Sound.stopBgm(); // 既存のBGMを停止
+        
+        // タイムアウトを追加してBGM切り替えを遅延
+        setTimeout(() => {
+            Sound.playBgm('boss_battle');
+            console.log('Boss battle BGM played');
+        }, 100);
+        
         HUD.showWarningMessage('警告: 強力な敵が接近中');
+        
+        // ボス出現
         setTimeout(() => {
             Enemies.spawnBoss(level);
             Sound.playSfx('enemy_boss_spawn');
         }, 3000);
     }
+    
     
     // 敵撃破時のスコア加算
     function addScore(points) {

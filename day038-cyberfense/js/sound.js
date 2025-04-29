@@ -168,10 +168,12 @@ const Sound = (function() {
     }
     
     // BGM再生関数を非同期に修正
-    // sound.js の playBgm 関数の改善
     async function playBgm(id, loop = true) {
+        // BGM強制設定追加（ユーザーの要望によりボスBGM優先）
+        const forceBgm = (id === 'boss_battle');
+        
         if (isMuted) return;
-        if (currentBgm === id) return;
+        if (currentBgm === id && !forceBgm) return;
         
         try {
             // ユーザーインタラクション確認のためのログ追加
@@ -188,7 +190,22 @@ const Sound = (function() {
                 console.error(`BGM "${id}" is not loaded. Available BGMs:`, Object.keys(bgmBuffers));
                 // ファイルパスを確認するためのログ
                 console.log('BGM path:', Utils.getAssetPath(`assets/sounds/bgm/${id}.mp3`));
-                return;
+                
+                // boss_battle特別対応
+                if (id === 'boss_battle') {
+                    console.log('Boss BGM not loaded, falling back to intense BGM');
+                    id = 'game_intense'; // 代替BGMとして高難度BGMを使用
+                    
+                    // それも無ければ通常BGM
+                    if (!bgmBuffers[id]) {
+                        id = 'game_normal';
+                    }
+                }
+                
+                // それでも無ければ終了
+                if (!bgmBuffers[id]) {
+                    return;
+                }
             }
             
             // 以下、既存のBGM再生コード
@@ -316,6 +333,7 @@ const Sound = (function() {
         setSfxVolume,
         toggleMute,
         isMuted: () => isMuted,
-        isReady    // 追加
+        isReady,    // 追加
+        currentBgm     // 変数を直接公開
     };
 })();

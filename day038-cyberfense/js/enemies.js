@@ -49,8 +49,8 @@ const Enemies = (function() {
         },
         [ENEMY_TYPES.BOSS]: {
             radius: 60,
-            speed: 0.5,  // 0.8から0.5に減速
-            health: 150,  // 200から150に減少
+            speed: 0.5,
+            health: 100,  // 150から100に減少
             color: '#ff0033',
             points: 1000,
             spawnRate: 0
@@ -223,7 +223,7 @@ const Enemies = (function() {
                 if (enemy.element.parentNode) {
                     enemy.element.parentNode.removeChild(enemy.element);
                 }
-            }, 500); // 消滅アニメーション用の遅延
+            }, 500);
         }
         
         // プレイヤーによる撃破ならスコア加算とパワーアップドロップ
@@ -231,8 +231,20 @@ const Enemies = (function() {
             Game.addScore(enemy.points);
             Sound.playSfx(enemy.type === ENEMY_TYPES.BOSS ? 'enemy_boss_destroy' : 'enemy_destroy');
             
+            // ボスが倒された場合
+            if (enemy.type === ENEMY_TYPES.BOSS) {
+                console.log('ボス撃破: BGMを変更します');
+                
+                // 外部の isBossFight フラグに直接アクセスできないので
+                // 一時的にここで BGM を切り替える（Game.js の gameLoop でも同様の処理をする）
+                const level = Game.getLevel();
+                const bgm = level >= 10 ? 'game_intense' : 'game_normal';
+                Sound.stopBgm();
+                Sound.playBgm(bgm);
+            }
+            
             // 一定確率でシールド回復アイテムをドロップ
-            if (Math.random() < 0.2 || enemy.type === ENEMY_TYPES.BOSS) { // 10%から20%に増加、ボスは100%
+            if (Math.random() < 0.2 || enemy.type === ENEMY_TYPES.BOSS) {
                 spawnShieldRepair(enemy.x, enemy.y);
             }
             
@@ -475,8 +487,21 @@ const Enemies = (function() {
 
 
 
-    // ボスの動きを管理する新しい関数
+    // ボスの動きを管理する関数の修正
     function updateBossMovement(boss, deltaTime) {
+        // 難易度係数の取得
+        let difficultyMultiplier = 1.0;
+        const storedDifficulty = localStorage.getItem('cyberfense-difficulty');
+        
+        // 難易度に応じたボス行動の調整
+        if (storedDifficulty === 'easy') {
+            difficultyMultiplier = 0.5; // イージーモードは遅め
+        } else if (storedDifficulty === 'normal') {
+            difficultyMultiplier = 0.75; // ノーマルモードは中間
+        } else {
+            difficultyMultiplier = 1.0; // ハードモードはそのまま
+        }
+
         // ボスに移動パターンプロパティがなければ初期化
         if (!boss.movementPattern) {
             boss.movementPattern = 'approach';
@@ -493,7 +518,7 @@ const Enemies = (function() {
         
         // 移動タイマーを更新
         boss.movementTimer += deltaTime;
-        boss.attackCooldown -= deltaTime;
+        boss.attackCooldown -= deltaTime * difficultyMultiplier; // 難易度で攻撃間隔調整
         
         // 中央からの距離
         const distanceToCenter = Math.sqrt(
@@ -505,13 +530,13 @@ const Enemies = (function() {
         switch (boss.movementPattern) {
             case 'approach':
                 // 中央に向かって接近
-                if (distanceToCenter > 200) {
+                if (distanceToCenter > 250) { // 200から250に増加（中央から遠くでorbitを開始）
                     const dx = centerX - boss.x;
                     const dy = centerY - boss.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     
-                    boss.x += (dx / dist) * boss.speed;
-                    boss.y += (dy / dist) * boss.speed;
+                    boss.x += (dx / dist) * boss.speed * difficultyMultiplier;
+                    boss.y += (dy / dist) * boss.speed * difficultyMultiplier;
                 } else {
                     // 一定距離まで近づいたら周回パターンに変更
                     boss.movementPattern = 'orbit';
@@ -521,8 +546,8 @@ const Enemies = (function() {
                 
             case 'orbit':
                 // 中央を周回
-                boss.orbitAngle += 0.001 * deltaTime;
-                const orbitRadius = 200;
+                boss.orbitAngle += 0.001 * deltaTime * difficultyMultiplier;
+                const orbitRadius = 250; // 200から250に増加（より離れて周回）
                 boss.x = centerX + Math.cos(boss.orbitAngle) * orbitRadius;
                 boss.y = centerY + Math.sin(boss.orbitAngle) * orbitRadius;
                 
@@ -530,7 +555,15 @@ const Enemies = (function() {
                 if (boss.attackCooldown <= 0) {
                     // 攻撃パターンに切り替え
                     boss.movementPattern = 'attack';
-                    boss.attackCooldown = 5000; // 5秒のクールダウン
+                    
+                    // 難易度に応じたクールダウン時間
+                    if (storedDifficulty === 'easy') {
+                        boss.attackCooldown = 8000; // 簡単モードは8秒間隔
+                    } else if (storedDifficulty === 'normal') {
+                        boss.attackCooldown = 6000; // 普通モードは6秒間隔
+                    } else {
+                        boss.attackCooldown = 5000; // 難しいモードは5秒間隔
+                    }
                     
                     // プレイヤーの位置に向かって急速に移動する目標を設定
                     boss.targetX = centerX;
@@ -545,10 +578,34 @@ const Enemies = (function() {
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 
                 if (dist > 10) {
-                    boss.x += (dx / dist) * boss.speed * 3; // 通常の3倍の速度
-                    boss.y += (dy / dist) * boss.speed * 3;
+                    // 難易度に応じた突進速度
+                    const attackSpeedMultiplier = storedDifficulty === 'easy' ? 2 : 
+                                                storedDifficulty === 'normal' ? 2.5 : 3;
+                    
+                    boss.x += (dx / dist) * boss.speed * attackSpeedMultiplier;
+                    boss.y += (dy / dist) * boss.speed * attackSpeedMultiplier;
                 } else {
-                    // 攻撃が終わったら周回に戻る
+                    // 中心付近まで来たら離脱する
+                    boss.movementPattern = 'retreat';
+                    
+                    // 後退方向をランダムに決定
+                    const retreatAngle = Math.random() * Math.PI * 2;
+                    boss.targetX = centerX + Math.cos(retreatAngle) * 250;
+                    boss.targetY = centerY + Math.sin(retreatAngle) * 250;
+                }
+                break;
+                
+            // 新しい状態：後退
+            case 'retreat':
+                const retreatDx = boss.targetX - boss.x;
+                const retreatDy = boss.targetY - boss.y;
+                const retreatDist = Math.sqrt(retreatDx * retreatDx + retreatDy * retreatDy);
+                
+                if (retreatDist > 10) {
+                    boss.x += (retreatDx / retreatDist) * boss.speed * 1.5;
+                    boss.y += (retreatDy / retreatDist) * boss.speed * 1.5;
+                } else {
+                    // 後退が完了したら周回モードに戻る
                     boss.movementPattern = 'orbit';
                 }
                 break;
