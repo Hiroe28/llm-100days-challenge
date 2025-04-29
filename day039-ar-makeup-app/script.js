@@ -370,13 +370,25 @@ async function loadImages() {
 
 // キャンバスサイズの調整
 function adjustCanvasSize() {
-    const containerWidth = video.clientWidth;
-    const containerHeight = video.clientHeight;
+    // カメラの実際のフレームサイズを使用
+    const videoWidth = video.videoWidth || 640;
+    const videoHeight = video.videoHeight || 480;
     
-    canvas.width = containerWidth;
-    canvas.height = containerHeight;
+    // 物理ピクセル比を考慮（Retina対応）
+    const ratio = window.devicePixelRatio || 1;
     
-    console.log(`キャンバスサイズ調整: ${canvas.width}x${canvas.height}`);
+    // 内部キャンバスサイズをカメラ実寸に合わせる
+    canvas.width = videoWidth * ratio;
+    canvas.height = videoHeight * ratio;
+    
+    // CSS表示サイズは従来通り調整可能に
+    canvas.style.width = '100%';
+    canvas.style.height = 'auto';
+    
+    // 描画時の座標系も調整
+    ctx.scale(ratio, ratio);
+    
+    console.log(`キャンバスサイズ調整: 内部サイズ ${canvas.width}x${canvas.height}, 表示サイズ ${canvas.clientWidth}x${canvas.clientHeight}, 比率 ${ratio}`);
     
     // キャンバスサイズが変わったときは一度画面を消去
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1419,17 +1431,10 @@ function applyHead(ctx, landmarks, headType) {
 
 // スナップショットを撮る
 function takeSnapshot() {
-    // スナップショット撮影時のフラッシュエフェクト
+    // フラッシュエフェクト（既存コード）
     const flashOverlay = document.createElement('div');
     flashOverlay.style.position = 'absolute';
-    flashOverlay.style.top = '0';
-    flashOverlay.style.left = '0';
-    flashOverlay.style.width = '100%';
-    flashOverlay.style.height = '100%';
-    flashOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-    flashOverlay.style.zIndex = '1000';
-    flashOverlay.style.pointerEvents = 'none';
-    flashOverlay.style.transition = 'opacity 0.5s ease';
+    // 以下省略...
     
     document.querySelector('.video-container').appendChild(flashOverlay);
     
@@ -1443,11 +1448,14 @@ function takeSnapshot() {
         snapshotCanvas.height = canvas.height;
         const snapshotCtx = snapshotCanvas.getContext('2d');
         
-        // 現在のキャンバスの内容（背景とエフェクト全て）をスナップショットに描画
-        snapshotCtx.drawImage(canvas, 0, 0);
+        // ここを修正: 左右反転を適用してから描画
+        snapshotCtx.save();
+        snapshotCtx.scale(-1, 1);
+        snapshotCtx.drawImage(canvas, -canvas.width, 0);
+        snapshotCtx.restore();
         
         try {
-            // 画像としてダウンロード
+            // 画像としてダウンロード（以下既存コード）
             const link = document.createElement('a');
             link.download = `ar-makeup-snapshot-${new Date().getTime()}.png`;
             link.href = snapshotCanvas.toDataURL('image/png');
