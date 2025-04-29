@@ -3,6 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="リアルタイムARメイクアップ - ブラウザで簡単バーチャルメイク体験" />
+    <meta property="og:description" content="カメラを通して顔を認識し、リアルタイムで口紅・チーク・アイシャドウを適用。アクセサリーの追加や背景変更も可能なブラウザベースのARメイクアップアプリ。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day039-ar-makeup-app/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day039-ar-makeup-app/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="リアルタイムARメイクアップ" />
+    <meta name="twitter:description" content="カメラを通して顔を認識し、リアルタイムでメイクやアクセサリーを試せるウェブアプリ。スナップショットで気に入った姿を保存できます。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day039-ar-makeup-app/screenshot.png" />
+
     <title>リアルタイムARメイクアップ</title>
     <style>
         :root {
@@ -807,6 +819,10 @@
                                 <div class="color-option" style="background-color: #ff9800;" data-color="#ff9800" data-name="オレンジ">
                                     <div class="color-tooltip">オレンジ</div>
                                 </div>
+                                <div class="color-option" style="background-color: #f06292;" data-color="#f06292" data-name="ローズピンク">
+                                    <div class="color-tooltip">ローズピンク</div>
+                                </div>
+
                             </div>
                             <label>透明度: <span id="lipstick-opacity-value">50%</span></label>
                             <input type="range" min="0" max="100" value="50" class="intensity-slider" id="lipstick-opacity">
@@ -846,6 +862,13 @@
                                 <div class="color-option" style="background-color: #ff8a65;" data-color="#ff8a65" data-name="コーラル">
                                     <div class="color-tooltip">コーラル</div>
                                 </div>
+                                <div class="color-option" style="background-color: #ffb74d;" data-color="#ffb74d" data-name="アプリコット">
+                                    <div class="color-tooltip">アプリコット</div>
+                                </div>
+                                <div class="color-option" style="background-color: #f48fb1;" data-color="#f48fb1" data-name="ソフトローズ">
+                                    <div class="color-tooltip">ソフトローズ</div>
+                                </div>
+
                             </div>
                             <label>透明度: <span id="blush-opacity-value">40%</span></label>
                             <input type="range" min="0" max="100" value="40" class="intensity-slider" id="blush-opacity">
@@ -888,6 +911,10 @@
                                 <div class="color-option" style="background-color: #80deea;" data-color="#80deea" data-name="ブルー">
                                     <div class="color-tooltip">ブルー</div>
                                 </div>
+                                <div class="color-option" style="background-color: #f9a825;" data-color="#f9a825" data-name="シャンパンゴールド">
+                                    <div class="color-tooltip">シャンパンゴールド</div>
+                                </div>
+
                             </div>
                             <label>透明度: <span id="eyeshadow-opacity-value">40%</span></label>
                             <input type="range" min="0" max="100" value="40" class="intensity-slider" id="eyeshadow-opacity">
@@ -944,10 +971,10 @@
                                 <div class="accessory-preview" style="background-image: url('img/glasses.png');"></div>
                                 <div class="accessory-name">メガネ</div>
                             </div>
-                            <div class="accessory-option" data-type="choker">
+                            <!-- <div class="accessory-option" data-type="choker">
                                 <div class="accessory-preview" style="background-image: url('img/choker.png');"></div>
                                 <div class="accessory-name">チョーカー</div>
-                            </div>
+                            </div> -->
                             <div class="accessory-option" data-type="sunglasses">
                                 <div class="accessory-preview" style="background-image: url('img/sunglasses.png');"></div>
                                 <div class="accessory-name">サングラス</div>
