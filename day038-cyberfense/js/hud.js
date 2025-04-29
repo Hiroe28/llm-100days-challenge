@@ -262,7 +262,7 @@ const HUD = (function() {
                 <div class="help-buttons">
                     <button id="resume-button-help">ゲームを再開</button>
                     <button id="sound-toggle-help">サウンド: ${Sound.isMuted() ? 'OFF' : 'ON'}</button>
-                    <button id="quit-button-help">終了</button>
+                    <button id="quit-button-help">メニューに戻る</button>
                 </div>
             </div>
         `;
