@@ -4,9 +4,6 @@
 // グローバル変数
 let video, canvas, ctx;
 let faceMesh, selfieSegmentation, camera;
-let isMobile = false;
-let faceScale = 1.0; // 顔のスケールファクター
-
 let makeupSettings = {
     lipstick: {
         color: '#e91e63',
@@ -50,7 +47,7 @@ const accessoryImages = {
     necklace: new Image(),
     necklace2: new Image(),     // 追加
     glasses: new Image(),
-    // choker: new Image(),
+    choker: new Image(),
     sunglasses: new Image()
 };
 
@@ -110,14 +107,6 @@ const FACEMESH_LANDMARKS = {
     chin: 152
 };
 
-// 画面回転の監視
-window.addEventListener('orientationchange', () => {
-    // 回転後に少し待ってからサイズ調整
-    setTimeout(() => {
-        adjustCanvasSize();
-    }, 300);
-});
-
 // アプリケーションの初期化
 async function init() {
     // DOM要素の取得
@@ -125,13 +114,10 @@ async function init() {
     canvas = document.getElementById('output-canvas');
     ctx = canvas.getContext('2d');
     
-    // デバイス検出を追加
-    detectDevice();
-    
     // 画像のロード
     await loadImages();
     
-    // MediaPipe FaceMeshの設定（変更なし）
+    // MediaPipe FaceMeshの設定
     faceMesh = new FaceMesh({
         locateFile: (file) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
@@ -147,7 +133,7 @@ async function init() {
     
     faceMesh.onResults(onFaceMeshResults);
     
-    // MediaPipe Selfie Segmentationの設定（変更なし）
+    // MediaPipe Selfie Segmentationの設定
     selfieSegmentation = new SelfieSegmentation({
         locateFile: (file) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
@@ -155,7 +141,7 @@ async function init() {
     });
     
     selfieSegmentation.setOptions({
-        modelSelection: 1,
+        modelSelection: 1, // 1=一般的なモデル、0=ランドスケープモデル
     });
     
     selfieSegmentation.onResults(onSegmentationResults);
@@ -168,11 +154,7 @@ async function init() {
         console.log('カメラ開始成功');
         // キャンバスサイズの調整
         adjustCanvasSize();
-        // リサイズイベントリスナーの追加
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(adjustCanvasSize, 300);
-        });
+        window.addEventListener('resize', adjustCanvasSize);
     } catch (error) {
         console.error('カメラ開始エラー:', error);
         handleCameraError(error);
@@ -209,50 +191,31 @@ function initializePanels() {
     });
 }
 
-// 初期化時にデバイス検出を行う関数
-function detectDevice() {
-    isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    console.log(`デバイスタイプ: ${isMobile ? 'モバイル' : 'デスクトップ'}`);
-}
-
-// 顔のスケールを計算するヘルパー関数
-function calculateFaceScale(landmarks) {
-    if (!landmarks) return 1.0;
-    
-    // 顔の幅を基準に計算（左右の耳の距離）
-    const leftEar = landmarks[FACEMESH_LANDMARKS.ears.left];
-    const rightEar = landmarks[FACEMESH_LANDMARKS.ears.right];
-    
-    if (leftEar && rightEar) {
-        const faceWidth = Math.abs(rightEar.x - leftEar.x);
-        // 標準的な顔の幅を0.15とした場合の比率
-        return faceWidth / 0.15;
-    }
-    
-    return 1.0;
-}
-
 // カメラのセットアップ
 function setupCamera() {
+    // モバイルブラウザのチェック
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
     try {
-        // モバイルデバイスの確認
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        // MediaDevices APIが利用可能かチェック
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('お使いのブラウザはカメラにアクセスできません。最新のブラウザを使用するか、HTTPSで接続してください。');
+        }
         
-        // モバイルではより適切な設定を使用
-        const cameraOptions = {
+        camera = new Camera(video, {
             onFrame: async () => {
+                // 背景処理が有効な場合、Selfie Segmentationを使用
                 if (backgroundSettings.enabled && backgroundSettings.type !== 'none') {
                     await selfieSegmentation.send({image: video});
+                    // 背景処理の後にFaceMeshも実行するのは、onSegmentationResultsの中で行う
                 } else {
+                    // 背景処理が無効な場合は直接FaceMeshを実行
                     await faceMesh.send({image: video});
                 }
             },
-            // モバイルとPCで適切な解像度を設定
-            width: isMobile ? 720 : 640,
-            height: isMobile ? 1280 : 480
-        };
-        
-        camera = new Camera(video, cameraOptions);
+            width: 640,
+            height: 480
+        });
     } catch (error) {
         console.error('カメラセットアップエラー:', error);
         handleCameraError(error);
@@ -333,7 +296,7 @@ async function loadImages() {
         accessoryPromises.push(loadImage('img/necklace.png').then(img => accessoryImages.necklace = img).catch(() => console.warn('Failed to load necklace.png')));
         accessoryPromises.push(loadImage('img/necklace2.png').then(img => accessoryImages.necklace2 = img).catch(() => console.warn('Failed to load necklace2.png')));
         accessoryPromises.push(loadImage('img/glasses.png').then(img => accessoryImages.glasses = img).catch(() => console.warn('Failed to load glasses.png')));
-        // accessoryPromises.push(loadImage('img/choker.png').then(img => accessoryImages.choker = img).catch(() => console.warn('Failed to load choker.png')));
+        accessoryPromises.push(loadImage('img/choker.png').then(img => accessoryImages.choker = img).catch(() => console.warn('Failed to load choker.png')));
         accessoryPromises.push(loadImage('img/sunglasses.png').then(img => accessoryImages.sunglasses = img).catch(() => console.warn('Failed to load sunglasses.png')));
         
         // あたま用画像のロード（旧デコレーション）
@@ -377,38 +340,11 @@ async function loadImages() {
 
 // キャンバスサイズの調整
 function adjustCanvasSize() {
-    // ビデオコンテナのサイズを取得
-    const videoContainer = document.querySelector('.video-container');
-    const containerWidth = videoContainer.clientWidth;
+    const containerWidth = video.clientWidth;
+    const containerHeight = video.clientHeight;
     
-    // ビデオのアスペクト比を計算
-    const videoWidth = video.videoWidth || 640;
-    const videoHeight = video.videoHeight || 480;
-    const videoAspect = videoWidth / videoHeight;
-    
-    // コンテナの幅に基づいてキャンバスの高さを計算
-    const canvasWidth = containerWidth;
-    const canvasHeight = containerWidth / videoAspect;
-    
-    // デバイスピクセル比を考慮
-    const ratio = window.devicePixelRatio || 1;
-    
-    // 内部サイズを設定
-    canvas.width = canvasWidth * ratio;
-    canvas.height = canvasHeight * ratio;
-    
-    // CSSサイズも明示的に設定
-    canvas.style.width = `${canvasWidth}px`;
-    canvas.style.height = `${canvasHeight}px`;
-    
-    // 描画コンテキストのスケールを調整
-    ctx.setTransform(1, 0, 0, 1, 0, 0); // リセット
-    ctx.scale(ratio, ratio);
-    
-    // キャンバスをクリア
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    console.log(`キャンバスサイズ調整: ${canvasWidth}x${canvasHeight}, 比率:${ratio}`);
+    canvas.width = containerWidth;
+    canvas.height = containerHeight;
 }
 
 // イベントリスナーの設定
@@ -491,29 +427,6 @@ function setupEventListeners() {
     
     // パネルの開閉（アコーディオン機能）
     setupAccordionPanels();
-
-    // デバッグモードのトグル（開発用）
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'D' && event.ctrlKey && event.shiftKey) {
-            toggleDebugMode();
-        }
-    });
-    
-    // ウィンドウのリサイズイベント
-    window.addEventListener('resize', () => {
-        adjustCanvasSize();
-        console.log('ウィンドウサイズ変更を検出しました');
-    });
-
-    // 画面回転の監視
-    window.addEventListener('orientationchange', () => {
-        // 回転後に少し待ってからサイズ調整
-        setTimeout(() => {
-            adjustCanvasSize();
-        }, 300);
-    });
-
-
 }
 
 // パネルのアコーディオン機能セットアップ
@@ -782,7 +695,7 @@ function applyPreset(preset) {
         case 'glamour':
             // グラマラスメイク設定
             updateMakeupSettings({
-                lipstick: { color: '#d32f2f', opacity: 0.4, enabled: true },
+                lipstick: { color: '#d32f2f', opacity: 0.7, enabled: true },
                 blush: { color: '#e57373', opacity: 0.4, enabled: true },
                 eyeshadow: { color: '#9e9e9e', opacity: 0.6, enabled: true }
             });
@@ -791,8 +704,8 @@ function applyPreset(preset) {
         case 'cute':
             // キュートメイク設定
             updateMakeupSettings({
-                lipstick: { color: '#ff80ab', opacity: 0.2, enabled: true },
-                blush: { color: '#f8bbd0', opacity: 0.4, enabled: true },
+                lipstick: { color: '#ff80ab', opacity: 0.5, enabled: true },
+                blush: { color: '#f8bbd0', opacity: 0.5, enabled: true },
                 eyeshadow: { color: '#9fa8da', opacity: 0.4, enabled: true }
             });
             break;
@@ -921,92 +834,15 @@ function updateColorSelection(containerId, color) {
     });
 }
 
-// デバッグモード用の変数とトグル関数
-let debugMode = false;
-
-function toggleDebugMode() {
-    debugMode = !debugMode;
-    console.log(`デバッグモード: ${debugMode ? 'オン' : 'オフ'}`);
-}
-
-// デバッグ情報の表示関数
-function drawDebugInfo(ctx, landmarks) {
-    if (!debugMode || !landmarks) return;
-    
-    // キャンバスサイズと顔のスケール情報
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(10, 10, 250, 80);
-    ctx.fillStyle = 'white';
-    ctx.font = '12px sans-serif';
-    ctx.fillText(`キャンバスサイズ: ${canvas.width}x${canvas.height}`, 20, 30);
-    ctx.fillText(`デバイスタイプ: ${isMobile ? 'モバイル' : 'デスクトップ'}`, 20, 50);
-    ctx.fillText(`顔のスケール: ${faceScale.toFixed(3)}`, 20, 70);
-    
-    // ランドマークポイントの表示
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
-    for (const key in FACEMESH_LANDMARKS) {
-        if (Array.isArray(FACEMESH_LANDMARKS[key])) {
-            FACEMESH_LANDMARKS[key].forEach(index => {
-                const point = landmarks[index];
-                if (point) {
-                    ctx.beginPath();
-                    ctx.arc(point.x * canvas.width, point.y * canvas.height, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            });
-        } else if (typeof FACEMESH_LANDMARKS[key] === 'object') {
-            for (const subKey in FACEMESH_LANDMARKS[key]) {
-                const index = FACEMESH_LANDMARKS[key][subKey];
-                const point = landmarks[index];
-                if (point) {
-                    ctx.beginPath();
-                    ctx.arc(point.x * canvas.width, point.y * canvas.height, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-        } else {
-            const index = FACEMESH_LANDMARKS[key];
-            const point = landmarks[index];
-            if (point) {
-                ctx.beginPath();
-                ctx.arc(point.x * canvas.width, point.y * canvas.height, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-    }
-}
-
-
-
 // FaceMeshの結果を処理
 function onFaceMeshResults(results) {
     if (!results.multiFaceLandmarks?.length) return;
     const landmarks = results.multiFaceLandmarks[0];
-    
-    faceScale = calculateFaceScale(landmarks);
-    
+  
+    // 背景合成がオフのときだけクリア
     if (!backgroundSettings.enabled) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 画像を適切に描画（アスペクト比を維持）
-        const imgWidth = results.image.width;
-        const imgHeight = results.image.height;
-        const imgAspect = imgWidth / imgHeight;
-        const canvasAspect = canvas.width / canvas.height;
-        
-        let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
-        
-        if (canvasAspect > imgAspect) {
-            drawWidth = canvas.width;
-            drawHeight = drawWidth / imgAspect;
-            offsetY = (canvas.height - drawHeight) / 2;
-        } else {
-            drawHeight = canvas.height;
-            drawWidth = drawHeight * imgAspect;
-            offsetX = (canvas.width - drawWidth) / 2;
-        }
-        
-        ctx.drawImage(results.image, offsetX, offsetY, drawWidth, drawHeight);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height); // 元映像も描く
     }
     
     // バーチャルメイクアップを適用
@@ -1027,7 +863,7 @@ function onFaceMeshResults(results) {
         applyAccessory(ctx, landmarks, accessorySettings.type);
     }
     
-    // あたまアイテムを適用
+    // あたまアイテムを適用（旧デコレーション）
     if (headSettings.enabled && headSettings.type !== 'none') {
         applyHead(ctx, landmarks, headSettings.type);
     }
@@ -1110,15 +946,14 @@ function applyBlush(ctx, landmarks, options) {
     
     // サイズを小さく調整
     const blushSize = {
-        width: canvas.width * 0.025,  // より小さく
+        width: canvas.width * 0.03,  // より小さく
         height: canvas.height * 0.02 // 楕円形に
     };
     
     // グラデーション効果の追加
-    const centerOffset = canvas.width * 0.01; // 1%くらい顔中心方向へ寄せる
     const leftPoint = landmarks[leftCheekIndex];
-    const leftX = (leftPoint.x * canvas.width) + centerOffset;  // 左頬を右に寄せる
-    const leftY = (leftPoint.y + 0.02) * canvas.height;
+    const leftX = leftPoint.x * canvas.width;
+    const leftY = leftPoint.y * canvas.height;
     
     const gradient = ctx.createRadialGradient(
         leftX, leftY, 0,
@@ -1140,8 +975,8 @@ function applyBlush(ctx, landmarks, options) {
     
     // 右チーク（同様に）
     const rightPoint = landmarks[rightCheekIndex];
-    const rightX = (rightPoint.x * canvas.width) - centerOffset; // 右頬を左に寄せる
-    const rightY = (rightPoint.y + 0.02) * canvas.height;
+    const rightX = rightPoint.x * canvas.width;
+    const rightY = rightPoint.y * canvas.height;
     
     const gradientRight = ctx.createRadialGradient(
         rightX, rightY, 0,
@@ -1205,30 +1040,22 @@ function applyEyeshadow(ctx, landmarks, options) {
 function applyAccessory(ctx, landmarks, accessoryType) {
     ctx.save();
     
-    // 顔のランドマークの基準点を取得
-    const leftEar = landmarks[FACEMESH_LANDMARKS.ears.left];
-    const rightEar = landmarks[FACEMESH_LANDMARKS.ears.right];
-    const nose = landmarks[FACEMESH_LANDMARKS.nose];
-    const chin = landmarks[FACEMESH_LANDMARKS.chin];
-    
-    // 顔の寸法を計算
-    const faceWidth = (rightEar.x - leftEar.x) * canvas.width;
-    const faceHeight = canvas.height * 0.4; // おおよその顔の高さ
-    
     switch (accessoryType) {
         case 'earrings':
-            // イヤリングのサイズを顔の幅に対する割合で計算
-            const earringWidth = faceWidth * 0.2;
-            const earringHeight = earringWidth * 1.33; // アスペクト比を維持
+            // 耳のランドマークを使用
+            const leftEarIndex = FACEMESH_LANDMARKS.ears.left;
+            const rightEarIndex = FACEMESH_LANDMARKS.ears.right;
+            
+            const leftEar = landmarks[leftEarIndex];
+            const rightEar = landmarks[rightEarIndex];
             
             // 左耳にイヤリングを描画
             if (accessoryImages.earringLeft.complete && accessoryImages.earringLeft.naturalWidth > 0) {
                 ctx.drawImage(
                     accessoryImages.earringLeft, 
-                    leftEar.x * canvas.width - earringWidth * 0.5, 
-                    leftEar.y * canvas.height - earringHeight * 0.1 + 5, 
-                    earringWidth, 
-                    earringHeight
+                    leftEar.x * canvas.width - 15, 
+                    leftEar.y * canvas.height - 5, 
+                    30, 40
                 );
             }
             
@@ -1236,27 +1063,28 @@ function applyAccessory(ctx, landmarks, accessoryType) {
             if (accessoryImages.earringRight.complete && accessoryImages.earringRight.naturalWidth > 0) {
                 ctx.drawImage(
                     accessoryImages.earringRight, 
-                    rightEar.x * canvas.width - earringWidth * 0.5, 
-                    rightEar.y * canvas.height - earringHeight * 0.1 + 5, 
-                    earringWidth, 
-                    earringHeight
+                    rightEar.x * canvas.width - 15, 
+                    rightEar.y * canvas.height - 5, 
+                    30, 40
                 );
             }
             break;
             
-        case 'earrings2':
-            // イヤリング2のサイズを顔の幅に対する割合で計算
-            const earring2Width = faceWidth * 0.2;
-            const earring2Height = earring2Width * 1.33;
+        case 'earrings2': // 新しいイヤリング2
+            // 耳のランドマークを使用
+            const leftEarIndex2 = FACEMESH_LANDMARKS.ears.left;
+            const rightEarIndex2 = FACEMESH_LANDMARKS.ears.right;
+            
+            const leftEar2 = landmarks[leftEarIndex2];
+            const rightEar2 = landmarks[rightEarIndex2];
             
             // 左耳にイヤリング2を描画
             if (accessoryImages.earringLeft2.complete && accessoryImages.earringLeft2.naturalWidth > 0) {
                 ctx.drawImage(
                     accessoryImages.earringLeft2, 
-                    leftEar.x * canvas.width - earring2Width * 0.5, 
-                    leftEar.y * canvas.height - earring2Height * 0.1 + 5, 
-                    earring2Width, 
-                    earring2Height
+                    leftEar2.x * canvas.width - 15, 
+                    leftEar2.y * canvas.height - 5, 
+                    30, 40
                 );
             }
             
@@ -1264,102 +1092,98 @@ function applyAccessory(ctx, landmarks, accessoryType) {
             if (accessoryImages.earringRight2.complete && accessoryImages.earringRight2.naturalWidth > 0) {
                 ctx.drawImage(
                     accessoryImages.earringRight2, 
-                    rightEar.x * canvas.width - earring2Width * 0.5, 
-                    rightEar.y * canvas.height - earring2Height * 0.1 + 5, 
-                    earring2Width, 
-                    earring2Height
+                    rightEar2.x * canvas.width - 15, 
+                    rightEar2.y * canvas.height - 5, 
+                    30, 40
                 );
             }
             break;
             
         case 'necklace':
-            // ネックレスのサイズを顔の幅に対する割合で計算
-            const necklaceWidth = faceWidth * 1.3;
-            const necklaceHeight = necklaceWidth * 0.5;
+            // 首のランドマークを使用（あごの下）
+            const chinIndex = FACEMESH_LANDMARKS.chin;
+            const chin = landmarks[chinIndex];
             
-            // ネックレスを描画 - 顎を基準に配置
+            // ネックレスを描画
             if (accessoryImages.necklace.complete && accessoryImages.necklace.naturalWidth > 0) {
                 ctx.drawImage(
                     accessoryImages.necklace, 
-                    chin.x * canvas.width - necklaceWidth * 0.5, 
-                    chin.y * canvas.height + faceHeight * 0.1, 
-                    necklaceWidth, 
-                    necklaceHeight
+                    chin.x * canvas.width - 50, 
+                    chin.y * canvas.height + 20, 
+                    100, 50
                 );
             }
             break;
             
-        case 'necklace2':
-            // ネックレス2のサイズを顔の幅に対する割合で計算
-            const necklace2Width = faceWidth * 1.3;
-            const necklace2Height = necklace2Width * 0.5;
+        case 'necklace2': // 新しいネックレス2
+            // 首のランドマークを使用（あごの下）
+            const chinIndex2 = FACEMESH_LANDMARKS.chin;
+            const chin2 = landmarks[chinIndex2];
             
             // ネックレス2を描画
             if (accessoryImages.necklace2.complete && accessoryImages.necklace2.naturalWidth > 0) {
                 ctx.drawImage(
                     accessoryImages.necklace2, 
-                    chin.x * canvas.width - necklace2Width * 0.5, 
-                    chin.y * canvas.height + faceHeight * 0.1, 
-                    necklace2Width, 
-                    necklace2Height
+                    chin2.x * canvas.width - 50, 
+                    chin2.y * canvas.height + 20, 
+                    100, 50
                 );
             }
             break;
             
         case 'glasses':
-            // メガネのサイズを顔の幅に対する割合で計算
-            const glassesWidth = faceWidth * 1.1;
-            const glassesHeight = glassesWidth * 0.4;
-            
-            // 目の位置を取得して中間点を計算
-            const leftEyePoint = landmarks[FACEMESH_LANDMARKS.leftEye[0]];
-            const rightEyePoint = landmarks[FACEMESH_LANDMARKS.rightEye[0]];
-            const eyeY = (leftEyePoint.y + rightEyePoint.y) / 2;
+            // メガネの処理
+            const nosePoint = landmarks[FACEMESH_LANDMARKS.nose];
             
             if (accessoryImages.glasses.complete && accessoryImages.glasses.naturalWidth > 0) {
+                // 顔の幅を計算
+                const faceWidth = (landmarks[FACEMESH_LANDMARKS.ears.right].x - landmarks[FACEMESH_LANDMARKS.ears.left].x) * canvas.width;
+                const glassesWidth = faceWidth * 1.1; // 顔幅に合わせて調整
+                
                 ctx.drawImage(
                     accessoryImages.glasses,
-                    nose.x * canvas.width - glassesWidth * 0.5,
-                    eyeY * canvas.height - glassesHeight * 0.25 - 5,
+                    nosePoint.x * canvas.width - glassesWidth / 2, // 中央揃え
+                    nosePoint.y * canvas.height - 50, // 鼻より少し上方向に配置
                     glassesWidth,
-                    glassesHeight
+                    glassesWidth * 0.4 // アスペクト比を維持
                 );
             }
             break;
             
-        // case 'choker':
-        //     // チョーカーのサイズを顔の幅に対する割合で計算
-        //     const chokerWidth = faceWidth * 1.0;
-        //     const chokerHeight = chokerWidth * 0.25;
+        case 'choker':
+            // チョーカーの処理
+            const chinChoker = landmarks[FACEMESH_LANDMARKS.chin];
             
-        //     if (accessoryImages.choker.complete && accessoryImages.choker.naturalWidth > 0) {
-        //         ctx.drawImage(
-        //             accessoryImages.choker,
-        //             chin.x * canvas.width - chokerWidth * 0.5,
-        //             chin.y * canvas.height + faceHeight * 0.2,
-        //             chokerWidth,
-        //             chokerHeight
-        //         );
-        //     }
-        //     break;
+            if (accessoryImages.choker.complete && accessoryImages.choker.naturalWidth > 0) {
+                // 顔の幅を計算
+                const faceWidth = (landmarks[FACEMESH_LANDMARKS.ears.right].x - landmarks[FACEMESH_LANDMARKS.ears.left].x) * canvas.width;
+                const chokerWidth = faceWidth * 1.2; // 首の幅に合わせて調整
+                
+                ctx.drawImage(
+                    accessoryImages.choker,
+                    chinChoker.x * canvas.width - chokerWidth / 2, // 中央揃え
+                    chinChoker.y * canvas.height + 30, // あごの下に配置
+                    chokerWidth,
+                    chokerWidth * 0.25 // アスペクト比を維持
+                );
+            }
+            break;
             
         case 'sunglasses':
-            // サングラスのサイズを顔の幅に対する割合で計算
-            const sunglassesWidth = faceWidth * 1.1;
-            const sunglassesHeight = sunglassesWidth * 0.4;
-            
-            // 目の位置を取得して中間点を計算
-            const leftEyeSun = landmarks[FACEMESH_LANDMARKS.leftEye[0]];
-            const rightEyeSun = landmarks[FACEMESH_LANDMARKS.rightEye[0]];
-            const eyeSunY = (leftEyeSun.y + rightEyeSun.y) / 2;
+            // サングラスの処理
+            const noseSunglasses = landmarks[FACEMESH_LANDMARKS.nose];
             
             if (accessoryImages.sunglasses.complete && accessoryImages.sunglasses.naturalWidth > 0) {
+                // 顔の幅を計算
+                const faceWidth = (landmarks[FACEMESH_LANDMARKS.ears.right].x - landmarks[FACEMESH_LANDMARKS.ears.left].x) * canvas.width;
+                const sunglassesWidth = faceWidth * 1.1; // 顔幅に合わせて調整
+                
                 ctx.drawImage(
                     accessoryImages.sunglasses,
-                    nose.x * canvas.width - sunglassesWidth * 0.5,
-                    eyeSunY * canvas.height - sunglassesHeight * 0.25 - 5,
+                    noseSunglasses.x * canvas.width - sunglassesWidth / 2, // 中央揃え
+                    noseSunglasses.y * canvas.height - 50, // 鼻より少し上方向に配置
                     sunglassesWidth,
-                    sunglassesHeight
+                    sunglassesWidth * 0.4 // アスペクト比を維持
                 );
             }
             break;
@@ -1373,96 +1197,87 @@ function applyAccessory(ctx, landmarks, accessoryType) {
 function applyHead(ctx, landmarks, headType) {
     ctx.save();
     
-    // 顔のランドマークの基準点を取得
-    const forehead = landmarks[FACEMESH_LANDMARKS.forehead];
-    const leftEar = landmarks[FACEMESH_LANDMARKS.ears.left];
-    const rightEar = landmarks[FACEMESH_LANDMARKS.ears.right];
-    
-    // 顔の寸法を計算
-    const faceWidth = (rightEar.x - leftEar.x) * canvas.width;
-    const faceHeight = canvas.height * 0.4; // おおよその顔の高さ
-    
     switch (headType) {
         case 'animalEars':
-            // 猫耳のサイズを顔の幅に対する割合で計算
-            const catEarsWidth = faceWidth * 1.2;
-            const catEarsHeight = catEarsWidth * 0.6;
-            
             // 猫耳を頭の上に配置
+            const topHead = landmarks[FACEMESH_LANDMARKS.forehead];
+            // 顔の幅を計算
+            const faceWidth = (landmarks[FACEMESH_LANDMARKS.ears.right].x - landmarks[FACEMESH_LANDMARKS.ears.left].x) * canvas.width;
+            const earsWidth = faceWidth * 1.2; // 顔幅に合わせて調整
+            
             if (headImages.catEars.complete && headImages.catEars.naturalWidth > 0) {
                 ctx.drawImage(
                     headImages.catEars,
-                    forehead.x * canvas.width - catEarsWidth * 0.5,
-                    forehead.y * canvas.height - catEarsHeight * 0.9,
-                    catEarsWidth,
-                    catEarsHeight
+                    topHead.x * canvas.width - earsWidth/2, // 中央揃え
+                    topHead.y * canvas.height - 100, // 上方向に調整
+                    earsWidth, 
+                    earsWidth * 0.6 // アスペクト比を維持
                 );
             }
             break;
             
         case 'rabbitEars':
-            // うさぎ耳のサイズを顔の幅に対する割合で計算
-            const rabbitEarsWidth = faceWidth * 1.2;
-            const rabbitEarsHeight = rabbitEarsWidth * 0.8;
+            // うさぎ耳を頭の上に配置
+            const topHeadRabbit = landmarks[FACEMESH_LANDMARKS.forehead];
+            // 顔の幅を計算
+            const faceWidthRabbit = (landmarks[FACEMESH_LANDMARKS.ears.right].x - landmarks[FACEMESH_LANDMARKS.ears.left].x) * canvas.width;
+            const rabbitEarsWidth = faceWidthRabbit * 1.2;
             
             if (headImages.rabbitEars.complete && headImages.rabbitEars.naturalWidth > 0) {
                 ctx.drawImage(
                     headImages.rabbitEars,
-                    forehead.x * canvas.width - rabbitEarsWidth * 0.5,
-                    forehead.y * canvas.height - rabbitEarsHeight * 0.9,
-                    rabbitEarsWidth,
-                    rabbitEarsHeight
+                    topHeadRabbit.x * canvas.width - rabbitEarsWidth/2,
+                    topHeadRabbit.y * canvas.height - 120, // さらに上方向に調整
+                    rabbitEarsWidth, 
+                    rabbitEarsWidth * 0.8
                 );
             }
             break;
             
         case 'flowerCrown':
-            // 花冠のサイズを顔の幅に対する割合で計算
-            const flowerCrownWidth = faceWidth * 1.2;
-            const flowerCrownHeight = flowerCrownWidth * 0.5;
+            // 花冠を頭の上に配置
+            const topHeadFlower = landmarks[FACEMESH_LANDMARKS.forehead];
+            // 顔の幅を計算
+            const faceWidthFlower = (landmarks[FACEMESH_LANDMARKS.ears.right].x - landmarks[FACEMESH_LANDMARKS.ears.left].x) * canvas.width;
             
             if (headImages.flowerCrown.complete && headImages.flowerCrown.naturalWidth > 0) {
                 ctx.drawImage(
                     headImages.flowerCrown,
-                    forehead.x * canvas.width - flowerCrownWidth * 0.5,
-                    forehead.y * canvas.height - flowerCrownHeight * 0.8,
-                    flowerCrownWidth,
-                    flowerCrownHeight
+                    topHeadFlower.x * canvas.width - faceWidthFlower * 0.6,
+                    topHeadFlower.y * canvas.height - 80,
+                    faceWidthFlower * 1.2,
+                    faceWidthFlower * 0.5
                 );
             }
             break;
             
         case 'tiara':
-            // ティアラのサイズを顔の幅に対する割合で計算
-            const tiaraWidth = faceWidth * 1.0;
-            const tiaraHeight = tiaraWidth * 0.4;
+            // ティアラを頭の上に配置（アクセサリーから移動）
+            const topHeadTiara = landmarks[FACEMESH_LANDMARKS.forehead];
+            // 顔の幅を計算
+            const faceWidthTiara = (landmarks[FACEMESH_LANDMARKS.ears.right].x - landmarks[FACEMESH_LANDMARKS.ears.left].x) * canvas.width;
             
             if (headImages.tiara.complete && headImages.tiara.naturalWidth > 0) {
                 ctx.drawImage(
                     headImages.tiara,
-                    forehead.x * canvas.width - tiaraWidth * 0.5,
-                    forehead.y * canvas.height - tiaraHeight * 0.7,
-                    tiaraWidth,
-                    tiaraHeight
+                    topHeadTiara.x * canvas.width - faceWidthTiara / 2,
+                    (topHeadTiara.y * canvas.height) - faceWidthTiara * 0.3,
+                    faceWidthTiara,
+                    faceWidthTiara * 0.4
                 );
             }
             break;
             
         case 'hairpin':
-            // ヘアピンのサイズを顔の幅に対する割合で計算
-            const hairpinWidth = faceWidth * 0.25;
-            const hairpinHeight = hairpinWidth * 0.75;
+            // ヘアピンを頭に配置（アクセサリーから移動）
+            const foreheadHairpin = landmarks[FACEMESH_LANDMARKS.forehead];
             
             if (headImages.hairpin.complete && headImages.hairpin.naturalWidth > 0) {
-                // 画面サイズに応じて位置調整（モバイルとPCで異なる配置）
-                const offsetX = isMobile ? 0.3 : 0.35;
-                
                 ctx.drawImage(
                     headImages.hairpin,
-                    forehead.x * canvas.width - (faceWidth * offsetX),
-                    forehead.y * canvas.height - (faceHeight * 0.1),
-                    hairpinWidth,
-                    hairpinHeight
+                    (foreheadHairpin.x * canvas.width) - 50,
+                    (foreheadHairpin.y * canvas.height) - 50,
+                    40, 30
                 );
             }
             break;
@@ -1472,13 +1287,19 @@ function applyHead(ctx, landmarks, headType) {
 }
 
 
-
 // スナップショットを撮る
 function takeSnapshot() {
-    // フラッシュエフェクト（既存コード）
+    // スナップショット撮影時のフラッシュエフェクト
     const flashOverlay = document.createElement('div');
     flashOverlay.style.position = 'absolute';
-    // 以下省略...
+    flashOverlay.style.top = '0';
+    flashOverlay.style.left = '0';
+    flashOverlay.style.width = '100%';
+    flashOverlay.style.height = '100%';
+    flashOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+    flashOverlay.style.zIndex = '1000';
+    flashOverlay.style.pointerEvents = 'none';
+    flashOverlay.style.transition = 'opacity 0.5s ease';
     
     document.querySelector('.video-container').appendChild(flashOverlay);
     
@@ -1492,14 +1313,11 @@ function takeSnapshot() {
         snapshotCanvas.height = canvas.height;
         const snapshotCtx = snapshotCanvas.getContext('2d');
         
-        // ここを修正: 左右反転を適用してから描画
-        snapshotCtx.save();
-        snapshotCtx.scale(-1, 1);
-        snapshotCtx.drawImage(canvas, -canvas.width, 0);
-        snapshotCtx.restore();
+        // 現在のキャンバスの内容（背景とエフェクト全て）をスナップショットに描画
+        snapshotCtx.drawImage(canvas, 0, 0);
         
         try {
-            // 画像としてダウンロード（以下既存コード）
+            // 画像としてダウンロード
             const link = document.createElement('a');
             link.download = `ar-makeup-snapshot-${new Date().getTime()}.png`;
             link.href = snapshotCanvas.toDataURL('image/png');
