@@ -756,7 +756,7 @@ function applyPreset(preset) {
         case 'glamour':
             // グラマラスメイク設定
             updateMakeupSettings({
-                lipstick: { color: '#d32f2f', opacity: 0.7, enabled: true },
+                lipstick: { color: '#d32f2f', opacity: 0.4, enabled: true },
                 blush: { color: '#e57373', opacity: 0.4, enabled: true },
                 eyeshadow: { color: '#9e9e9e', opacity: 0.6, enabled: true }
             });
@@ -765,8 +765,8 @@ function applyPreset(preset) {
         case 'cute':
             // キュートメイク設定
             updateMakeupSettings({
-                lipstick: { color: '#ff80ab', opacity: 0.5, enabled: true },
-                blush: { color: '#f8bbd0', opacity: 0.5, enabled: true },
+                lipstick: { color: '#ff80ab', opacity: 0.2, enabled: true },
+                blush: { color: '#f8bbd0', opacity: 0.4, enabled: true },
                 eyeshadow: { color: '#9fa8da', opacity: 0.4, enabled: true }
             });
             break;
@@ -1067,14 +1067,15 @@ function applyBlush(ctx, landmarks, options) {
     
     // サイズを小さく調整
     const blushSize = {
-        width: canvas.width * 0.03,  // より小さく
+        width: canvas.width * 0.025,  // より小さく
         height: canvas.height * 0.02 // 楕円形に
     };
     
     // グラデーション効果の追加
+    const centerOffset = canvas.width * 0.01; // 1%くらい顔中心方向へ寄せる
     const leftPoint = landmarks[leftCheekIndex];
-    const leftX = leftPoint.x * canvas.width;
-    const leftY = leftPoint.y * canvas.height;
+    const leftX = (leftPoint.x * canvas.width) + centerOffset;  // 左頬を右に寄せる
+    const leftY = (leftPoint.y + 0.02) * canvas.height;
     
     const gradient = ctx.createRadialGradient(
         leftX, leftY, 0,
@@ -1096,8 +1097,8 @@ function applyBlush(ctx, landmarks, options) {
     
     // 右チーク（同様に）
     const rightPoint = landmarks[rightCheekIndex];
-    const rightX = rightPoint.x * canvas.width;
-    const rightY = rightPoint.y * canvas.height;
+    const rightX = (rightPoint.x * canvas.width) - centerOffset; // 右頬を左に寄せる
+    const rightY = (rightPoint.y + 0.02) * canvas.height;
     
     const gradientRight = ctx.createRadialGradient(
         rightX, rightY, 0,
