@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="ビートファクトリー - オリジナル音楽でプレイするリズムゲーム" />
+    <meta property="og:description" content="自分の音楽ファイルでプレイできるブラウザベースのリズムゲーム。音楽を解析して自動的にノートを生成。3段階の難易度と3種類のビジュアライザースタイル。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day041-beat-factory/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day041-beat-factory/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ビートファクトリー" />
+    <meta name="twitter:description" content="自分の音楽ファイルでプレイできるリズムゲーム。音楽を解析して自動的にノートを生成し、3段階の難易度と3種類のビジュアライザースタイルで楽しめる。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day041-beat-factory/screenshot.png" />
+
+    <title>音楽リズムゲーム</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 初期画面 -->
+        <div id="start-screen" class="active">
+            <h1>ビート<span class="highlight">ファクトリー</span></h1>
+
+            <p>音楽ファイルをアップロードしてリズムゲームを始めよう！</p>
+            
+            <div class="upload-section">
+                <label for="music-upload" class="btn-neon">音楽をアップロード</label>
+                <input type="file" id="music-upload" accept="audio/*" style="display: none;">
+            </div>
+            
+            <div class="preset-section">
+                <h3>またはサンプル音楽を選択</h3>
+                <div class="preset-grid">
+                    <div class="preset-item" data-song="sample1">
+                        <div class="preset-icon">🎵</div>
+                        <span>放浪のキッチン</span>
+                    </div>
+                    <div class="preset-item" data-song="sample2">
+                        <div class="preset-icon">🎵</div>
+                        <span>遊覧飛行</span>
+                    </div>
+                    <div class="preset-item" data-song="sample3">
+                        <div class="preset-icon">🎵</div>
+                        <span>昼と夜の境界</span>
+                    </div>
+                </div>
+            </div>
+            
+
+            <div class="difficulty-section">
+                <h3>難易度を選択</h3>
+                <div class="difficulty-options">
+                    <div class="difficulty-option selected" id="easy-mode">
+                        <span>かんたん</span>
+                    </div>
+                    <div class="difficulty-option" id="normal-mode">
+                        <span>ふつう</span>
+                    </div>
+                    <div class="difficulty-option" id="hard-mode">
+                        <span>むずかしい</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="volume-section">
+                <h3>音量設定</h3>
+                <div class="volume-control">
+                    <span class="volume-icon">🔊</span>
+                    <input type="range" id="volume-slider" min="0" max="100" value="50" class="volume-slider">
+                    <span class="volume-value">50%</span>
+                </div>
+            </div>
+
+            
+            <div class="instructions">
+                <h3>遊び方</h3>
+                <p>マークが<span class="highlight">ヒットエリア（青い枠）に重なったとき</span>に</p>
+                <p>スマホ: 画面タップ</p>
+                <p>PC: スペースキーまたはクリック</p>
+            </div>
+            <div class="visualizer-style-section">
+                <h3>ビジュアライザースタイル</h3>
+                <div class="style-options">
+                    <div class="style-option selected" id="style-neon" data-style="neon">
+                        <span>ネオン</span>
+                    </div>
+                    <div class="style-option" id="style-ocean" data-style="ocean">
+                        <span>オーシャン</span>
+                    </div>
+                    <div class="style-option" id="style-rainbow" data-style="rainbow">
+                        <span>レインボー</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- style.cssの後にこのセクションを追加 -->
+
+        
+        <!-- ゲーム画面 -->
+        <div id="game-screen">
+            <div class="game-header">
+                <div class="score-display">スコア: <span id="current-score">0</span></div>
+                <div class="combo-display">コンボ: <span id="combo-count">0</span>x</div>
+                <button id="volume-btn" class="btn-small">🔊</button>
+                <button id="pause-btn" class="btn-small">II</button>
+            </div>
+            
+            <div id="visualizer-container">
+                <canvas id="visualizer"></canvas>
+            </div>
+            
+            <div id="game-container">
+                <canvas id="game-canvas"></canvas>
+                <div id="hit-area">
+                    <div class="hit-line"></div>
+                    <div class="hit-text">ここでタップ！</div>
+                </div>
+            </div>
+            
+            <div class="controls-hint">
+                <span id="mobile-hint">画面をタップしてノーツをヒット！</span>
+                <span id="desktop-hint">スペースキーまたはクリックでノーツをヒット！</span>
+            </div>
+            
+        </div>
+        
+        <!-- ポーズ画面 -->
+        <div id="pause-screen">
+            <div class="pause-content">
+                <h2>ポーズ</h2>
+                <button id="resume-btn" class="btn-neon">再開</button>
+                <button id="restart-btn" class="btn-neon">リスタート</button>
+                <button id="quit-btn" class="btn-neon">終了</button>
+            </div>
+        </div>
+        
+        <!-- リザルト画面 -->
+        <div id="result-screen">
+            <h2>ゲーム結果</h2>
+            <div class="result-stats">
+                <div class="result-item">
+                    <div class="result-label">スコア</div>
+                    <div class="result-value" id="final-score">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">最大コンボ</div>
+                    <div class="result-value" id="max-combo">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">パーフェクト</div>
+                    <div class="result-value" id="perfect-count">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">グッド</div>
+                    <div class="result-value" id="good-count">0</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">ミス</div>
+                    <div class="result-value" id="miss-count">0</div>
+                </div>
+            </div>
+            <div class="result-grade" id="result-grade">A</div>
+            <button id="retry-btn" class="btn-neon">もう一度</button>
+            <button id="home-btn" class="btn-neon">ホームに戻る</button>
+        </div>
+        
+        <div id="debug-overlay" class="debug-overlay">
+            <pre id="debug-text"></pre>
+        </div>
+    </div>
+    
+    <!-- オーディオ要素（非表示） -->
+    <audio id="audio-player"></audio>
+    
+    <script src="script.js"></script>
+</body>
+</html>
