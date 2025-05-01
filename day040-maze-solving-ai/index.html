@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="迷路を解くAIくん - Q学習で強化学習を学ぼう！" />
+    <meta property="og:description" content="AIキャラクターがQ学習で迷路を解く様子を観察できる。ヒートマップやベクトル表示で学習状況を可視化し、強化学習の仕組みが直感的に理解できる教育アプリ。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day040-maze-solving-ai/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day040-maze-solving-ai/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="迷路を解くAIくん" />
+    <meta name="twitter:description" content="AIキャラクターがQ学習（強化学習）で迷路を攻略する様子を可視化。学習パラメータの変化や報酬設計を観察でき、機械学習の基礎概念を楽しく学べるインタラクティブ教育ツール。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day040-maze-solving-ai/screenshot.png" />
+
+
+    <title>迷路を解くAIくん</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>迷路を解くAIくん</h1>
+            <p class="description">AIくんがQ学習で迷路の歩き方を覚えます！</p>
+        </header>
+
+        <div class="game-container">
+            <div class="maze-container">
+                <div id="maze" class="maze"></div>
+                <div id="ai-character" class="ai-character">
+                    <div class="face">
+                        <div class="eyes">
+                            <div class="eye left"></div>
+                            <div class="eye right"></div>
+                        </div>
+                        <div class="mouth happy"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="status">
+                    <div class="status-item">
+                        <span class="label">エピソード数：</span>
+                        <span id="episode-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">ステップ数：</span>
+                        <span id="step-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">成功回数：</span>
+                        <span id="success-count">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">探索率(ε)：</span>
+                        <span id="epsilon-value">1.00</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="start-btn" class="btn primary">スタート</button>
+                    <button id="reset-btn" class="btn secondary">リセット</button>
+                    <div class="speed-control">
+                        <label for="speed-slider">スピード：</label>
+                        <input type="range" id="speed-slider" min="1" max="10" value="5">
+                    </div>
+                </div>
+
+                <div class="visualization-toggle">
+                    <button id="toggle-heatmap-btn" class="btn">Q値ヒートマップ表示</button>
+                    <button id="toggle-arrows-btn" class="btn">行動方向表示</button>
+                </div>
+
+                <div class="q-table-panel">
+                    <h3>Qテーブル</h3>
+                    <div id="q-table-visualization" class="q-table-visualization"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color start"></div>
+                <span>スタート</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color goal"></div>
+                <span>ゴール</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color wall"></div>
+                <span>壁</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color path"></div>
+                <span>通路</span>
+            </div>
+        </div>
+
+        <!-- Q学習の解説セクション -->
+        <div class="explanation-section">
+            <h2>Q学習のしくみ</h2>
+            
+            <div class="explanation-container">
+                <div class="explanation-card">
+                    <h3>エピソードとは？</h3>
+                    <p>エピソードとは、AIくんがスタートからゴールを目指す1回の試行のことです。</p>
+                    <p><strong>エピソードの終了条件：</strong></p>
+                    <ul>
+                        <li>ゴールに到達した（成功）</li>
+                        <li>150ステップ経過してもゴールに到達できなかった（失敗）</li>
+                        <li>前回の成功記録の2倍以上のステップ数を使った（効率が悪すぎる）</li>
+                        <li>設定した最大エピソード数（1000回）に達した</li>
+                    </ul>
+                </div>
+
+                <div class="explanation-card">
+                    <h3>ヒートマップとは？</h3>
+                    <p>ヒートマップは各マスの「価値」を色で表現します：</p>
+                    <div class="heatmap-explanation">
+                        <div class="heatmap-scale">
+                            <div class="heatmap-color negative">マイナス(悪い)</div>
+                            <div class="heatmap-gradient"></div>
+                            <div class="heatmap-color positive">プラス(良い)</div>
+                        </div>
+                        <p>紫（大きなマイナス）→青（小さなマイナス）→緑→黄色→オレンジ→赤（大きなプラス）のグラデーションで表示されます。ゴールに近いほど、または効率的な経路ほど赤くなります。</p>
+                    </div>
+                </div>
+
+                <div class="explanation-card">
+                    <h3>行動方向表示とは？</h3>
+                    <p>行動方向表示は、各マスでAIくんが選ぶ<strong>最適な行動方向</strong>を矢印で表示します。</p>
+                    <p>矢印の特徴：</p>
+                    <ul>
+                        <li>濃さ：Q値の絶対値の大きさ（大きいほど濃い）</li>
+                        <li>色：青矢印（プラスのQ値、良い行動）、赤矢印（マイナスのQ値、避けるべき行動）</li>
+                    </ul>
+                    <p>学習が進むと、ゴールへの最短経路に沿って濃い青矢印が並ぶようになります。</p>
+                </div>
+
+                <div class="explanation-card">
+                    <h3>Q学習とQテーブルとは？</h3>
+                    <p>Q学習は「強化学習」と呼ばれる機械学習の一種で、AIくんが試行錯誤を通じて最適な行動を学習します。</p>
+                    <p><strong>Qテーブル</strong>は、各「状態」と「行動」の組み合わせに対する価値（Q値）を格納する表です：</p>
+                    <ul>
+                        <li>状態：迷路内の位置（例：座標(3,4)）</li>
+                        <li>行動：可能な動き（上・右・下・左）</li>
+                        <li>Q値：その状態でその行動を取ることの価値</li>
+                    </ul>
+                    <p><strong>Q値の意味：</strong></p>
+                    <ul>
+                        <li><span class="positive-value">正の値（プラス）</span>：その行動で将来的に良い報酬が期待できる</li>
+                        <li><span class="negative-value">負の値（マイナス）</span>：その行動ではペナルティや低い報酬しか期待できない</li>
+                    </ul>
+                    <p>AIくんは学習により、ゴールへの最短経路上のマスの価値を高く評価するようになります。</p>
+                </div>
+
+                <div class="explanation-card">
+                    <h3>探索率(ε)とは？</h3>
+                    <p>探索率(ε)は、AIくんがランダムな行動を選ぶ確率です。この値によって「探索」と「活用」のバランスを調整します。</p>
+                    <p><strong>εの変化：</strong></p>
+                    <ul>
+                        <li>初期値は1.0（100%ランダム探索）</li>
+                        <li>エピソードごとに徐々に減少（0.995倍）</li>
+                        <li>最小値は0.05（5%のランダム性を維持）</li>
+                    </ul>
+                    <p>学習初期は様々な経路を試し、学習が進むにつれて得られた知識を活用するようになります。</p>
+                </div>
+
+                <div class="explanation-card">
+                    <h3>学習のしくみ</h3>
+                    <p>AIくんの学習は以下のステップで行われます：</p>
+                    <ol>
+                        <li><strong>探索と活用</strong>：確率εで「ランダムな行動」、確率(1-ε)で「最も価値が高い行動」を選びます</li>
+                        <li><strong>行動と報酬</strong>：行動を取り、結果に応じて報酬を受け取ります
+                            <ul>
+                                <li>基本の移動：-1.0</li>
+                                <li>ゴールに近づく：+0.5</li>
+                                <li>ゴールから遠ざかる：-0.5</li>
+                                <li>ゴール到達：+50</li>
+                                <li>失敗（時間切れ）：-20</li>
+                            </ul>
+                        </li>
+                        <li><strong>Q値の更新</strong>：以下の式でQ値を更新します<br>
+                            <code>Q(s,a) = Q(s,a) + α[r + γ・max(Q(s',a')) - Q(s,a)]</code>
+                            <ul>
+                                <li>α（学習率）= 0.1：新しい情報の反映度合い</li>
+                                <li>γ（割引率）= 0.9：将来の報酬の重要度</li>
+                            </ul>
+                        </li>
+                    </ol>
+                    <p>学習が進むにつれて、AIくんは迷路を解くための最適な経路を見つけられるようになります。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 迷路を解くAIくん - Q学習で強化学習を学ぼう！</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
