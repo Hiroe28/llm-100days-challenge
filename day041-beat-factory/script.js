@@ -19,7 +19,7 @@ let lastBeatTime = 0;
 let isMobile = false;
 let difficulty = 'easy'; // 'easy', 'normal', 'hard'
 let visualizerStyle = 'neon'; // デフォルトスタイル
-let gameVolume = 0.5; // デフォルト音量（50%）
+let gameVolume = 0.3; // デフォルト音量（30%）
 let volumeNode; // 音量制御ノード
 
 // 定数
@@ -690,12 +690,21 @@ function startGame() {
 
 
 // 音量更新関数
+// 修正版 updateVolume 関数
 function updateVolume(value) {
     gameVolume = value;
     
-    // UI更新
-    document.querySelector('.volume-value').textContent = `${Math.round(value * 100)}%`;
-    document.getElementById('volume-slider').value = value * 100;
+    // すべての音量表示を更新
+    const volumeDisplays = document.querySelectorAll('.volume-value');
+    volumeDisplays.forEach(display => {
+        display.textContent = `${Math.round(value * 100)}%`;
+    });
+    
+    // すべての音量スライダーを更新
+    const volumeSliders = document.querySelectorAll('.volume-slider');
+    volumeSliders.forEach(slider => {
+        slider.value = value * 100;
+    });
     
     // アクティブな音量ノードがある場合に更新
     if (volumeNode) {
