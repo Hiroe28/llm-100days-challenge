@@ -170,6 +170,29 @@
         .beat-indicator {
             display: none;
         }
+        .custom-file-upload {
+            background: #ff00ff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-block;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .custom-file-upload:hover {
+            background: #ff66ff;
+            transform: scale(1.05);
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -232,7 +255,7 @@
             <div class="slider-container">
                 <div class="slider-label">
                     <span>花の明るさ</span>
-                    <span id="flowerBrightnessValue">0.20</span>
+                    <span id="flowerBrightnessValue">0.10</span>
                 </div>
                 <input type="range" id="flowerBrightnessSlider" min="1" max="40" value="20">
             </div>
@@ -266,11 +289,12 @@
                     <option value="花鳥風月.mp3">花鳥風月</option>
                 </select>
             </div>
-            
-            <div class="file-upload">
-                <label for="musicUpload">または音楽をアップロード:</label>
-                <input type="file" id="musicUpload" accept="audio/*">
+
+            <div class="music-buttons">
+                <button id="playBtn">再生</button>
+                <button id="stopBtn">停止</button>
             </div>
+
             
             <!-- 音量調整スライダー -->
             <div class="slider-container">
@@ -281,10 +305,14 @@
                 <input type="range" id="volumeSlider" min="0" max="100" value="50">
             </div>
             
-            <div class="music-buttons">
-                <button id="playBtn">再生</button>
-                <button id="stopBtn">停止</button>
+
+            <div class="file-upload">
+                <label for="musicUpload">または音楽をアップロード:</label>
+                <label for="musicUpload" class="custom-file-upload">ファイルを選択</label>
+                <input type="file" id="musicUpload" accept="audio/*">
             </div>
+            
+
             
             <div class="auto-gen-toggle">
                 <input type="checkbox" id="musicReactToggle" checked>
