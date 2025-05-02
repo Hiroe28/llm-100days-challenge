@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="音楽で咲く花と光の万華鏡 - インタラクティブなマルチメディアアート" />
+    <meta property="og:description" content="音楽のビートに合わせて美しい花が咲き乱れる万華鏡アート。タッチやクリックで花を咲かせ、音楽の波に乗って幻想的なパターンを生み出す体験型デジタルアート。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day042-flower-kaleidoscope/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day042-flower-kaleidoscope/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="音楽で咲く花と光の万華鏡" />
+    <meta name="twitter:description" content="音楽のビートに合わせて美しい花が咲き乱れる万華鏡アート。タッチやクリックでインタラクティブに操作でき、音楽に反応して幻想的なパターンを生み出します。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day042-musical-flower-kaleidoscope/screenshot.png" />
+    <title>花と光の万華鏡アート</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+            touch-action: none;
+        }
+        canvas {
+            display: block;
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 280px;
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .controls {
+                width: 80%;
+                left: 10%;
+                bottom: 10px;
+                font-size: 12px;
+                padding: 10px;
+                max-height: 50vh;
+            }
+            .title {
+                font-size: 18px !important;
+            }
+            button {
+                padding: 6px 12px !important;
+                font-size: 12px !important;
+            }
+        }
+        button {
+            background: #ff00ff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #ff66ff;
+            transform: scale(1.05);
+        }
+        .title {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
+            z-index: 100;
+        }
+        .option-group {
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .option-title {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #ff99ff;
+        }
+        select {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: 1px solid #ff00ff;
+            padding: 5px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+        .toggle-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            z-index: 100;
+        }
+        .auto-gen-toggle {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .auto-gen-toggle input {
+            margin-right: 8px;
+        }
+        .slider-container {
+            margin: 8px 0;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+            font-size: 12px;
+        }
+        .slider-label span:last-child {
+            color: #aaa;
+        }
+        input[type="range"] {
+            width: 100%;
+            background: rgba(100,100,100,0.3);
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ff55ff;
+            cursor: pointer;
+        }
+        .music-controls {
+            margin-top: 15px;
+            border-top: 1px solid #ff55ff;
+            padding-top: 10px;
+        }
+        .music-select {
+            margin-bottom: 10px;
+        }
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+        .file-upload label {
+            margin-bottom: 5px;
+        }
+        .music-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .beat-indicator {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">✿ お花の万華鏡 ✿</div>
+    
+    <div class="beat-indicator" id="beatIndicator"></div>
+    
+    <div class="controls" id="controlPanel">
+        <div class="option-group">
+            <div class="option-title">エフェクトタイプ</div>
+            <select id="effectSelect">
+                <option value="0">放射状</option>
+                <option value="1">渦巻き</option>
+                <option value="2">波状</option>
+                <option value="3">フローフィールド</option>
+            </select>
+        </div>
+        
+        <div class="option-group">
+            <div class="option-title">カラーテーマ</div>
+            <select id="colorSelect">
+                <option value="0">パステル</option>
+                <option value="1" selected>ピンク＆ブルー</option>
+                <option value="2">オレンジ＆パープル</option>
+                <option value="3">ホットカラー</option>
+            </select>
+        </div>
+        
+        <div class="option-group">
+            <div class="option-title">図形タイプ</div>
+            <select id="shapeSelect">
+                <option value="all">すべて</option>
+                <option value="0">点</option>
+                <option value="1">線</option>
+                <option value="2">三角形</option>
+                <option value="3" selected>花びら</option>
+                <option value="4">星</option>
+            </select>
+        </div>
+        
+        <div class="option-group">
+            <div class="option-title">表示設定</div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>背景の残像</span>
+                    <span id="fadeValue">70</span>
+                </div>
+                <input type="range" id="fadeSlider" min="5" max="100" value="70">
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>パーティクルの明るさ</span>
+                    <span id="particleBrightnessValue">0.20</span>
+                </div>
+                <input type="range" id="particleBrightnessSlider" min="1" max="40" value="20">
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>花の明るさ</span>
+                    <span id="flowerBrightnessValue">0.20</span>
+                </div>
+                <input type="range" id="flowerBrightnessSlider" min="1" max="40" value="20">
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>対称性の数</span>
+                    <span id="symmetryValue">6</span>
+                </div>
+                <input type="range" id="symmetrySlider" min="2" max="16" value="6">
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>ビート感度</span>
+                    <span id="beatSensitivityValue">0.6</span>
+                </div>
+                <input type="range" id="beatSensitivitySlider" min="4" max="10" value="6">
+            </div>
+        </div>
+        
+        <div class="option-group music-controls">
+            <div class="option-title">音楽設定</div>
+            
+            <div class="music-select">
+                <label for="musicSelect">プリセット音楽:</label>
+                <select id="musicSelect">
+                    <option value="">選択してください</option>
+                    <option value="ソメイヨシノ.mp3">ソメイヨシノ</option>
+                    <option value="悠久庭園.mp3">悠久庭園</option>
+                    <option value="花鳥風月.mp3">花鳥風月</option>
+                </select>
+            </div>
+            
+            <div class="file-upload">
+                <label for="musicUpload">または音楽をアップロード:</label>
+                <input type="file" id="musicUpload" accept="audio/*">
+            </div>
+            
+            <!-- 音量調整スライダー -->
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>音量</span>
+                    <span id="volumeValue">50</span>
+                </div>
+                <input type="range" id="volumeSlider" min="0" max="100" value="50">
+            </div>
+            
+            <div class="music-buttons">
+                <button id="playBtn">再生</button>
+                <button id="stopBtn">停止</button>
+            </div>
+            
+            <div class="auto-gen-toggle">
+                <input type="checkbox" id="musicReactToggle" checked>
+                <label for="musicReactToggle">音楽に合わせて自動描画</label>
+            </div>
+        </div>
+        
+        <div class="auto-gen-toggle">
+            <input type="checkbox" id="autoGenToggle">
+            <label for="autoGenToggle">自動生成</label>
+        </div>
+        
+        <button id="clearBtn">クリア</button>
+    </div>
+    
+    <button class="toggle-controls" id="toggleControls">≡</button>
+
+    <script>
+        let particles = [];
+        let flowers = [];
+        let symmetry = 6;  // 初期値を6に変更（花がきれいに見えるように）
+        let currentMode = 0;
+        let currentColorScheme = 1;  // ピンク＆ブルー
+        let selectedShape = "3";     // 花びら
+        let autoGenEnabled = false;
+        let lastX, lastY;
+        let flowField = [];
+        let cols, rows;
+        
+        // オーディオ関連
+        let audioPlaying = false;
+        let audioContext;
+        let audioElement = null;
+        let audioAnalyser = null;
+        let audioData = null;
+        let musicReacting = true;  // デフォルトでtrue
+        let volume = 0.5; // デフォルト音量
+        
+        // ビート検出のための変数
+        let beatHistory = []; // 過去の低周波エネルギーを記録
+        let beatHistoryMaxSize = 20; // 履歴の最大サイズ
+        let beatDetected = false;
+        let lastBeatTime = 0;
+        let minimumBeatInterval = 200; // ミリ秒単位、連続ビート検出を避けるため
+        let beatSensitivity = 0.6; // ビート検出の感度（小さいほど敏感）- 修正
+        let beatSmoothingFactor = 0.2; // 平滑化係数
+        let smoothedEnergy = 0;
+        
+        // 仮想カーソルの変数（音楽に合わせた自動描画用）
+        let virtualCursor = { x: 0, y: 0 };
+        let virtualCursorSpeed = 0;
+        let virtualCursorAngle = 0;
+        let virtualCursorActive = false;
+        let lastVirtualDrawTime = 0;
+        let virtualDrawInterval = 50; // ミリ秒単位
+        let pathPoints = []; // パスの軌跡を記録
+        let pathMaxPoints = 20; // 記録する最大点数
+        
+        // 花の生成のための変数
+        let lastFlowerRadius = 100; // 前回の花の配置半径
+        let lastFlowerAngle = 0; // 前回の花の配置角度
+        
+        // タッチ操作用の変数
+        let isTouching = false;
+        let touchX, touchY;
+        
+        // 描画エフェクトのモード
+        const RADIAL_MODE = 0;    // 放射状
+        const SPIRAL_MODE = 1;    // 渦巻き
+        const WAVE_MODE = 2;      // 波状
+        const FLOWFIELD_MODE = 3; // フローフィールド
+        
+        // 調整可能なパラメータ
+        let fadeAlpha = 70;           // 背景の残像の強さ
+        let particleBrightness = 0.2; // パーティクルの明るさ係数
+        let flowerBrightness = 0.2;   // 花の明るさ係数
+        
+        // カラースキーム
+        let colorSchemes = [
+            [[255, 182, 193], [173, 216, 230], [255, 250, 205]], // パステル
+            [[255, 105, 180], [30, 144, 255], [147, 112, 219]], // ピンク＆ブルー
+            [[255, 165, 0], [148, 0, 211], [0, 255, 127]], // オレンジ＆パープル
+            [[255, 0, 0], [255, 215, 0], [138, 43, 226]] // ホットカラー
+        ];
+        
+        let sketch = function(p) {
+            p.setup = function() {
+                p.createCanvas(p.windowWidth, p.windowHeight);
+                p.angleMode(p.DEGREES);
+                p.background(0);
+                p.noFill();
+                
+                // 仮想カーソルの初期位置（中央）
+                virtualCursor.x = p.width / 2;
+                virtualCursor.y = p.height / 2;
+                
+                // フローフィールドの初期化
+                initFlowField();
+                
+                // UI要素の設定
+                setupUI();
+                
+                // オーディオ関連のセットアップ
+                setupAudio();
+                
+                // スマホ用のタッチイベント
+                setupTouchEvents();
+            };
+            
+            function initFlowField() {
+                cols = p.floor(p.width / 20);
+                rows = p.floor(p.height / 20);
+                flowField = [];
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        let index = x + y * cols;
+                        let angle = p.noise(x * 0.1, y * 0.1) * 360;
+                        flowField[index] = p.createVector(p.cos(angle), p.sin(angle));
+                    }
+                }
+            }
+            
+            function setupTouchEvents() {
+                // キャンバスへのタッチイベントの追加
+                let canvas = document.querySelector('canvas');
+                
+                canvas.addEventListener('touchstart', function(e) {
+                    e.preventDefault(); // デフォルトの挙動を防止
+                    isTouching = true;
+                    let touch = e.touches[0];
+                    touchX = touch.clientX;
+                    touchY = touch.clientY;
+                    lastX = touchX;
+                    lastY = touchY;
+                }, { passive: false });
+                
+                canvas.addEventListener('touchmove', function(e) {
+                    e.preventDefault(); // デフォルトの挙動を防止
+                    if (isTouching) {
+                        let touch = e.touches[0];
+                        touchX = touch.clientX;
+                        touchY = touch.clientY;
+                    }
+                }, { passive: false });
+                
+                canvas.addEventListener('touchend', function(e) {
+                    e.preventDefault(); // デフォルトの挙動を防止
+                    isTouching = false;
+                }, { passive: false });
+            }
+            
+            function setupUI() {
+                // エフェクト選択
+                document.getElementById('effectSelect').addEventListener('change', function() {
+                    currentMode = parseInt(this.value);
+                    for (let particle of particles) {
+                        if (particle.mode !== undefined) {
+                            particle.mode = currentMode;
+                        }
+                    }
+                });
+                
+                // 色選択
+                document.getElementById('colorSelect').addEventListener('change', function() {
+                    currentColorScheme = parseInt(this.value);
+                });
+                
+                // 図形選択
+                document.getElementById('shapeSelect').addEventListener('change', function() {
+                    selectedShape = this.value;
+                });
+                
+                // 自動生成トグル
+                document.getElementById('autoGenToggle').addEventListener('change', function() {
+                    autoGenEnabled = this.checked;
+                });
+                
+                // クリアボタン
+                document.getElementById('clearBtn').addEventListener('click', function() {
+                    particles = [];
+                    flowers = [];
+                    pathPoints = [];
+                    clearBackground(); // クリア関数
+                });
+                
+                // コントロールパネルの表示/非表示
+                document.getElementById('toggleControls').addEventListener('click', function() {
+                    const panel = document.getElementById('controlPanel');
+                    if (panel.style.display === 'none') {
+                        panel.style.display = 'block';
+                    } else {
+                        panel.style.display = 'none';
+                    }
+                });
+                
+                // スライダーの設定
+                // 背景フェード
+                const fadeSlider = document.getElementById('fadeSlider');
+                const fadeValueDisplay = document.getElementById('fadeValue');
+                fadeSlider.addEventListener('input', function() {
+                    fadeAlpha = parseInt(this.value);
+                    fadeValueDisplay.innerText = fadeAlpha;
+                });
+                
+                // パーティクルの明るさ
+                const particleBrightnessSlider = document.getElementById('particleBrightnessSlider');
+                const particleBrightnessDisplay = document.getElementById('particleBrightnessValue');
+                particleBrightnessSlider.addEventListener('input', function() {
+                    particleBrightness = parseInt(this.value) / 100;
+                    particleBrightnessDisplay.innerText = particleBrightness.toFixed(2);
+                });
+                
+                // 花の明るさ
+                const flowerBrightnessSlider = document.getElementById('flowerBrightnessSlider');
+                const flowerBrightnessDisplay = document.getElementById('flowerBrightnessValue');
+                flowerBrightnessSlider.addEventListener('input', function() {
+                    flowerBrightness = parseInt(this.value) / 100;
+                    flowerBrightnessDisplay.innerText = flowerBrightness.toFixed(2);
+                });
+                
+                // 対称性
+                const symmetrySlider = document.getElementById('symmetrySlider');
+                const symmetryDisplay = document.getElementById('symmetryValue');
+                symmetrySlider.addEventListener('input', function() {
+                    symmetry = parseInt(this.value);
+                    symmetryDisplay.innerText = symmetry;
+                });
+                
+                // ビート感度 - 修正版（より単純に）
+                const beatSensitivitySlider = document.getElementById('beatSensitivitySlider');
+                const beatSensitivityDisplay = document.getElementById('beatSensitivityValue');
+                beatSensitivitySlider.addEventListener('input', function() {
+                    // 範囲変更: 4-10 -> 0.4-1.0（テスト済み動作範囲）
+                    beatSensitivity = parseInt(this.value) / 10;
+                    beatSensitivityDisplay.innerText = beatSensitivity.toFixed(1);
+                });
+                
+                // 音量スライダー
+                const volumeSlider = document.getElementById('volumeSlider');
+                const volumeValueDisplay = document.getElementById('volumeValue');
+                volumeSlider.addEventListener('input', function() {
+                    volume = parseInt(this.value) / 100;
+                    volumeValueDisplay.innerText = this.value;
+                    // 再生中なら音量を即時反映
+                    if (audioElement) {
+                        audioElement.volume = volume;
+                    }
+                });
+                
+                // 音楽選択
+                document.getElementById('musicSelect').addEventListener('change', function() {
+                    if (this.value) {
+                        loadAudio(this.value);
+                    }
+                });
+                
+                // 音楽アップロード
+                document.getElementById('musicUpload').addEventListener('change', function(e) {
+                    if (e.target.files[0]) {
+                        const file = URL.createObjectURL(e.target.files[0]);
+                        loadAudio(file);
+                    }
+                });
+                
+                // 再生ボタン
+                document.getElementById('playBtn').addEventListener('click', function() {
+                    if (audioElement && !audioPlaying) {
+                        playAudio();
+                    }
+                });
+                
+                // 停止ボタン
+                document.getElementById('stopBtn').addEventListener('click', function() {
+                    if (audioElement && audioPlaying) {
+                        stopAudio();
+                    }
+                });
+                
+                // 音楽反応トグル
+                document.getElementById('musicReactToggle').addEventListener('change', function() {
+                    musicReacting = this.checked;
+                    
+                    // チェックが外れたら仮想カーソルを無効化
+                    if (!this.checked) {
+                        virtualCursorActive = false;
+                    }
+                });
+            }
+            
+            // 背景をクリアする関数
+            function clearBackground() {
+                p.push();
+                p.blendMode(p.BLEND);   // 一時的に標準合成へ
+                p.background(0);        // 真っ黒で塗り直し
+                p.pop();
+            }
+            
+            p.draw = function() {
+                // 背景を少しずつ暗くして軌跡を残す
+                p.push();
+                p.blendMode(p.BLEND);
+                p.background(0, fadeAlpha);
+                p.pop();
+                
+                p.push();
+                p.blendMode(p.ADD);  // 光の加算合成
+                p.translate(p.width / 2, p.height / 2);
+                
+                // 音楽に合わせた自動描画
+                if (audioPlaying && musicReacting) {
+                    analyzeAudio();
+                    detectBeats();
+                    
+                    // ビートが検出されたら花とパーティクルを生成
+                    if (beatDetected) {
+                        createOnBeat();
+                        
+                        // ビートが検出されたら仮想カーソルの方向と速度を音楽に合わせて変更
+                        updateVirtualCursor();
+                    }
+                    
+                    // 仮想カーソルの更新
+                    if (virtualCursorActive) {
+                        const currentTime = p.millis();
+                        if (currentTime - lastVirtualDrawTime > virtualDrawInterval) {
+                            moveVirtualCursor();
+                            drawWithVirtualCursor();
+                            lastVirtualDrawTime = currentTime;
+                        }
+                    }
+                }
+                
+                // パーティクルの更新と描画
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    let particle = particles[i];
+                    particle.update();
+                    particle.display();
+                    
+                    if (particle.isDead()) {
+                        particles.splice(i, 1);
+                    }
+                }
+                
+                // お花の更新と描画
+                for (let i = flowers.length - 1; i >= 0; i--) {
+                    let flower = flowers[i];
+                    flower.update();
+                    flower.display();
+                    
+                    if (flower.isDead()) {
+                        flowers.splice(i, 1);
+                    }
+                }
+                
+                // PCのマウス操作
+                if (p.mouseIsPressed && p.mouseX !== lastX && p.mouseY !== lastY && !isTouching) {
+                    addParticlesAtPosition(p.mouseX, p.mouseY);
+                    lastX = p.mouseX;
+                    lastY = p.mouseY;
+                }
+                
+                // スマホのタッチ操作
+                if (isTouching && touchX !== lastX && touchY !== lastY) {
+                    addParticlesAtPosition(touchX, touchY);
+                    lastX = touchX;
+                    lastY = touchY;
+                }
+                
+                // 仮想カーソルの軌跡を描画（デバッグ用・通常は非表示）
+                // drawVirtualCursorPath();
+                
+                p.pop();
+                
+                // 自動生成が有効な場合のみ、幻想的な光の粒子を生成
+                if (autoGenEnabled && p.frameCount % 20 === 0) {
+                    createRandomParticles();
+                }
+                
+                // パフォーマンス調整: パーティクルや花の数が多すぎる場合は間引く
+                if (particles.length > 800) {
+                    particles = particles.slice(particles.length - 800);
+                }
+                if (flowers.length > 100) {
+                    flowers = flowers.slice(flowers.length - 100);
+                }
+            };
+            
+            // 仮想カーソルの動きを音楽に合わせて更新
+            function updateVirtualCursor() {
+                // 仮想カーソルを有効化
+                virtualCursorActive = true;
+                
+                // 低音、中音、高音の強さに基づいて方向と速度を決定
+                const bassWeight = lowFreq / 255;
+                const midWeight = midFreq / 255;
+                const trebleWeight = highFreq / 255;
+                
+                // 新しい方向をランダムに決める（強い音ほど大きく変化）
+                virtualCursorAngle += p.random(-60, 60) * (bassWeight + midWeight * 0.5);
+                
+                // 仮想カーソルの速度を音量に合わせて調整
+                virtualCursorSpeed = p.map(bassWeight + midWeight + trebleWeight, 0, 3, 5, 30);
+                
+                // 画面の端に近づいたら中心方向に戻るように調整
+                const dx = virtualCursor.x - p.width / 2;
+                const dy = virtualCursor.y - p.height / 2;
+                const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distFromCenter > p.min(p.width, p.height) * 0.4) {
+                    // 中心方向に向かうよう角度を調整
+                    const centerAngle = p.atan2(p.height / 2 - virtualCursor.y, p.width / 2 - virtualCursor.x);
+                    virtualCursorAngle = p.lerp(virtualCursorAngle, centerAngle, 0.3);
+                }
+            }
+            
+            // 仮想カーソルの移動
+            function moveVirtualCursor() {
+                // 現在の角度と速度で仮想カーソルを移動
+                virtualCursor.x += p.cos(virtualCursorAngle) * virtualCursorSpeed;
+                virtualCursor.y += p.sin(virtualCursorAngle) * virtualCursorSpeed;
+                
+                // 画面の境界をチェック
+                if (virtualCursor.x < 0) virtualCursor.x = 0;
+                if (virtualCursor.x > p.width) virtualCursor.x = p.width;
+                if (virtualCursor.y < 0) virtualCursor.y = 0;
+                if (virtualCursor.y > p.height) virtualCursor.y = p.height;
+                
+                // パスポイントを追加
+                pathPoints.push({x: virtualCursor.x, y: virtualCursor.y});
+                if (pathPoints.length > pathMaxPoints) {
+                    pathPoints.shift(); // 最も古いポイントを削除
+                }
+            }
+            
+            // 仮想カーソルを使って描画
+            function drawWithVirtualCursor() {
+                if (pathPoints.length < 2) return;
+                
+                // カーソル位置での描画を追加
+                addParticlesAtPosition(virtualCursor.x, virtualCursor.y);
+                
+                // カーソルの軌跡に沿って少しパーティクルを追加（滑らかなライン効果）
+                if (pathPoints.length >= 2) {
+                    const lastPoint = pathPoints[pathPoints.length - 1];
+                    const prevPoint = pathPoints[pathPoints.length - 2];
+                    
+                    // 2点間の中間点にパーティクルを配置
+                    const midX = (lastPoint.x + prevPoint.x) / 2;
+                    const midY = (lastPoint.y + prevPoint.y) / 2;
+                    
+                    // 中間点にもパーティクルを追加（より滑らかなライン）
+                    if (p.random() < 0.7) { // 70%の確率で追加
+                        addParticlesAtPosition(midX, midY);
+                    }
+                }
+            }
+            
+            // 仮想カーソルのパス軌跡を描画（デバッグ用）
+            function drawVirtualCursorPath() {
+                if (pathPoints.length < 2) return;
+                
+                p.push();
+                p.translate(-p.width / 2, -p.height / 2); // 座標系を元に戻す
+                p.stroke(255, 100);
+                p.noFill();
+                p.beginShape();
+                for (let point of pathPoints) {
+                    p.vertex(point.x, point.y);
+                }
+                p.endShape();
+                
+                // 現在位置を表示
+                p.stroke(255, 0, 255);
+                p.strokeWeight(5);
+                p.point(virtualCursor.x, virtualCursor.y);
+                p.pop();
+            }
+            
+            // ビートが検出されたときに花とパーティクルを生成
+            function createOnBeat() {
+                // 中央を避けた位置に花を生成
+                // 螺旋状に配置（毎回少し外側に）
+                lastFlowerRadius += p.random(20, 50);
+                if (lastFlowerRadius > Math.min(p.width, p.height) * 0.4) {
+                    lastFlowerRadius = p.random(50, 150); // リセット
+                }
+                
+                // 角度も少しずつ変える（螺旋効果）
+                lastFlowerAngle += p.random(30, 60);
+                
+                // 極座標から直交座標に変換
+                const x = lastFlowerRadius * p.cos(lastFlowerAngle);
+                const y = lastFlowerRadius * p.sin(lastFlowerAngle);
+                
+                // 色を選択（ランダムに選ぶがビートの強さに応じて異なる色を選ぶことも可能）
+                const colorIndex = p.floor(p.random(3));
+                const color = colorSchemes[currentColorScheme][colorIndex];
+                
+                // ビートの強さに応じて花のサイズを決定
+                const beatStrength = p.constrain(smoothedEnergy * 0.3, 0.5, 3.0);
+                const flowerSize = p.map(beatStrength, 0.5, 3.0, 15, 35);
+                
+                // 対称性に合わせて花を生成
+                for (let i = 0; i < symmetry; i++) {
+                    const a = i * 360 / symmetry;
+                    const rx = x * p.cos(a) - y * p.sin(a);
+                    const ry = x * p.sin(a) + y * p.cos(a);
+                    
+                    // 花びらの形状と数をランダムに
+                    const petalCount = p.floor(p.random(5, 13));
+                    
+                    flowers.push(new EnhancedFlower(
+                        rx, ry, 
+                        flowerSize, 
+                        color, 
+                        petalCount, 
+                        p.random(0.8, 2.0) // 花びらのとがり具合
+                    ));
+                    
+                    // 花の周りにパーティクルも追加
+                    for (let j = 0; j < 4; j++) {
+                        const particleAngle = p.random(360);
+                        const particleRadius = p.random(5, 15);
+                        const px = rx + particleRadius * p.cos(particleAngle);
+                        const py = ry + particleRadius * p.sin(particleAngle);
+                        
+                        particles.push(new Particle(px, py, color));
+                    }
+                }
+                
+                // パーティクルのビートエフェクト（別の場所にも放射状に）
+                for (let i = 0; i < 2; i++) {
+                    const radius = p.random(100, Math.min(p.width, p.height) * 0.4);
+                    const angle = p.random(360);
+                    const px = radius * p.cos(angle);
+                    const py = radius * p.sin(angle);
+                    
+                    for (let j = 0; j < symmetry; j++) {
+                        const a = j * 360 / symmetry;
+                        const rx = px * p.cos(a) - py * p.sin(a);
+                        const ry = px * p.sin(a) + py * p.cos(a);
+                        
+                        // ビートに合わせて移動方向を調整（中心から外に向かう）
+                        const dir = p.createVector(rx, ry);
+                        dir.normalize();
+                        
+                        particles.push(new BeatParticle(
+                            rx, ry,
+                            colorSchemes[currentColorScheme][p.floor(p.random(3))],
+                            dir,
+                            beatStrength * p.random(2, 5)
+                        ));
+                    }
+                }
+            }
+            
+            // 指定位置にパーティクルを追加する関数
+            function addParticlesAtPosition(x, y) {
+                let mx = x - p.width / 2;
+                let my = y - p.height / 2;
+                
+                for (let i = 0; i < symmetry; i++) {
+                    let a = i * 360 / symmetry;
+                    let rx = mx * p.cos(a) - my * p.sin(a);
+                    let ry = mx * p.sin(a) + my * p.cos(a);
+                    
+                    for (let j = 0; j < 3; j++) {
+                        particles.push(new Particle(rx, ry, colorSchemes[currentColorScheme][j]));
+                    }
+                    
+                    // 花も追加（頻度を下げる）
+                    if (p.frameCount % 15 === 0) { // 15フレームに1回に減らす
+                        flowers.push(new Flower(rx, ry, p.random(10, 20), colorSchemes[currentColorScheme][p.floor(p.random(3))]));
+                    }
+                }
+            }
+
+            // オーディオ関連の関数
+            function setupAudio() {
+                try {
+                    // オーディオコンテキストの初期設定
+                    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                } catch (e) {
+                    console.error('オーディオの初期化中にエラーが発生しました:', e);
+                }
+            }
+            
+            function loadAudio(url) {
+                try {
+                    // すでに再生中の場合は停止
+                    if (audioElement && audioPlaying) {
+                        stopAudio();
+                    }
+                    
+                    // 新しいオーディオ要素を作成
+                    if (!audioElement) {
+                        audioElement = new Audio();
+                        audioElement.crossOrigin = "anonymous";
+                    }
+                    
+                    audioElement.src = url;
+                    audioElement.volume = volume; // 現在の音量設定を適用
+                    
+                    audioElement.addEventListener('canplaythrough', function() {
+                        console.log('音楽のロードに成功しました');
+                    });
+                    
+                    audioElement.addEventListener('error', function(e) {
+                        console.error('音楽のロードに失敗しました', e);
+                    });
+                    
+                    // Web Audio APIのセットアップ
+                    if (!audioContext) {
+                        audioContext = new AudioContext();
+                        audioAnalyser = audioContext.createAnalyser();
+                        audioAnalyser.fftSize = 1024; // ビート検出のために高解像度に
+                        audioData = new Uint8Array(audioAnalyser.frequencyBinCount);
+                    }
+                    
+                    // ビート検出用の履歴を初期化
+                    beatHistory = [];
+                    for (let i = 0; i < beatHistoryMaxSize; i++) {
+                        beatHistory.push(0);
+                    }
+                    smoothedEnergy = 0;
+                    
+                    // 仮想カーソルをリセット
+                    virtualCursor.x = p.width / 2;
+                    virtualCursor.y = p.height / 2;
+                    pathPoints = [];
+                } catch (e) {
+                    console.error('音楽の読み込み中にエラーが発生しました:', e);
+                }
+            }
+            
+            function playAudio() {
+                try {
+                    if (!audioElement || !audioContext) return;
+                    
+                    // AudioContextが停止状態なら再開
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
+                    
+                    // 音量設定を適用
+                    audioElement.volume = volume;
+                    
+                    // 再生
+                    audioElement.play();
+                    audioPlaying = true;
+                    
+                    // 音楽に合わせて自動描画モードをオン
+                    musicReacting = true;
+                    document.getElementById('musicReactToggle').checked = true;
+                    
+                    // アナライザーに接続
+                    if (!audioElement.mediaSource) {
+                        audioElement.mediaSource = audioContext.createMediaElementSource(audioElement);
+                        audioElement.mediaSource.connect(audioAnalyser);
+                        audioAnalyser.connect(audioContext.destination);
+                    }
+                } catch (e) {
+                    console.error('音楽の再生中にエラーが発生しました:', e);
+                }
+            }
+            
+            function stopAudio() {
+                try {
+                    if (!audioElement) return;
+                    
+                    audioElement.pause();
+                    audioElement.currentTime = 0;
+                    audioPlaying = false;
+                    virtualCursorActive = false;
+                } catch (e) {
+                    console.error('音楽の停止中にエラーが発生しました:', e);
+                }
+            }
+            
+            function analyzeAudio() {
+                if (!audioAnalyser || !audioData) return;
+                
+                // 周波数データを取得
+                audioAnalyser.getByteFrequencyData(audioData);
+                
+                // 周波数帯域を分けて分析
+                const bassRange = [0, 10]; // 低音域
+                const midRange = [11, 30];  // 中音域
+                const highRange = [31, 50]; // 高音域
+                
+                lowFreq = getAverageVolume(bassRange);
+                midFreq = getAverageVolume(midRange);
+                highFreq = getAverageVolume(highRange);
+                
+                // 低音域のエネルギーを計算（ビート検出用）
+                const bassEnergy = lowFreq / 255;
+                
+                // ビート検出のための履歴に追加
+                beatHistory.push(bassEnergy);
+                if (beatHistory.length > beatHistoryMaxSize) {
+                    beatHistory.shift(); // 最も古いデータを削除
+                }
+                
+                // 平滑化
+                smoothedEnergy = smoothedEnergy * (1 - beatSmoothingFactor) + 
+                                 bassEnergy * beatSmoothingFactor;
+            }
+            
+            function getAverageVolume(range) {
+                let sum = 0;
+                const count = range[1] - range[0] + 1;
+                
+                for (let i = range[0]; i <= range[1]; i++) {
+                    sum += audioData[i];
+                }
+                
+                return sum / count; // 0〜255の範囲
+            }
+            
+            // ビート検出アルゴリズム
+            function detectBeats() {
+                if (beatHistory.length < beatHistoryMaxSize) return;
+                
+                const currentTime = p.millis();
+                
+                // 過去の平均を計算
+                let sum = 0;
+                for (let i = 0; i < beatHistory.length - 1; i++) {
+                    sum += beatHistory[i];
+                }
+                const average = sum / (beatHistory.length - 1);
+                
+                // 現在の値が過去の平均よりも一定以上大きければビートとみなす
+                const current = beatHistory[beatHistory.length - 1];
+                
+                // ビート検出の条件
+                // 1. 現在の値が平均の一定倍以上（beatSensitivity）
+                // 2. 前回のビートから一定時間以上経過（最小間隔）
+                // 3. 絶対的なエネルギーがある程度以上（小さすぎる音は無視）
+                if (current > average * beatSensitivity && 
+                    current > 0.05 && // 閾値を下げる（より小さな音でも検出）
+                    currentTime - lastBeatTime > minimumBeatInterval) {
+                    
+                    beatDetected = true;
+                    lastBeatTime = currentTime;
+                } else {
+                    beatDetected = false;
+                }
+            }
+            
+            function createRandomParticles() {
+                // 画面の端から中央に向かって流れる粒子
+                let angle = p.random(360);
+                let radius = p.max(p.width, p.height) * 0.5;
+                let x = p.cos(angle) * radius;
+                let y = p.sin(angle) * radius;
+                
+                particles.push(new FloatingParticle(x, y, colorSchemes[currentColorScheme][p.floor(p.random(3))]));
+                
+                // たまにランダムな位置に花を生成
+                if (p.random(1) < 0.15 && flowers.length < 30) {
+                    let r = p.random(50, 150);
+                    let a = p.random(360);
+                    let fx = r * p.cos(a);
+                    let fy = r * p.sin(a);
+                    
+                    for (let i = 0; i < symmetry; i++) {
+                        let angle = i * 360 / symmetry;
+                        let rx = fx * p.cos(angle) - fy * p.sin(angle);
+                        let ry = fx * p.sin(angle) + fy * p.cos(angle);
+                        flowers.push(new Flower(rx, ry, p.random(15, 30), colorSchemes[currentColorScheme][p.floor(p.random(3))]));
+                    }
+                }
+            }
+            
+            p.mouseMoved = function() {
+                if (!p.mouseIsPressed && !isTouching) {
+                    lastX = p.mouseX;
+                    lastY = p.mouseY;
+                }
+            };
+            
+            // ビートに反応するパーティクル
+            class BeatParticle {
+                constructor(x, y, color, direction, speed) {
+                    this.pos = p.createVector(x, y);
+                    this.vel = direction.copy().mult(speed);
+                    this.acc = p.createVector(0, 0);
+                    this.lifespan = 255;
+                    this.color = color;
+                    this.size = p.random(4, 10);
+                    this.angle = p.random(360);
+                    this.rotSpeed = p.random(-3, 3);
+                    this.fading = false;
+                    this.fadeTime = 120; // フェードアウト開始までの時間
+                    
+                    // 図形の種類を選択
+                    if (selectedShape === "all") {
+                        this.shape = p.floor(p.random(5));
+                    } else {
+                        this.shape = parseInt(selectedShape);
+                    }
+                }
+                
+                update() {
+                    this.pos.add(this.vel);
+                    this.vel.mult(0.95); // 減速
+                    this.angle += this.rotSpeed;
+                    
+                    // フェードアウト制御
+                    if (this.fadeTime > 0) {
+                        this.fadeTime--;
+                    } else {
+                        this.lifespan -= 5;
+                    }
+                }
+                
+                display() {
+                    p.push();
+                    
+                    // アルファ値を調整して光の強さを抑える
+                    p.stroke(this.color[0], this.color[1], this.color[2], this.lifespan * particleBrightness);
+                    p.strokeWeight(this.size);
+                    
+                    p.translate(this.pos.x, this.pos.y);
+                    p.rotate(this.angle);
+                    
+                    if (this.shape === 0) { // 点
+                        p.point(0, 0);
+                    } else if (this.shape === 1) { // 線
+                        p.line(-this.size, -this.size, this.size, this.size);
+                    } else if (this.shape === 2) { // 三角形
+                        p.noFill();
+                        p.triangle(0, -this.size*2, -this.size, this.size, this.size, this.size);
+                    } else if (this.shape === 3) { // 花びら
+                        p.noFill();
+                        p.beginShape();
+                        for (let a = 0; a < 360; a += 60) {
+                            let r = this.size * 2;
+                            if (a % 2 === 0) r /= 2;
+                            let px = r * p.cos(a);
+                            let py = r * p.sin(a);
+                            p.vertex(px, py);
+                        }
+                        p.endShape(p.CLOSE);
+                    } else if (this.shape === 4) { // 星
+                        p.noFill();
+                        p.beginShape();
+                        for (let a = 0; a < 360; a += 36) {
+                            let r = this.size * 2;
+                            if (a % 2 === 0) r /= 2.5; // 星の先端をより尖らせる
+                            let px = r * p.cos(a);
+                            let py = r * p.sin(a);
+                            p.vertex(px, py);
+                        }
+                        p.endShape(p.CLOSE);
+                    }
+                    
+                    p.pop();
+                }
+                
+                isDead() {
+                    return this.lifespan <= 0;
+                }
+            }
+            
+            // 基本パーティクルクラス
+            class Particle {
+                constructor(x, y, color) {
+                    this.pos = p.createVector(x, y);
+                    this.vel = p5.Vector.random2D().mult(p.random(2, 5));
+                    this.acc = p.createVector(0, 0);
+                    this.lifespan = 255;
+                    this.color = color;
+                    this.size = p.random(3, 8);
+                    this.mode = currentMode;
+                    this.angle = p.random(360);
+                    this.rotSpeed = p.random(-2, 2);
+                    
+                    // 図形の種類を選択
+                    if (selectedShape === "all") {
+                        this.shape = p.floor(p.random(5));
+                    } else {
+                        this.shape = parseInt(selectedShape);
+                    }
+                }
+                
+                update() {
+                    // モードに応じた動き
+                    if (this.mode === RADIAL_MODE) { // 放射状
+                        this.vel.mult(0.98);
+                    } else if (this.mode === SPIRAL_MODE) { // 渦巻き
+                        let angle = p.atan2(this.pos.y, this.pos.x);
+                        let force = p5.Vector.fromAngle(angle + p.PI/2);
+                        force.mult(0.1);
+                        this.acc.add(force);
+                        this.vel.add(this.acc);
+                        this.vel.limit(3);
+                        this.acc.mult(0);
+                    } else if (this.mode === WAVE_MODE) { // 波状
+                        this.pos.y += p.sin(p.frameCount * 0.1 + this.pos.x * 0.1) * 0.5;
+                    } else if (this.mode === FLOWFIELD_MODE) { // フローフィールド
+                        let x = p.floor((this.pos.x + p.width/2) / 20);
+                        let y = p.floor((this.pos.y + p.height/2) / 20);
+                        if (x >= 0 && x < cols && y >= 0 && y < rows) {
+                            let index = x + y * cols;
+                            if (flowField[index]) {
+                                let force = flowField[index];
+                                this.acc.add(force.copy().mult(0.2));
+                                this.vel.add(this.acc);
+                                this.vel.limit(3);
+                                this.acc.mult(0);
+                            }
+                        }
+                    }
+                    
+                    this.pos.add(this.vel);
+                    this.lifespan -= 2;
+                    this.angle += this.rotSpeed;
+                }
+                
+                display() {
+                    p.push();
+                    // アルファ値を調整して光の強さを抑える
+                    p.stroke(this.color[0], this.color[1], this.color[2], this.lifespan * particleBrightness);
+                    p.strokeWeight(this.size);
+                    
+                    p.translate(this.pos.x, this.pos.y);
+                    p.rotate(this.angle);
+                    
+                    if (this.shape === 0) { // 点
+                        p.point(0, 0);
+                    } else if (this.shape === 1) { // 線
+                        p.line(-this.size, -this.size, this.size, this.size);
+                    } else if (this.shape === 2) { // 三角形
+                        p.noFill();
+                        p.triangle(0, -this.size*2, -this.size, this.size, this.size, this.size);
+                    } else if (this.shape === 3) { // 花びら
+                        p.noFill();
+                        p.beginShape();
+                        for (let a = 0; a < 360; a += 60) {
+                            let r = this.size * 2;
+                            if (a % 2 === 0) r /= 2;
+                            let px = r * p.cos(a);
+                            let py = r * p.sin(a);
+                            p.vertex(px, py);
+                        }
+                        p.endShape(p.CLOSE);
+                    } else if (this.shape === 4) { // 星
+                        p.noFill();
+                        p.beginShape();
+                        for (let a = 0; a < 360; a += 36) {
+                            let r = this.size * 2;
+                            if (a % 2 === 0) r /= 2.5; // 星の先端をより尖らせる
+                            let px = r * p.cos(a);
+                            let py = r * p.sin(a);
+                            p.vertex(px, py);
+                        }
+                        p.endShape(p.CLOSE);
+                    }
+                    
+                    p.pop();
+                }
+                
+                isDead() {
+                    return this.lifespan <= 0;
+                }
+            }
+            
+            // 基本の花クラス
+            class Flower {
+                constructor(x, y, size, color) {
+                    this.pos = p.createVector(x, y);
+                    this.vel = p5.Vector.random2D().mult(p.random(0.5, 2));
+                    this.lifespan = 255;
+                    this.color = color;
+                    this.size = size;
+                    this.angle = p.random(360);
+                    this.rotSpeed = p.random(-1, 1);
+                    this.petalCount = p.floor(p.random(5, 12));
+                    this.innerSize = this.size * p.random(0.2, 0.4);
+                }
+                
+                update() {
+                    this.pos.add(this.vel);
+                    this.vel.mult(0.98);
+                    this.lifespan -= 1;
+                    this.angle += this.rotSpeed;
+                }
+                
+                display() {
+                    p.push();
+                    p.translate(this.pos.x, this.pos.y);
+                    p.rotate(this.angle);
+                    
+                    // 花びら - アルファ値を調整して光の強さを抑える
+                    p.noStroke();
+                    p.fill(this.color[0], this.color[1], this.color[2], this.lifespan * flowerBrightness);
+                    for (let i = 0; i < this.petalCount; i++) {
+                        let a = i * 360 / this.petalCount;
+                        p.push();
+                        p.rotate(a);
+                        p.beginShape();
+                        p.vertex(0, 0);
+                        p.bezierVertex(
+                            this.size * 0.5, -this.size * 0.5,
+                            this.size, -this.size * 0.5,
+                            this.size, 0
+                        );
+                        p.bezierVertex(
+                            this.size, this.size * 0.5,
+                            this.size * 0.5, this.size * 0.5,
+                            0, 0
+                        );
+                        p.endShape(p.CLOSE);
+                        p.pop();
+                    }
+                    
+                    // 花の中心（黄色い部分を薄く）
+                    p.fill(255, 255, 100, this.lifespan * flowerBrightness * 0.3);
+                    p.ellipse(0, 0, this.innerSize);
+                    
+                    p.pop();
+                }
+                
+                isDead() {
+                    return this.lifespan <= 0;
+                }
+            }
+            
+            // 拡張された花クラス（音楽に反応する花）
+            class EnhancedFlower extends Flower {
+                constructor(x, y, size, color, petalCount, petalSharpness) {
+                    super(x, y, size, color);
+                    
+                    // 特別なパラメータ
+                    this.petalCount = petalCount;
+                    this.petalSharpness = petalSharpness; // 花びらのとがり具合
+                    this.pulseSpeed = p.random(0.02, 0.06);
+                    this.pulseAmount = p.random(0.1, 0.2);
+                    this.innerColor = [255, 255, 100]; // 中心色
+                    
+                    // よりランダムな動き
+                    this.vel = p5.Vector.random2D().mult(p.random(0.3, 1.2));
+                    
+                    // 花の寿命を長くする
+                    this.lifespan = 300;
+                    
+                    // 花の中心サイズを調整（小さめに）
+                    this.innerSize = this.size * p.random(0.15, 0.25);
+                }
+                
+                update() {
+                    super.update();
+                    
+                    // 花の脈動効果
+                    this.pulseSize = this.size * (1 + p.sin(p.frameCount * this.pulseSpeed) * this.pulseAmount);
+                    
+                    // 寿命が短くなったら色を少し変化させる（フェード効果）
+                    if (this.lifespan < 100) {
+                        this.innerColor[0] = p.lerp(255, 220, (100 - this.lifespan) / 100);
+                        this.innerColor[1] = p.lerp(255, 200, (100 - this.lifespan) / 100);
+                    }
+                }
+                
+                display() {
+                    p.push();
+                    p.translate(this.pos.x, this.pos.y);
+                    p.rotate(this.angle);
+                    
+                    // 花びら
+                    p.noStroke();
+                    p.fill(this.color[0], this.color[1], this.color[2], this.lifespan * flowerBrightness);
+                    
+                    for (let i = 0; i < this.petalCount; i++) {
+                        let a = i * 360 / this.petalCount;
+                        p.push();
+                        p.rotate(a);
+                        
+                        // 花びらの形状を調整（とがり具合に応じて）
+                        p.beginShape();
+                        p.vertex(0, 0);
+                        p.bezierVertex(
+                            this.pulseSize * 0.3, -this.pulseSize * 0.5 * this.petalSharpness,
+                            this.pulseSize * 0.7, -this.pulseSize * 0.6 * this.petalSharpness,
+                            this.pulseSize, 0
+                        );
+                        p.bezierVertex(
+                            this.pulseSize * 0.7, this.pulseSize * 0.6 * this.petalSharpness,
+                            this.pulseSize * 0.3, this.pulseSize * 0.5 * this.petalSharpness,
+                            0, 0
+                        );
+                        p.endShape(p.CLOSE);
+                        p.pop();
+                    }
+                    
+                    // グラデーション効果を持つ花の中心（透明度を下げて目立たなくする）
+                    // 外側の輪（柔らかいグロー）
+                    p.fill(this.innerColor[0], this.innerColor[1], this.innerColor[2], 
+                          this.lifespan * flowerBrightness * 0.2);
+                    p.ellipse(0, 0, this.innerSize * 1.8);
+                    
+                    // 内側の中心（より明るい）
+                    p.fill(this.innerColor[0], this.innerColor[1], this.innerColor[2], 
+                          this.lifespan * flowerBrightness * 0.3);
+                    p.ellipse(0, 0, this.innerSize);
+                    
+                    p.pop();
+                }
+            }
+            
+            class FloatingParticle {
+                constructor(x, y, color) {
+                    this.pos = p.createVector(x, y);
+                    let dx = -x; // 中心に向かうベクトル
+                    let dy = -y;
+                    this.vel = p.createVector(dx, dy);
+                    this.vel.normalize().mult(p.random(1, 3));
+                    this.lifespan = 255;
+                    this.color = color;
+                    this.size = p.random(2, 5);
+                }
+                
+                update() {
+                    this.pos.add(this.vel);
+                    
+                    // 画面中心に近づくにつれて速度を落とす
+                    let d = p.dist(this.pos.x, this.pos.y, 0, 0);
+                    if (d < 100) {
+                        this.vel.mult(0.95);
+                        this.lifespan -= 5;
+                    } else {
+                        this.lifespan -= 2;
+                    }
+                }
+                
+                display() {
+                    p.push();
+                    p.noStroke();
+                    p.fill(this.color[0], this.color[1], this.color[2], this.lifespan);
+                    p.ellipse(this.pos.x, this.pos.y, this.size);
+                    p.pop();
+                }
+                
+                isDead() {
+                    return this.lifespan <= 0;
+                }
+            }
+            
+            p.windowResized = function() {
+                p.resizeCanvas(p.windowWidth, p.windowHeight);
+                clearBackground(); // クリア関数
+                initFlowField();
+                
+                // 仮想カーソルの位置もリセット
+                virtualCursor.x = p.width / 2;
+                virtualCursor.y = p.height / 2;
+            };
+        };
+        
+        // favicon 404エラーを防止するためにfaviconを追加
+        let link = document.createElement('link');
+        link.rel = 'icon';
+        link.type = 'image/png';
+        link.href = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJrSURBVFhH7ZZNaBNBFMf/m2yStE3SpFu1KkXwICgVb16KeNGLFM/iyYO3ehE8CR5E/DoIHkTw4NGDINgPD0UvUhCpIFKwpYXaJk3afGw2H5v9mOdMutudbboRSXqQH8zOzs7Ovm/ee292RjIl3Rhg/1uAoihgLZVKwe12/xsB8/PzqFQqHHd3d7G0tMThvwgoFotYXV3F2NgYotEtLC9/xszMNRweHuLg4AAejwcOh+OoJ45u2tjY4OTLy8u8ZGtrCxMTE+jv78fIyAimi1OIRCJcNnDUk0KhwLlKpYK5ubk6crWmUin4fD709fVh/LoX4XA4NDg4iGw2qxlpKCmEFw3xer1NbTo6OhAMBvmbKOKxWm2cmghomGSJ9XodO8SWxcVFvNJq6/pN56FVgLZPkxRy/HYfCRJ+/PQBr9/EIUs2yGZbXQJB/isBQpKNw+2mMXI3hulLLhQPLcjm7LXSCS+0RU9Aw2TRKFY2t7GUjCNRyUKyWGsHCLmGngB1smmiLJtwue5j7OY0rl50QFbIVAIiSYFhW3oC9JjYJXnMHcUu82JhYQHJZBKfX75BtiihR3Kqxur6iHw+j2g0ik9f4/j0XcbEtBvnTnfBZEpwY/0+QKRSqYTI5mckMjXcm3sGn8+PG+duqlvSsq87iNSkAhPrb9+9x4ePETyYfYrRCw/hdu3r9tETEAgEwFi/9JqEHZ8fz4PpHxK2bxzprK6AYDCInZ0ddHZ2IhQKsbcU2Nvb43OAxo6OA1phfRUSBwOdA4RQr0JvG9YToK1GsUIV8KgKcx8Q59rV7DdqB9sxrHZiMdnGbUZ/wA8sH4bXbRzcZgAAAABJRU5ErkJggg==';
+        document.head.appendChild(link);
+        
+        new p5(sketch);
+    </script>
+</body>
+</html>
