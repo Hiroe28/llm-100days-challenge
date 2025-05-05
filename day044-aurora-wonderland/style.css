@@ -1,0 +1,954 @@
+/* 基本スタイル */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700&display=swap');
+
+body {
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'M PLUS Rounded 1c', Arial, sans-serif;
+    color: white;
+}
+
+#container {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* ローディング画面 */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000033;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-icon {
+    margin-bottom: 20px;
+}
+
+.rotating-earth {
+    width: 120px;
+    height: 120px;
+    animation: rotate 4s linear infinite;
+}
+
+.earth-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #4488ff, #112244);
+    box-shadow: 0 0 20px rgba(100, 200, 255, 0.5);
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.loading-progress-container {
+    width: 250px;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4422ff, #00ff88);
+    border-radius: 10px;
+    transition: width 0.3s;
+}
+
+/* コントロールパネル */
+.control-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 280px;
+    background-color: rgba(0, 10, 30, 0.8);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
+    z-index: 100;
+    transition: all 0.3s;
+    border: 1px solid rgba(100, 200, 255, 0.4);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: rgba(0, 40, 100, 0.7);
+    border-bottom: 1px solid rgba(100, 200, 255, 0.4);
+}
+
+.panel-header h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.toggle-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.toggle-button.collapsed {
+    transform: rotate(180deg);
+}
+
+.panel-content {
+    padding: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+    transition: max-height 0.3s;
+}
+
+.panel-content.collapsed {
+    max-height: 0;
+    padding: 0 15px;
+    overflow: hidden;
+}
+
+/* プリセットギャラリー */
+.preset-gallery {
+    margin-bottom: 20px;
+}
+
+.preset-gallery h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.preset-item {
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border-color 0.2s;
+    position: relative;
+}
+
+.preset-item:hover {
+    transform: translateY(-3px);
+    border-color: rgba(100, 200, 255, 0.8);
+}
+
+.preset-item.active {
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.preset-color {
+    height: 40px;
+    width: 100%;
+    border-radius: 6px;
+}
+
+.rainbow-bg {
+    background: linear-gradient(to right, 
+        #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff00ff);
+    animation: rainbow-shift 8s linear infinite;
+}
+
+@keyframes rainbow-shift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* スライダーコントロール */
+.slider-controls {
+    margin-bottom: 20px;
+}
+
+.slider-item {
+    margin-bottom: 12px;
+}
+
+.slider-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.slider-item input[type="range"] {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(100, 200, 255, 0.3);
+    border-radius: 3px;
+    outline: none;
+}
+
+.slider-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(100, 200, 255, 0.9);
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0, 150, 255, 0.8);
+}
+
+/* トグルコントロール */
+.toggle-controls {
+    margin-bottom: 10px;
+}
+
+.toggle-item {
+    margin-bottom: 10px;
+}
+
+.toggle-item label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.toggle-item input[type="checkbox"] {
+    margin-right: 8px;
+    position: relative;
+    width: 40px;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(100, 200, 255, 0.3);
+    border-radius: 20px;
+    outline: none;
+    transition: background 0.3s;
+}
+
+.toggle-item input[type="checkbox"]:checked {
+    background: rgba(0, 200, 255, 0.8);
+}
+
+.toggle-item input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    background: white;
+    transition: transform 0.3s;
+}
+
+.toggle-item input[type="checkbox"]:checked::before {
+    transform: translateX(20px);
+}
+
+.toggle-label {
+    font-size: 14px;
+}
+
+/* カメラビューボタン */
+.camera-buttons {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+}
+
+.camera-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: rgba(0, 10, 30, 0.8);
+    border: 1px solid rgba(100, 200, 255, 0.4);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 10px rgba(0, 100, 200, 0.3);
+}
+
+.camera-button:hover {
+    background-color: rgba(0, 50, 100, 0.9);
+    transform: scale(1.1);
+}
+
+/* アクションボタン */
+.action-buttons {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.action-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: rgba(0, 10, 30, 0.8);
+    border: 1px solid rgba(100, 200, 255, 0.4);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 10px rgba(0, 100, 200, 0.3);
+}
+
+.action-button:hover {
+    background-color: rgba(0, 50, 100, 0.9);
+    transform: scale(1.1);
+}
+
+/* キッズモードトグル */
+.kids-mode-toggle {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+}
+
+#toggle-kids-mode {
+    background-color: rgba(255, 100, 150, 0.8);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 200, 220, 0.7);
+    box-shadow: 0 0 10px rgba(255, 100, 200, 0.4);
+}
+
+#toggle-kids-mode:hover {
+    background-color: rgba(255, 80, 120, 0.9);
+    transform: scale(1.05);
+}
+
+/* キャプション表示 */
+.caption-box {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 10, 30, 0.8);
+    border-radius: 10px;
+    padding: 10px 15px;
+    max-width: 80%;
+    text-align: center;
+    border: 1px solid rgba(100, 200, 255, 0.4);
+    box-shadow: 0 0 15px rgba(0, 100, 200, 0.3);
+    z-index: 100;
+    font-size: 16px;
+    animation: fade-up 0.5s ease-out;
+}
+
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* 写真モード */
+#photo-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+}
+
+.photo-frame {
+    background-color: rgba(0, 20, 50, 0.7);
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid rgba(100, 200, 255, 0.4);
+    box-shadow: 0 0 30px rgba(0, 150, 255, 0.4);
+    max-width: 90%;
+    max-height: 90%;
+}
+
+#photo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    max-width: 100%;
+    max-height: 70vh;
+    overflow: hidden;
+    border: 2px solid rgba(100, 200, 255, 0.8);
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+#photo-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.photo-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.photo-controls button {
+    background-color: rgba(0, 80, 150, 0.8);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.photo-controls button:hover {
+    background-color: rgba(0, 100, 200, 0.9);
+}
+
+#save-photo {
+    background-color: rgba(0, 150, 80, 0.8);
+}
+
+#save-photo:hover {
+    background-color: rgba(0, 180, 100, 0.9);
+}
+
+/* モーダル */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: rgba(0, 20, 50, 0.95);
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 0 30px rgba(0, 150, 255, 0.5);
+    border: 1px solid rgba(100, 200, 255, 0.4);
+    animation: modal-appear 0.3s ease-out;
+}
+
+@keyframes modal-appear {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(100, 200, 255, 0.4);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.info-section {
+    margin-bottom: 25px;
+}
+
+.info-section h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: rgba(100, 200, 255, 0.9);
+}
+
+.info-section p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.info-section ul {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.info-section li {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.kids-info {
+    background-color: rgba(255, 100, 150, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px dashed rgba(255, 150, 200, 0.6);
+    margin-top: 20px;
+}
+
+.kids-info h3 {
+    color: rgba(255, 150, 200, 0.9);
+}
+
+/* キッズモード */
+body.kids-mode .control-panel {
+    background-color: rgba(255, 100, 150, 0.7);
+    border: 2px solid rgba(255, 200, 220, 0.8);
+    box-shadow: 0 0 20px rgba(255, 100, 150, 0.5);
+}
+
+body.kids-mode .panel-header {
+    background-color: rgba(255, 80, 120, 0.8);
+}
+
+body.kids-mode .camera-button,
+body.kids-mode .action-button {
+    background-color: rgba(255, 100, 150, 0.7);
+    border: 2px solid rgba(255, 200, 220, 0.8);
+    box-shadow: 0 0 10px rgba(255, 100, 150, 0.5);
+}
+
+body.kids-mode .slider-item input[type="range"] {
+    background: rgba(255, 150, 200, 0.4);
+}
+
+body.kids-mode .slider-item input[type="range"]::-webkit-slider-thumb {
+    background: rgba(255, 50, 100, 0.9);
+    box-shadow: 0 0 5px rgba(255, 100, 150, 0.8);
+}
+
+body.kids-mode .toggle-item input[type="checkbox"] {
+    background: rgba(255, 150, 200, 0.4);
+}
+
+body.kids-mode .toggle-item input[type="checkbox"]:checked {
+    background: rgba(255, 80, 120, 0.8);
+}
+
+body.kids-mode #toggle-kids-mode {
+    background-color: rgba(0, 100, 200, 0.8);
+    border: 1px solid rgba(100, 200, 255, 0.7);
+    box-shadow: 0 0 10px rgba(0, 150, 255, 0.4);
+}
+
+body.kids-mode #toggle-kids-mode:hover {
+    background-color: rgba(0, 120, 220, 0.9);
+}
+
+/* ツールチップ */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 8px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+    transform: translateX(-50%) translateY(10px);
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ユーティリティクラス */
+.hidden {
+    display: none !important;
+}
+
+/* スマホ対応 */
+@media (max-width: 768px) {
+    .control-panel {
+        width: 250px;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .panel-header h2 {
+        font-size: 16px;
+    }
+    
+    .preset-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .preset-color {
+        height: 35px;
+    }
+    
+    .camera-buttons {
+        left: 10px;
+    }
+    
+    .camera-button, 
+    .action-button {
+        width: 38px;
+        height: 38px;
+        font-size: 14px;
+    }
+    
+    .action-buttons {
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    .kids-mode-toggle {
+        bottom: 10px;
+        left: 10px;
+    }
+    
+    #toggle-kids-mode {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .caption-box {
+        bottom: 50px;
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
+    
+    .modal-header h2 {
+        font-size: 18px;
+    }
+    
+    .info-section h3 {
+        font-size: 16px;
+    }
+}
+
+/* ローディング画面 (改良版) */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000016;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.8s;
+    overflow: hidden;
+}
+
+/* オーロラ風の背景エフェクト */
+.aurora-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #000016 0%, #000033 100%);
+    overflow: hidden;
+}
+
+.aurora-background::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        rgba(0, 255, 136, 0.05) 25%,
+        transparent 60%
+    );
+    animation: aurora-wave 15s infinite linear;
+}
+
+.aurora-background::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        rgba(68, 34, 255, 0.05) 25%,
+        transparent 60%
+    );
+    animation: aurora-wave 20s infinite linear reverse;
+}
+
+@keyframes aurora-wave {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-content {
+    position: relative;
+    text-align: center;
+    max-width: 500px;
+    padding: 30px;
+    background: rgba(0, 10, 30, 0.6);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 0 30px rgba(0, 200, 255, 0.2);
+    border: 1px solid rgba(100, 200, 255, 0.2);
+    z-index: 2;
+}
+
+.loading-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0, 200, 255, 0.8);
+    letter-spacing: 1px;
+}
+
+.loading-subtitle {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 25px;
+}
+
+.loading-icon {
+    margin-bottom: 30px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.earth-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.rotating-earth {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    animation: rotate 20s linear infinite;
+    box-shadow: 0 0 20px rgba(0, 150, 255, 0.5);
+    z-index: 1;
+    position: relative;
+}
+
+.aurora-glow {
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(0, 255, 136, 0.6) 0%,
+        rgba(68, 34, 255, 0.3) 40%,
+        transparent 70%
+    );
+    filter: blur(15px);
+    opacity: 0.7;
+    z-index: 0;
+    animation: pulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; transform: scale(0.95); }
+    100% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.dots span {
+    opacity: 0;
+    animation: dot-fade 1.5s infinite;
+}
+
+.dots span:nth-child(1) { animation-delay: 0s; }
+.dots span:nth-child(2) { animation-delay: 0.5s; }
+.dots span:nth-child(3) { animation-delay: 1s; }
+
+@keyframes dot-fade {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+.loading-progress-container {
+    width: 100%;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00ff88, #4422ff, #00ff88);
+    background-size: 200% 100%;
+    border-radius: 20px;
+    transition: width 0.3s;
+    animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.loading-tips {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    margin-top: 20px;
+    padding: 10px;
+    border-top: 1px solid rgba(100, 200, 255, 0.2);
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .loading-content {
+        max-width: 90%;
+        padding: 20px;
+    }
+    
+    .loading-title {
+        font-size: 24px;
+    }
+    
+    .loading-subtitle {
+        font-size: 14px;
+    }
+    
+    .earth-container {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .rotating-earth {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .aurora-glow {
+        width: 150px;
+        height: 150px;
+        top: -15px;
+        left: -15px;
+    }
+}

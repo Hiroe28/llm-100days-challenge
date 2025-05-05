@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="オーロラワンダーランド" />
+    <meta property="og:description" content="3Dの美しいオーロラをインタラクティブに体験できるアプリ。地球を回転させて北極や南極からオーロラを鑑賞したり、キッズモードで子どもと一緒に楽しめます。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day044-aurora-wonderland/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day044-aurora-wonderland/index.html" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="オーロラワンダーランド" />
+    <meta name="twitter:description" content="3Dの美しいオーロラをインタラクティブに体験できるアプリ。地球を回転させて北極や南極からオーロラを鑑賞したり、キッズモードで子どもと一緒に楽しめる宇宙体験。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day044-aurora-wonderland/screenshot.png" />
+
+    <!-- その他メタ情報 -->
+    <meta name="description" content="Three.jsを使用した3Dオーロラシミュレーションアプリ。美しいオーロラを様々な角度から鑑賞し、写真撮影も可能。子ども向けのキッズモードも搭載。" />
+    <meta name="keywords" content="オーロラ, 3D, シミュレーション, 地球, 親子で遊べる, Three.js, WebGL, 宇宙体験" />
+    <meta name="author" content="LLM-100Days-Challenge" />    
+
+    <title>オーロラワンダーランド</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="container"></div>
+    
+
+    <!-- ローディング画面 (改良版) -->
+    <div id="loading-screen">
+        <div class="aurora-background"></div>
+        <div class="loading-content">
+            <div class="loading-title">オーロラワンダーランド</div>
+            <div class="loading-subtitle">オーロラ体験へようこそ</div>
+            <div class="loading-icon">
+                <div class="earth-container">
+                    <img src="images/earth.jpg" alt="地球" class="rotating-earth">
+                    <div class="aurora-glow"></div>
+                </div>
+            </div>
+            <div class="loading-text">オーロラの魔法を準備中<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+            <div class="loading-progress-container">
+                <div class="loading-progress-bar"></div>
+            </div>
+            <div class="loading-tips">
+                知ってた？オーロラは主に北極と南極付近で見られる自然現象だよ！
+            </div>
+        </div>
+    </div>
+
+    <!-- メインコントロールパネル -->
+    <div class="control-panel">
+        <div class="panel-header">
+            <h2>オーロラコントロール</h2>
+            <button id="toggle-panel" class="toggle-button"><i class="fa fa-chevron-down"></i></button>
+        </div>
+        <div class="panel-content">
+            <!-- プリセットギャラリー -->
+            <div class="preset-gallery">
+                <h3>オーロラタイプ</h3>
+                <div class="preset-grid">
+                    <div class="preset-item" data-preset="green" data-tooltip="グリーンオーロラ">
+                        <div class="preset-color" style="background: linear-gradient(to bottom, #00ff88, #4422ff);"></div>
+                    </div>
+                    <div class="preset-item" data-preset="purple" data-tooltip="パープルオーロラ">
+                        <div class="preset-color" style="background: linear-gradient(to bottom, #ff00ff, #5500ff);"></div>
+                    </div>
+                    <div class="preset-item" data-preset="red" data-tooltip="レッドオーロラ">
+                        <div class="preset-color" style="background: linear-gradient(to bottom, #ff5500, #ff0066);"></div>
+                    </div>
+                    <div class="preset-item" data-preset="rainbow" data-tooltip="レインボーオーロラ">
+                        <div class="preset-color rainbow-bg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- スライダーコントロール -->
+            <div class="slider-controls">
+                <div class="slider-item">
+                    <label for="aurora-intensity">明るさ <span id="intensity-value">1.5</span></label>
+                    <input type="range" id="aurora-intensity" min="0.5" max="3.0" step="0.1" value="1.5">
+                </div>
+                <div class="slider-item">
+                    <label for="aurora-speed">速さ <span id="speed-value">0.5</span></label>
+                    <input type="range" id="aurora-speed" min="0.1" max="2.0" step="0.1" value="0.5">
+                </div>
+                <div class="slider-item">
+                    <label for="aurora-height">高さ <span id="height-value">0.2</span></label>
+                    <input type="range" id="aurora-height" min="0.1" max="0.8" step="0.1" value="0.2">
+                </div>
+            </div>
+
+            <!-- チェックボックスコントロール -->
+            <div class="toggle-controls">
+                <div class="toggle-item">
+                    <label>
+                        <input type="checkbox" id="auto-rotate">
+                        <span class="toggle-label">地球を自動回転</span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <label>
+                        <input type="checkbox" id="show-locations">
+                        <span class="toggle-label">オーロラスポットを表示</span>
+                    </label>
+                </div>
+                <div class="toggle-item">
+                    <label>
+                        <input type="checkbox" id="play-music" checked>
+                        <span class="toggle-label">自然音を再生</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- カメラビューボタン -->
+    <div class="camera-buttons">
+        <button id="view-north" class="camera-button" data-tooltip="北極から見る">
+            <i class="fa fa-arrow-up"></i>
+        </button>
+        <button id="view-overview" class="camera-button" data-tooltip="全体を見る">
+            <i class="fa fa-globe"></i>
+        </button>
+        <button id="view-south" class="camera-button" data-tooltip="南極から見る">
+            <i class="fa fa-arrow-down"></i>
+        </button>
+    </div>
+
+    <!-- アクションボタン -->
+    <div class="action-buttons">
+        <button id="take-photo" class="action-button" data-tooltip="写真を撮る">
+            <i class="fa fa-camera"></i>
+        </button>
+        <button id="fullscreen" class="action-button" data-tooltip="全画面表示">
+            <i class="fa fa-expand"></i>
+        </button>
+        <button id="show-info" class="action-button" data-tooltip="オーロラについて">
+            <i class="fa fa-info-circle"></i>
+        </button>
+    </div>
+
+    <!-- 子ども向けモードボタン -->
+    <div class="kids-mode-toggle">
+        <button id="toggle-kids-mode">
+            <i class="fa fa-child"></i> キッズモード
+        </button>
+    </div>
+
+    <!-- キャプション表示 -->
+    <div class="caption-box hidden" id="aurora-caption">
+        <p>素敵なオーロラが見えるよ！北極と南極の近くで見られる自然の光のショーだよ。</p>
+    </div>
+
+    <!-- 写真モード用オーバーレイ -->
+    <div id="photo-overlay" class="hidden">
+        <div class="photo-frame">
+            <div id="photo-container"></div>
+            <div class="photo-controls">
+                <button id="save-photo">保存する</button>
+                <button id="cancel-photo">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 情報モーダル -->
+    <div id="info-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>オーロラについて</h2>
+                <button class="close-modal"><i class="fa fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="info-section">
+                    <h3>オーロラってなに？</h3>
+                    <p>オーロラは、太陽から飛んでくる粒子が地球の磁場と大気にぶつかることで光る現象です。主に北極と南極付近で見ることができます。</p>
+                    <p>北極でのオーロラを「オーロラ・ボレアリス（北極光）」、南極でのオーロラを「オーロラ・オーストラリス（南極光）」と呼びます。</p>
+                </div>
+                <div class="info-section">
+                    <h3>オーロラの色</h3>
+                    <p>オーロラはいろんな色で光ります：</p>
+                    <ul>
+                        <li><span class="color-dot" style="background-color: #00ff00;"></span> <strong>緑色</strong>: 一番よく見られる色です</li>
+                        <li><span class="color-dot" style="background-color: #ff00ff;"></span> <strong>紫/ピンク色</strong>: 低い高度で見られます</li>
+                        <li><span class="color-dot" style="background-color: #ff0000;"></span> <strong>赤色</strong>: 高い高度で見られる珍しい色です</li>
+                        <li><span class="color-dot" style="background-color: #0000ff;"></span> <strong>青色</strong>: 非常に珍しい色です</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h3>オーロラはどこで見られる？</h3>
+                    <p>オーロラは主に「オーロラベルト」と呼ばれる地域で見られます：</p>
+                    <ul>
+                        <li>北半球: アラスカ、カナダ、アイスランド、ノルウェー、スウェーデン、フィンランド</li>
+                        <li>南半球: 南極大陸とその周辺</li>
+                    </ul>
+                </div>
+                <div class="kids-info">
+                    <h3>子どもたちへ</h3>
+                    <p>オーロラは空のダンスをする光のリボンみたいだね！太陽からきた小さな粒が地球のまわりで踊ると、こんなきれいな色の光になるんだ。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音声はオプション (エラーを抑制するためにoncanplayを使用) -->
+    <audio id="ambient-sound" loop>
+        <source src="sounds/aurora-ambient.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="camera-sound">
+        <source src="sounds/camera-shutter.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- エラーハンドリング用スクリプト -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 音声ファイルエラー処理
+        const audioElements = document.querySelectorAll('audio');
+        audioElements.forEach(audio => {
+            audio.addEventListener('error', function(e) {
+                console.log('音声ファイルのロードに失敗しましたが、アプリは動作します');
+            }, true); // キャプチャフェーズでイベント処理
+        });
+    });
+    </script>
+    
+    <!-- メインスクリプト -->
+    <script type="module" src="js/aurora.js"></script>
+    <script type="module" src="js/controls.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
