@@ -230,7 +230,7 @@
         
         .scratch-counter {
             position: absolute;
-            top: -15px;
+            top: -20px;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(0, 0, 0, 0.7);
@@ -256,9 +256,9 @@
         }
         
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0%   { transform: translateX(-50%) scale(1);   }
+            50%  { transform: translateX(-50%) scale(1.1); }
+            100% { transform: translateX(-50%) scale(1);   }
         }
         
         /* ロード時のアニメーション */
@@ -756,6 +756,25 @@
                 }
             }
             
+            // 無料券チェック・付与機能
+            function checkAndGrantFreeTicket() {
+                // 所持金が足りないかつ無料券を持っていない場合
+                if (balance < TICKET_PRICE && !hasFreeTicket) {
+                    // 無料券を付与
+                    hasFreeTicket = true;
+                    freeTicketBadge.style.display = 'block';
+                    console.log("所持金不足: 無料券を付与しました");
+                    return true;
+                }
+                return false;
+            }
+            
+            // 無料券システムのデバッグ表示（開発用）
+            function debugFreeTicket() {
+                console.log(`無料券状態: ${hasFreeTicket ? "あり" : "なし"}`);
+                console.log(`残高: ${balance}円`);
+            }
+            
             // 新しいゲームを開始
             function startNewGame() {
                 // ゲームがアクティブな場合は開始しない
@@ -763,9 +782,19 @@
                     return;
                 }
                 
-                // 無料券があるか残高が十分かチェック
-                if (!hasFreeTicket && balance < TICKET_PRICE) {
-                    alert('所持金が足りません！');
+                // デバッグ表示
+                debugFreeTicket();
+                
+                // 所持金チェックと無料券付与（新機能）
+                if (balance < TICKET_PRICE && !hasFreeTicket) {
+                    // 最初の無料券を付与
+                    checkAndGrantFreeTicket();
+                    alert('所持金が足りませんが、無料券を獲得しました！');
+                }
+                
+                // 改めて条件チェック
+                if (balance < TICKET_PRICE && !hasFreeTicket) {
+                    alert('所持金が足りません！無料券もありません。');
                     return;
                 }
                 
@@ -1769,6 +1798,10 @@
                                 hasFreeTicket = true;
                                 freeTicketBadge.style.display = 'block';
                                 
+                                // デバッグ表示
+                                console.log("無料券付与!");
+                                debugFreeTicket();
+                                
                                 // 詳細メッセージに追加
                                 resultDetail.textContent += ' 無料券をゲットしました！';
                             }
@@ -1786,6 +1819,9 @@
                 
                 // 次のゲームボタンを表示
                 nextGameBtn.style.display = 'block';
+                
+                // デバッグ表示
+                debugFreeTicket();
             }
             
             // コンフェッティ効果
