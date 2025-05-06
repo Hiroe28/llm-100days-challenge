@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="リアルスクラッチくじ - 本物のような触感のデジタルくじ体験" />
+    <meta property="og:description" content="指やマウスでこすって本物のスクラッチくじ体験！シンボルを揃えて最大10,000円獲得。2つ揃っても当たる親切設計で誰でも楽しめる。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day045-real-scratch-lottery/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day045-real-scratch-lottery/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="リアルスクラッチくじ" />
+    <meta name="twitter:description" content="指やマウスでこすって本物のスクラッチくじ体験！シンボルを揃えて最大10,000円獲得。2つ揃っても当たる親切設計で子供から大人まで楽しめるデジタルくじゲーム。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day045-real-scratch-lottery/screenshot.png" />
+    <title>リアルスクラッチくじ</title>
+    <style>
+        body {
+            font-family: 'Arial', 'Hiragino Sans', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #2c3e50, #4a6572);
+            padding: 20px;
+            color: white;
+            transition: background 0.5s ease;
+        }
+        
+        body.win-bg {
+            background: linear-gradient(135deg, #2c5e50, #4a9572);
+        }
+        
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .game-container.win-effect {
+            box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+        }
+        
+        .header {
+            margin-bottom: 10px;
+            font-size: 28px;
+            color: #ffd700;
+            text-align: center;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
+        }
+        
+        .instructions {
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            line-height: 1.5;
+            padding: 0 10px;
+        }
+        
+        .wallet-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .balance {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        .price {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .card-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            overflow: hidden;
+            background-color: #f5f5f5;
+        }
+        
+        .card-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #e0e0e0, #ffffff);
+            z-index: 1;
+        }
+        
+        .card-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+            padding: 8px;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+        
+        .symbol-box {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            color: #333;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        
+        .symbol-box.revealed {
+            animation: revealPulse 0.5s ease;
+        }
+        
+        @keyframes revealPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .result-panel {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.5s ease;
+            transform: translateY(20px);
+        }
+        
+        .result-panel.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .result-message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .result-detail {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .win-message {
+            color: #ffd700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+        }
+        
+        .lose-message {
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        
+        .action-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            outline: none;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #27ae60, #219653);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .scratch-counter {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        
+        .scratch-counter.warning {
+            background-color: rgba(255, 87, 51, 0.8);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* ロード時のアニメーション */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .loading-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        .loading-text {
+            color: #ffd700;
+            font-size: 16px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* コンフェッティ */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #ffd700;
+            opacity: 0;
+            z-index: 90;
+            transform-origin: center;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* スクラッチオーバーレイ */
+        .scratch-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #b0b0b0, #d8d8d8);
+            border-radius: 8px;
+            z-index: 5;
+            cursor: pointer;
+            background-size: 20px 20px;
+            background-image: linear-gradient(45deg, rgba(255,255,255,.3) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.3) 50%, rgba(255,255,255,.3) 75%, transparent 75%, transparent);
+            transition: opacity 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .scratch-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 6;
+            filter: blur(5px);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .scratch-sparkle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 6;
+            opacity: 0;
+        }
+        
+        @keyframes sparkle {
+            0% { transform: scale(0); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        /* 残りスクラッチ回数の警告表示 */
+        .scratch-limit-warning {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background-color: rgba(255, 87, 51, 0.9);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease;
+        }
+        
+        .scratch-limit-warning.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        /* 勝利パターンのハイライト */
+        .win-pattern-highlight {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 9;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .win-pattern-highlight.show {
+            opacity: 1;
+        }
+        
+        .win-pattern-line {
+            position: absolute;
+            background-color: rgba(255, 215, 0, 0.6);
+            z-index: 4;
+            transform: scale(0);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+        }
+        
+        .win-pattern-line.show {
+            transform: scale(1);
+        }
+
+        /* 改善：ルール表示 - 常に表示するように変更 */
+        .rules-panel {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.4;
+        }
+
+        .rules-header {
+            color: #ffd700;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* 修正：当選ルールテーブル */
+        .rules-table {
+            width: 100%;
+            margin: 10px 0;
+            border-collapse: collapse;
+        }
+        
+        .rules-table td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            vertical-align: middle;
+        }
+        
+        .rules-table td:first-child {
+            font-size: 22px;
+            width: 60px;
+            text-align: center;
+        }
+        
+        .rules-table td:last-child {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: right;
+            color: #ffd700;
+        }
+        
+        .symbol-star {
+            color: #FFEB3B;
+        }
+        
+        .symbol-money {
+            color: #FFD700;
+        }
+        
+        .symbol-diamond {
+            color: #40C4FF;
+        }
+        
+        .symbol-spade {
+            color: #FFFFFF;
+        }
+        
+        .symbol-others {
+            color: #FF9E80;
+        }
+        
+        .symbol-clover {
+            color: #76FF03;
+        }
+
+        /* 小当たり通知 */
+        .bonus-notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background-color: rgba(255, 215, 0, 0.9);
+            color: #333;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 25;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .bonus-notification.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        /* 無料券表示 */
+        .free-ticket-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            transform: rotate(15deg);
+            animation: pulse 1.5s infinite;
+            display: none;
+        }
+
+        /* ゴールド会員バッジ - 位置修正 */
+        .gold-member-badge {
+            position: absolute;
+            top: -10px; 
+            left: -10px;
+            background: linear-gradient(45deg, #ffd700, #ffb700);
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            transform: rotate(-15deg);
+            display: none;
+        }
+        
+        /* 補足情報スタイル */
+        .info-text {
+            font-size: 14px;
+            margin-top: 10px;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">リアルスクラッチくじ</div>
+        <div class="instructions">
+            3つまでスクラッチを削って、シンボルを見つけよう！<br>
+            同じシンボルが3つ揃うと当たり金額が獲得できるよ！
+        </div>
+        
+        <div class="wallet-info">
+            <div class="balance">所持金: <span id="balanceAmount">2000</span>円</div>
+            <div class="price">くじ1枚: <span id="ticketPrice">500</span>円</div>
+            <!-- 無料券バッジを所持金表示の上に移動 -->
+            <div class="free-ticket-badge" id="freeTicketBadge">無料券</div>
+            <!-- ゴールド会員バッジを所持金表示の上に移動 -->
+            <div class="gold-member-badge" id="goldMemberBadge">ゴールド会員</div>
+        </div>
+        
+        <div class="card-container" id="cardContainer">
+            <div class="card-background"></div>
+            <div class="card-grid" id="symbolGrid"></div>
+            <div class="scratch-counter" id="scratchCounter">3</div>
+            <div class="win-pattern-highlight" id="winPatternHighlight"></div>
+            <div class="scratch-limit-warning" id="scratchLimitWarning">残り1回のスクラッチ！</div>
+            <div class="bonus-notification" id="bonusNotification">+100円!</div>
+        </div>
+        
+        <!-- 修正：ルール表示を常に表示 -->
+        <div class="rules-panel">
+            <div class="rules-header">当選ルール</div>
+            <table class="rules-table">
+                <tr>
+                    <td class="symbol-star">★</td>
+                    <td>3つ揃うと</td>
+                    <td>10,000円</td>
+                </tr>
+                <tr>
+                    <td class="symbol-money">💰</td>
+                    <td>3つ揃うと</td>
+                    <td>5,000円</td>
+                </tr>
+                <tr>
+                    <td class="symbol-diamond">💎</td>
+                    <td>3つ揃うと</td>
+                    <td>3,000円</td>
+                </tr>
+                <tr>
+                    <td class="symbol-spade">♠</td>
+                    <td>3つ揃うと</td>
+                    <td>1,000円</td>
+                </tr>
+                <tr>
+                    <td class="symbol-clover">🍀</td>
+                    <td>1枚でも出ると100円獲得！<br>3つ揃うと</td>
+                    <td>1,000円</td>
+                </tr>
+                <!-- 追加：2つ揃った場合のルール -->
+                <tr>
+                    <td>全て</td>
+                    <td>2つ揃うと</td>
+                    <td>500円</td>
+                </tr>
+            </table>
+            <div class="info-text">
+                ・所持金が5,000円を超えると、ゴールド会員になり当選確率アップ！<br>
+                ・所持金が500円未満でハズレると、1回無料でくじが引けます
+            </div>
+        </div>
+        
+        <div class="result-panel" id="resultPanel">
+            <div class="result-message" id="resultMessage"></div>
+            <div class="result-detail" id="resultDetail"></div>
+        </div>
+        
+        <div class="action-button">
+            <button class="btn" id="nextGameBtn">次のくじを買う</button>
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">くじを準備中...</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM要素の取得
+            const cardContainer = document.getElementById('cardContainer');
+            const symbolGrid = document.getElementById('symbolGrid');
+            const resultPanel = document.getElementById('resultPanel');
+            const resultMessage = document.getElementById('resultMessage');
+            const resultDetail = document.getElementById('resultDetail');
+            const nextGameBtn = document.getElementById('nextGameBtn');
+            const balanceAmount = document.getElementById('balanceAmount');
+            const ticketPrice = document.getElementById('ticketPrice');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const scratchCounter = document.getElementById('scratchCounter');
+            const scratchLimitWarning = document.getElementById('scratchLimitWarning');
+            const winPatternHighlight = document.getElementById('winPatternHighlight');
+            const bonusNotification = document.getElementById('bonusNotification');
+            const freeTicketBadge = document.getElementById('freeTicketBadge');
+            const goldMemberBadge = document.getElementById('goldMemberBadge');
+            
+            // 定数
+            const TICKET_PRICE = 500;
+            const INITIAL_BALANCE = 2000;
+            const GRID_SIZE = 9; // 3x3のグリッド
+            const SCRATCH_THRESHOLD = 60; // この%以上こすると完全に削れたと判定
+            const MAX_SCRATCHES = 3; // 最大スクラッチ回数
+            
+            // 修正: 小当たりシンボル
+            const BONUS_SYMBOL = '🍀';
+            const BONUS_PAYOUT = 100; // 1枚あたりの払い戻し
+            const TWO_MATCH_PAYOUT = 500; // 追加：2つ揃いの払い戻し
+            
+            // 音声効果
+            const SOUNDS = {
+                scratch: new Audio('scratch_sound.mp3'),
+                win: new Audio('win_sound.mp3'),
+                jackpot: new Audio('jackpot_sound.mp3'),
+                lose: new Audio('lose_sound.mp3'),
+                reveal: new Audio('reveal_sound.mp3'),
+                purchase: new Audio('purchase_sound.mp3'),
+                hover: new Audio('hover_sound.mp3'),
+                lastChance: new Audio('last_chance_sound.mp3'),
+                bonus: new Audio('bonus_sound.mp3') // 小当たり用
+            };
+            
+            // 各音量の設定
+            Object.values(SOUNDS).forEach(sound => {
+                sound.volume = 0.7;
+            });
+            
+            // ゲーム状態
+            let balance = INITIAL_BALANCE;
+            let gameActive = false;
+            let gameResult = null;
+            let symbols = [];
+            let scratchedCells = Array(GRID_SIZE).fill(false);
+            let scratchPercentages = Array(GRID_SIZE).fill(0);
+            let canvasList = [];
+            let ctxList = [];
+            let remainingScratches = MAX_SCRATCHES;
+            let revealedCells = [];
+            let scratchableIndices = new Set(); // スクラッチ可能なセルのインデックスを保持
+            let winPatternShown = false;
+            let selectedCells = new Set(); // 選択されたセルを追跡する新しい変数
+            
+            // 修正: 無料券フラグ
+            let hasFreeTicket = false;
+            
+            // 修正: ゴールド会員フラグ
+            let isGoldMember = false;
+            
+            // 初期化
+            function init() {
+                // 金額の初期表示
+                balanceAmount.textContent = balance;
+                ticketPrice.textContent = TICKET_PRICE;
+                
+                // イベントリスナーの設定
+                nextGameBtn.addEventListener('click', startNewGame);
+                nextGameBtn.addEventListener('mouseover', () => playSound('hover'));
+                
+                // すぐに最初のゲームを開始
+                startNewGame();
+            }
+            
+            // 音を再生
+            function playSound(type) {
+                if (SOUNDS[type]) {
+                    try {
+                        SOUNDS[type].currentTime = 0;
+                        SOUNDS[type].play().catch(e => console.log('Audio error:', e));
+                    } catch (e) {
+                        console.log('Audio error:', e);
+                    }
+                }
+            }
+            
+            // 修正: ゴールド会員ステータスチェック
+            function checkGoldUpgrade() {
+                if (!isGoldMember && balance >= 5000) {
+                    isGoldMember = true;
+                    alert('ゴールド会員になりました！当選確率アップ！');
+                    goldMemberBadge.style.display = 'block';
+                }
+            }
+            
+            // 新しいゲームを開始
+            function startNewGame() {
+                // 無料券があるか残高が十分かチェック
+                if (gameActive || (!hasFreeTicket && balance < TICKET_PRICE)) {
+                    if (!hasFreeTicket && balance < TICKET_PRICE) {
+                        alert('所持金が足りません！');
+                    }
+                    return;
+                }
+                
+                // 購入音を再生
+                playSound('purchase');
+                
+                // ローディング表示
+                loadingOverlay.classList.add('show');
+                
+                // 非同期処理として実行（リアルな遅延感を出す）
+                setTimeout(() => {
+                    // 無料券がなければ所持金を減らす
+                    if (!hasFreeTicket) {
+                        balance -= TICKET_PRICE;
+                        balanceAmount.textContent = balance;
+                    } else {
+                        // 無料券を使用
+                        hasFreeTicket = false;
+                        freeTicketBadge.style.display = 'none';
+                    }
+                    
+                    // ゲームをアクティブにする
+                    gameActive = true;
+                    
+                    // スクラッチ回数をリセット
+                    remainingScratches = MAX_SCRATCHES;
+                    scratchCounter.textContent = remainingScratches;
+                    scratchCounter.classList.remove('warning');
+                    
+                    // 結果パネルを隠す
+                    resultPanel.classList.remove('show');
+                    
+                    // シンボルをランダムに生成
+                    generateSymbols();
+                    
+                    // シンボルグリッドを作成
+                    createSymbolGrid();
+                    
+                    // 追跡変数をリセット
+                    revealedCells = [];
+                    scratchableIndices = new Set(Array.from({length: GRID_SIZE}, (_, i) => i));
+                    winPatternShown = false;
+                    selectedCells.clear(); // 選択済みセルをリセット
+                    
+                    // Win関連の表示をリセット
+                    document.body.classList.remove('win-bg');
+                    document.querySelector('.game-container').classList.remove('win-effect');
+                    winPatternHighlight.innerHTML = '';
+                    winPatternHighlight.classList.remove('show');
+                    
+                    // スクラッチ警告表示を隠す
+                    scratchLimitWarning.classList.remove('show');
+                    
+                    // ボーナス通知をリセット
+                    bonusNotification.classList.remove('show');
+                    
+                    // 次のゲームボタンを非表示
+                    nextGameBtn.style.display = 'none';
+                    
+                    // ローディング非表示
+                    loadingOverlay.classList.remove('show');
+                    
+                    // ゴールド会員ステータスをチェック
+                    checkGoldUpgrade();
+                }, 800);
+            }
+            
+            // 修正: シンボルをランダムに生成
+            function generateSymbols() {
+                // 修正: シンボル種類を削減して当たりやすく
+                const possibleSymbols = ['★', '💰', '💎', '♠', BONUS_SYMBOL];
+                symbols = [];
+                scratchedCells = Array(GRID_SIZE).fill(false);
+                scratchPercentages = Array(GRID_SIZE).fill(0);
+                
+                // 結果を決定（ゴールド会員は当選確率アップ）
+                const baseWinRate = isGoldMember ? 0.40 : 0.35;  // さらに勝率アップ
+                const isWinning = Math.random() < baseWinRate;
+                
+                if (isWinning) {
+                    // 当たりの場合、どのシンボルが3つ揃うかを決定
+                    const winningSymbol = possibleSymbols[Math.floor(Math.random() * possibleSymbols.length)];
+                    
+                    // 当たりパターンをランダムに選択
+                    const winPatterns = [
+                        [0, 1, 2], // 上横一列
+                        [3, 4, 5], // 中横一列
+                        [6, 7, 8], // 下横一列
+                        [0, 3, 6], // 左縦一列
+                        [1, 4, 7], // 中縦一列
+                        [2, 5, 8], // 右縦一列
+                        [0, 4, 8], // 左上から右下
+                        [2, 4, 6]  // 右上から左下
+                    ];
+                    
+                    const winningPattern = winPatterns[Math.floor(Math.random() * winPatterns.length)];
+                    
+                    // シンボルを配置
+                    for (let i = 0; i < GRID_SIZE; i++) {
+                        if (winningPattern.includes(i)) {
+                            symbols.push(winningSymbol);
+                        } else {
+                            // 当たりシンボル以外のランダムなシンボルを配置
+                            let otherSymbol;
+                            do {
+                                otherSymbol = possibleSymbols[Math.floor(Math.random() * possibleSymbols.length)];
+                            } while (otherSymbol === winningSymbol && countSymbolOccurrences(symbols, otherSymbol) >= 2);
+                            symbols.push(otherSymbol);
+                        }
+                    }
+                    
+                    // 賞金額を決定
+                    let prize = 500; // デフォルト
+                    
+                    if (winningSymbol === '★') {
+                        prize = 10000;
+                    } else if (winningSymbol === '💰') {
+                        prize = 5000;
+                    } else if (winningSymbol === '💎') {
+                        prize = 3000;
+                    } else if (winningSymbol === '♠' || winningSymbol === BONUS_SYMBOL) {
+                        prize = 1000;
+                    }
+                    
+                    gameResult = {
+                        isWin: true,
+                        winningSymbol: winningSymbol,
+                        prize: prize,
+                        positions: winningPattern,
+                        patternType: getPatternType(winningPattern)
+                    };
+                    
+                } else {
+                    // ハズレの場合、ランダムなシンボルを配置（揃わないように）
+                    const usedCounts = {};
+                    
+                    for (let i = 0; i < GRID_SIZE; i++) {
+                        // 修正: 各シンボルが最大2回しか登場しないようにする
+                        let symbol;
+                        let attempts = 0;
+                        
+                        do {
+                            symbol = possibleSymbols[Math.floor(Math.random() * possibleSymbols.length)];
+                            attempts++;
+                            
+                            // 無限ループ防止
+                            if (attempts > 50) {
+                                break;
+                            }
+                        } while ((usedCounts[symbol] || 0) >= 2);
+                        
+                        usedCounts[symbol] = (usedCounts[symbol] || 0) + 1;
+                        symbols.push(symbol);
+                    }
+                    
+                    // 揃わないことを確認
+                    ensureNoWinningPatterns();
+                    
+                    gameResult = {
+                        isWin: false
+                    };
+                }
+            }
+            
+            // シンボルの出現回数をカウント
+            function countSymbolOccurrences(arr, symbol) {
+                return arr.filter(s => s === symbol).length;
+            }
+            
+            // 勝利パターンがないことを確認
+            function ensureNoWinningPatterns() {
+                const winPatterns = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8], // 横
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8], // 縦
+                    [0, 4, 8], [2, 4, 6] // 対角線
+                ];
+                
+                // 各パターンをチェック
+                for (const pattern of winPatterns) {
+                    const [a, b, c] = pattern;
+                    if (symbols[a] && symbols[a] === symbols[b] && symbols[b] === symbols[c]) {
+                        // 勝利パターンが見つかった場合、ランダムな位置のシンボルを変更
+                        const possibleSymbols = ['★', '💰', '💎', '♠', BONUS_SYMBOL];
+                        let newSymbol;
+                        
+                        do {
+                            newSymbol = possibleSymbols[Math.floor(Math.random() * possibleSymbols.length)];
+                        } while (newSymbol === symbols[a]);
+                        
+                        // ランダムに1つのシンボルを変更
+                        const posToChange = pattern[Math.floor(Math.random() * pattern.length)];
+                        symbols[posToChange] = newSymbol;
+                    }
+                }
+            }
+            
+            // パターンタイプを取得
+            function getPatternType(pattern) {
+                // パターンを分類
+                if (arraysEqual(pattern, [0, 1, 2])) return { type: 'row', position: 'top' };
+                if (arraysEqual(pattern, [3, 4, 5])) return { type: 'row', position: 'middle' };
+                if (arraysEqual(pattern, [6, 7, 8])) return { type: 'row', position: 'bottom' };
+                
+                if (arraysEqual(pattern, [0, 3, 6])) return { type: 'column', position: 'left' };
+                if (arraysEqual(pattern, [1, 4, 7])) return { type: 'column', position: 'middle' };
+                if (arraysEqual(pattern, [2, 5, 8])) return { type: 'column', position: 'right' };
+                
+                if (arraysEqual(pattern, [0, 4, 8])) return { type: 'diagonal', position: 'main' };
+                if (arraysEqual(pattern, [2, 4, 6])) return { type: 'diagonal', position: 'counter' };
+                
+                return { type: 'unknown', position: '' };
+            }
+            
+            // 配列の比較
+            function arraysEqual(a, b) {
+                if (a.length !== b.length) return false;
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i] !== b[i]) return false;
+                }
+                return true;
+            }
+
+            // 中央が削られたかどうかチェック
+            function isCenterCleared(index) {
+                const canvas = canvasList[index];
+                const ctx = ctxList[index];
+                if (!canvas || !ctx) return false;
+
+                // キャンバス中央 5×5 ピクセルの α を調べる
+                const cx = Math.floor(canvas.width / 2) - 2;
+                const cy = Math.floor(canvas.height / 2) - 2;
+                const data = ctx.getImageData(cx, cy, 5, 5).data;
+
+                for (let i = 3; i < data.length; i += 4) {
+                    if (data[i] === 0) return true; // 透明が１つでもあれば中央が見えた
+                }
+                return false;
+            }
+            
+            // シンボルグリッドを作成
+            function createSymbolGrid() {
+                symbolGrid.innerHTML = '';
+                canvasList = [];
+                ctxList = [];
+                
+                for (let i = 0; i < GRID_SIZE; i++) {
+                    const box = document.createElement('div');
+                    box.className = 'symbol-box';
+                    box.dataset.index = i;
+                    
+                    // シンボル
+                    box.innerHTML = symbols[i];
+                    
+                    // 当たりの場合、ハイライト用の要素を追加
+                    if (gameResult.isWin && gameResult.positions.includes(i)) {
+                        const highlight = document.createElement('div');
+                        highlight.className = 'symbol-highlight';
+                        highlight.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+                        highlight.style.position = 'absolute';
+                        highlight.style.width = '100%';
+                        highlight.style.height = '100%';
+                        highlight.style.borderRadius = '8px';
+                        highlight.style.opacity = '0';
+                        highlight.style.top = '0';
+                        highlight.style.left = '0';
+                        highlight.style.zIndex = '4';
+                        highlight.style.transition = 'opacity 0.3s ease';
+                        box.appendChild(highlight);
+                    }
+                    
+                    // スクラッチ用オーバーレイを追加
+                    const overlay = document.createElement('div');
+                    overlay.className = 'scratch-overlay';
+                    overlay.dataset.index = i;
+                    
+                    // スクラッチエフェクト用の要素
+                    const scratchEffect = document.createElement('div');
+                    scratchEffect.className = 'scratch-effect';
+                    overlay.appendChild(scratchEffect);
+                    
+                    // Canvasを作成
+                    const canvas = document.createElement('canvas');
+                    canvas.style.position = 'absolute';
+                    canvas.style.top = '0';
+                    canvas.style.left = '0';
+                    canvas.style.width = '100%';
+                    canvas.style.height = '100%';
+                    canvas.style.zIndex = '20';
+                    canvas.dataset.index = i;
+                    
+                    overlay.appendChild(canvas);
+                    box.appendChild(overlay);
+                    symbolGrid.appendChild(box);
+                    
+                    // Canvasを初期化
+                    canvasList.push(canvas);
+                    initCanvas(canvas, i);
+                }
+                
+                // 勝利パターンのハイライト準備
+                if (gameResult.isWin) {
+                    createWinPatternHighlight(gameResult.patternType, gameResult.positions);
+                }
+            }
+            
+            // 勝利パターンのハイライトを作成
+            function createWinPatternHighlight(patternType, positions) {
+                if (!patternType) return;
+                
+                const container = document.createElement('div');
+                container.className = 'win-pattern-container';
+                container.style.position = 'absolute';
+                container.style.top = '0';
+                container.style.left = '0';
+                container.style.width = '100%';
+                container.style.height = '100%';
+                container.style.zIndex = '4';
+                container.style.pointerEvents = 'none';
+                
+                // 勝利ラインのスタイルに基づいて線を描画
+                const line = document.createElement('div');
+                line.className = 'win-pattern-line';
+                line.style.position = 'absolute';
+                line.style.backgroundColor = 'rgba(255, 215, 0, 0.6)';
+                line.style.boxShadow = '0 0 10px rgba(255, 215, 0, 0.8)';
+                line.style.zIndex = '8';
+                line.style.transformOrigin = 'center';
+                line.style.borderRadius = '3px';
+                
+                // パターンタイプに応じて位置とサイズを設定
+                if (patternType.type === 'row') {
+                    let top;
+                    if (patternType.position === 'top') top = '16.7%';
+                    else if (patternType.position === 'middle') top = '50%';
+                    else top = '83.3%';
+                    
+                    line.style.width = '90%';
+                    line.style.height = '6px';
+                    line.style.top = `calc(${top} - 3px)`;
+                    line.style.left = '5%';
+                    
+                } else if (patternType.type === 'column') {
+                    let left;
+                    if (patternType.position === 'left') left = '16.7%';
+                    else if (patternType.position === 'middle') left = '50%';
+                    else left = '83.3%';
+                    
+                    line.style.width = '6px';
+                    line.style.height = '90%';
+                    line.style.left = `calc(${left} - 3px)`;
+                    line.style.top = '5%';
+                    
+                } else if (patternType.type === 'diagonal') {
+                    line.style.width = '125%';
+                    line.style.height = '6px';
+                    line.style.top = 'calc(50% - 3px)';
+                    line.style.left = '-12.5%';
+                    
+                    if (patternType.position === 'main') {
+                        line.style.transform = 'rotate(45deg) scale(0)';
+                    } else {
+                        line.style.transform = 'rotate(-45deg) scale(0)';
+                    }
+                }
+                
+                container.appendChild(line);
+                winPatternHighlight.innerHTML = '';
+                winPatternHighlight.appendChild(container);
+            }
+            
+            // 勝利パターンを表示
+            function showWinPattern() {
+                if (winPatternShown) return;
+                winPatternShown = true;
+                
+                const line = document.querySelector('.win-pattern-line');
+                if (line) {
+                    // 対角線の場合は特別な処理
+                    if (line.style.transform.includes('rotate')) {
+                        if (line.style.transform.includes('45deg')) {
+                            line.style.transform = 'rotate(45deg) scale(1)';
+                        } else {
+                            line.style.transform = 'rotate(-45deg) scale(1)';
+                        }
+                    } else {
+                        line.style.transform = 'scale(1)';
+                    }
+                    
+                    // ハイライトを表示
+                    winPatternHighlight.classList.add('show');
+                    
+                    // 勝利シンボルをハイライト
+                    highlightWinningSymbols();
+                }
+            }
+            
+            // 勝利シンボルをハイライト
+            function highlightWinningSymbols() {
+                if (gameResult.isWin) {
+                    gameResult.positions.forEach(index => {
+                        const box = document.querySelector(`.symbol-box[data-index="${index}"]`);
+                        const highlight = box.querySelector('.symbol-highlight');
+                        if (highlight) {
+                            highlight.style.opacity = '1';
+                        }
+                    });
+                }
+            }
+            
+            // Canvas初期化
+            function initCanvas(canvas, index) {
+                // タッチイベントリスナーを設定
+                canvas.addEventListener('mousedown', startScratch);
+                canvas.addEventListener('mousemove', scratchMove);
+                canvas.addEventListener('mouseup', endScratch);
+                canvas.addEventListener('mouseleave', endScratch);
+                
+                canvas.addEventListener('touchstart', handleTouchStart);
+                canvas.addEventListener('touchmove', handleTouchMove);
+                canvas.addEventListener('touchend', handleTouchEnd);
+                
+                // Canvasのサイズを設定
+                updateCanvasSize(canvas);
+                
+                // 描画コンテキストを保存
+                const ctx = canvas.getContext('2d');
+                ctxList[index] = ctx;
+                
+                // 銀色のレイヤーを描画
+                drawScratchLayer(ctx, canvas.width, canvas.height);
+            }
+            
+            // Canvasサイズを更新
+            function updateCanvasSize(canvas) {
+                const index = parseInt(canvas.dataset.index);
+                const box = document.querySelector(`.symbol-box[data-index="${index}"]`);
+                if (!box) return;
+                
+                const boxRect = box.getBoundingClientRect();
+                canvas.width = boxRect.width;
+                canvas.height = boxRect.height;
+            }
+            
+            // スクラッチレイヤーを描画
+            function drawScratchLayer(ctx, width, height) {
+                // グラデーションの設定
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, '#a0a0a0');
+                gradient.addColorStop(0.5, '#d0d0d0');
+                gradient.addColorStop(1, '#a0a0a0');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                
+                // スクラッチパターンを追加
+                ctx.save();
+                
+                // パターンの線を描画
+                for (let i = 0; i < width + height; i += 15) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(i, 0);
+                    ctx.stroke();
+                }
+                
+                for (let i = 0; i < width + height; i += 25) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(width, i);
+                    ctx.lineTo(i, height);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+            
+            // スクラッチ開始
+            function startScratch(e) {
+                if (!gameActive) return;
+                
+                e.preventDefault();
+                
+                // セルインデックスを取得
+                const index = parseInt(e.target.dataset.index);
+                if (isNaN(index)) return;
+                
+                // 既にスクラッチされたセルの場合は何もしない
+                if (scratchedCells[index]) return;
+                
+                // まだ選択されていないセルかつ既に最大数選択済みの場合は何もしない
+                if (!selectedCells.has(index)) {
+                    if (selectedCells.size >= MAX_SCRATCHES) {
+                        // 3マス選択済みなら何もさせない
+                        playSound('lastChance'); // 警告音
+                        return;
+                    }
+                    selectedCells.add(index); // 新規に選んだマスを登録
+                }
+                
+                // スクラッチ情報を初期化
+                const scratchInfo = {
+                    index: index,
+                    isDrawing: true,
+                    lastX: e.offsetX,
+                    lastY: e.offsetY
+                };
+                
+                // データをeventに追加
+                e.target.scratchInfo = scratchInfo;
+                
+                // 効果音を再生
+                playSound('scratch');
+                
+                // スクラッチ処理
+                doScratch(e.target, e.offsetX, e.offsetY);
+                
+                // スクラッチエフェクトを表示
+                showScratchEffect(index, e.offsetX, e.offsetY);
+            }
+            
+            // スクラッチ中
+            function scratchMove(e) {
+                if (!gameActive || !e.target.scratchInfo || !e.target.scratchInfo.isDrawing) return;
+                
+                e.preventDefault();
+                
+                const index = e.target.scratchInfo.index;
+                
+                // スクラッチ処理
+                doScratch(e.target, e.offsetX, e.offsetY);
+                
+                // スクラッチエフェクトを表示
+                showScratchEffect(index, e.offsetX, e.offsetY);
+            }
+            
+            // スクラッチ終了
+            function endScratch(e) {
+                if (!e.target.scratchInfo) return;
+                
+                e.target.scratchInfo.isDrawing = false;
+                
+                // スクラッチエフェクトを非表示
+                hideScratchEffect(e.target.scratchInfo.index);
+            }
+            
+            // タッチ開始
+            function handleTouchStart(e) {
+                if (!gameActive) return;
+                
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const canvas = e.target;
+                const rect = canvas.getBoundingClientRect();
+                
+                // セルインデックスを取得
+                const index = parseInt(canvas.dataset.index);
+                if (isNaN(index)) return;
+                
+                // 既にスクラッチされたセルの場合は何もしない
+                if (scratchedCells[index]) return;
+                
+                // まだ選択されていないセルかつ既に最大数選択済みの場合は何もしない
+                if (!selectedCells.has(index)) {
+                    if (selectedCells.size >= MAX_SCRATCHES) {
+                        // 3マス選択済みなら何もさせない
+                        playSound('lastChance'); // 警告音
+                        return;
+                    }
+                    selectedCells.add(index); // 新規に選んだマスを登録
+                }
+                
+                // タッチ位置の相対座標を計算
+                const offsetX = touch.clientX - rect.left;
+                const offsetY = touch.clientY - rect.top;
+                
+                // スクラッチ情報を初期化
+                const scratchInfo = {
+                    index: index,
+                    isDrawing: true,
+                    lastX: offsetX,
+                    lastY: offsetY
+                };
+                
+                // データをeventに追加
+                canvas.scratchInfo = scratchInfo;
+                
+                // 効果音を再生
+                playSound('scratch');
+                
+                // スクラッチ処理
+                doScratch(canvas, offsetX, offsetY);
+                
+                // スクラッチエフェクトを表示
+                showScratchEffect(index, offsetX, offsetY);
+            }
+            
+            // タッチ移動
+            function handleTouchMove(e) {
+                if (!gameActive || !e.target.scratchInfo || !e.target.scratchInfo.isDrawing) return;
+                
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const canvas = e.target;
+                const rect = canvas.getBoundingClientRect();
+                const index = e.target.scratchInfo.index;
+                
+                // タッチ位置の相対座標を計算
+                const offsetX = touch.clientX - rect.left;
+                const offsetY = touch.clientY - rect.top;
+                
+                // スクラッチ処理
+                doScratch(canvas, offsetX, offsetY);
+                
+                // スクラッチエフェクトを表示
+                showScratchEffect(index, offsetX, offsetY);
+            }
+            
+            // タッチ終了
+            function handleTouchEnd(e) {
+                if (!e.target.scratchInfo) return;
+                
+                const index = e.target.scratchInfo.index;
+                e.target.scratchInfo.isDrawing = false;
+                
+                // スクラッチエフェクトを非表示
+                hideScratchEffect(index);
+            }
+            
+            // スクラッチエフェクトを表示
+            function showScratchEffect(index, x, y) {
+                const box = document.querySelector(`.symbol-box[data-index="${index}"]`);
+                if (!box) return;
+                
+                const effect = box.querySelector('.scratch-effect');
+                if (!effect) return;
+                
+                // エフェクトの位置を設定
+                effect.style.left = `${x - 15}px`;
+                effect.style.top = `${y - 15}px`;
+                effect.style.opacity = '1';
+                
+                // スパークルエフェクトを追加
+                createSparkles(box, x, y);
+            }
+            
+            // スクラッチエフェクトを非表示
+            function hideScratchEffect(index) {
+                const box = document.querySelector(`.symbol-box[data-index="${index}"]`);
+                if (!box) return;
+                
+                const effect = box.querySelector('.scratch-effect');
+                if (!effect) return;
+                
+                effect.style.opacity = '0';
+            }
+            
+            // スパークルエフェクトを作成
+            function createSparkles(box, x, y) {
+                for (let i = 0; i < 4; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'scratch-sparkle';
+                    
+                    // ランダムな位置に配置
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 15 + 10;
+                    const sparkleX = x + Math.cos(angle) * distance;
+                    const sparkleY = y + Math.sin(angle) * distance;
+                    
+                    sparkle.style.left = `${sparkleX}px`;
+                    sparkle.style.top = `${sparkleY}px`;
+                    
+                    // アニメーション
+                    sparkle.style.animation = `sparkle ${Math.random() * 0.5 + 0.2}s ease-out`;
+                    
+                    box.appendChild(sparkle);
+                    
+                    // アニメーション終了後に削除
+                    setTimeout(() => {
+                        sparkle.remove();
+                    }, 700);
+                }
+            }
+            
+            // スクラッチ処理
+            function doScratch(canvas, x, y) {
+                const info = canvas.scratchInfo;
+                const index = info.index;
+                const ctx = ctxList[index];
+                
+                if (!ctx) return;
+                
+                // スクラッチの線を描画
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 30;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                
+                ctx.beginPath();
+                ctx.moveTo(info.lastX, info.lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                // 最後の位置を更新
+                info.lastX = x;
+                info.lastY = y;
+                
+                // スクラッチ割合を計算
+                calculateScratchPercentage(index);
+                
+                // スクラッチセルを更新
+                updateScratchedCell(index);
+            }
+            
+            // スクラッチ割合の計算
+            function calculateScratchPercentage(index) {
+                const canvas = canvasList[index];
+                const ctx = ctxList[index];
+                
+                if (!canvas || !ctx) return;
+                
+                // ピクセルデータを取得
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                // 透明ピクセルをカウント
+                let transparentPixels = 0;
+                for (let i = 3; i < data.length; i += 4) {
+                    if (data[i] === 0) { // 完全に透明
+                        transparentPixels++;
+                    }
+                }
+                
+                // 割合を計算（%）
+                const totalPixels = data.length / 4;
+                const percentage = (transparentPixels / totalPixels) * 100;
+                
+                // 状態を更新
+                scratchPercentages[index] = percentage;
+            }
+            
+            // スクラッチセルを更新
+            function updateScratchedCell(index) {
+                // 通常のスクラッチしきい値または中央がスクラッチされたかチェック
+                const percentage = scratchPercentages[index];
+                const cleared = percentage >= SCRATCH_THRESHOLD || isCenterCleared(index);
+                
+                if (cleared && !scratchedCells[index]) {
+                    // 完全に削られた場合
+                    scratchedCells[index] = true;
+                    
+                    // オーバーレイを完全に削除
+                    const overlay = document.querySelector(`.symbol-box[data-index="${index}"] .scratch-overlay`);
+                    if (overlay) overlay.style.opacity = '0';
+                    
+                    // 削れたセルを追跡
+                    if (!revealedCells.includes(index)) {
+                        revealedCells.push(index);
+                        
+                        // スクラッチ可能なセルから削除
+                        scratchableIndices.delete(index);
+                        
+                        // 残りスクラッチ回数を減らす
+                        decrementScratches();
+                        
+                        // アニメーション効果
+                        const box = document.querySelector(`.symbol-box[data-index="${index}"]`);
+                        if (box) box.classList.add('revealed');
+                        setTimeout(() => {
+                            if (box) box.classList.remove('revealed');
+                        }, 500);
+                        
+                        // 効果音を再生
+                        playSound('reveal');
+                        
+                        // 修正: ボーナスシンボルチェック
+                        if (symbols[index] === BONUS_SYMBOL) {
+                            checkBonusPayout(index);
+                        }
+                    }
+                    
+                    // 勝利条件チェック
+                    checkWinCondition();
+                }
+            }
+            
+            // 修正: ボーナス支払いチェック
+            function checkBonusPayout(index) {
+                if (!gameActive) return;
+                
+                // ボーナスシンボルが見つかった場合、支払い
+                balance += BONUS_PAYOUT;
+                balanceAmount.textContent = balance;
+                
+                // ボーナス通知を表示
+                bonusNotification.textContent = `+${BONUS_PAYOUT}円!`;
+                bonusNotification.classList.add('show');
+                
+                // 効果音を再生
+                playSound('bonus');
+                
+                // 通知を自動的に非表示
+                setTimeout(() => {
+                    bonusNotification.classList.remove('show');
+                }, 1500);
+                
+                // ゴールド会員ステータスをチェック
+                checkGoldUpgrade();
+            }
+            
+            // スクラッチ回数を減らす
+            function decrementScratches() {
+                if (remainingScratches > 0) {
+                    remainingScratches--;
+                    scratchCounter.textContent = remainingScratches;
+                    
+                    // 残り1回の場合は警告表示
+                    if (remainingScratches === 1) {
+                        scratchCounter.classList.add('warning');
+                        playSound('lastChance');
+                        scratchLimitWarning.classList.add('show');
+                        
+                        // 2秒後に警告を非表示
+                        setTimeout(() => {
+                            scratchLimitWarning.classList.remove('show');
+                        }, 2000);
+                    }
+                    
+                    // スクラッチが尽きた場合
+                    if (remainingScratches === 0) {
+                        // 結果を表示（少し遅延）
+                        setTimeout(checkWinCondition, 500);
+                    }
+                }
+            }
+            
+            // 追加: 2つ揃いチェック
+            function checkTwoMatches() {
+                // 全シンボルをチェック
+                const symbolCounts = {};
+                
+                // 見つかったシンボルをカウント
+                revealedCells.forEach(index => {
+                    const symbol = symbols[index];
+                    symbolCounts[symbol] = (symbolCounts[symbol] || 0) + 1;
+                });
+                
+                // 2つ揃いのシンボルがあるか確認
+                let twoMatchSymbol = null;
+                for (const symbol in symbolCounts) {
+                    if (symbolCounts[symbol] === 2) {
+                        twoMatchSymbol = symbol;
+                        break;
+                    }
+                }
+                
+                return twoMatchSymbol;
+            }
+            
+            // 勝利条件をチェック
+            function checkWinCondition() {
+                if (!gameActive) return;
+                
+                let shouldShowResult = false;
+                
+                if (gameResult.isWin) {
+                    // 当たりパターンのシンボルが全て見つかったか確認
+                    const winningRevealed = gameResult.positions.filter(pos => revealedCells.includes(pos));
+                    
+                    if (winningRevealed.length === 3) {
+                        // 当たりパターンが全て見つかった
+                        shouldShowResult = true;
+                        // 勝利パターンを表示
+                        showWinPattern();
+                    } else if (remainingScratches === 0) {
+                        // スクラッチが尽きた場合
+                        shouldShowResult = true;
+                    }
+                } else if (remainingScratches === 0) {
+                    // ハズレの場合、スクラッチが尽きたら結果表示
+                    shouldShowResult = true;
+                }
+                
+                // 結果表示
+                if (shouldShowResult) {
+                    showResult();
+                }
+            }
+            
+            // 結果を表示
+            function showResult() {
+                gameActive = false;
+                
+                // 結果パネルを表示
+                resultPanel.classList.add('show');
+                
+                if (gameResult.isWin && gameResult.positions.every(pos => revealedCells.includes(pos))) {
+                    // 当たりの場合
+                    document.body.classList.add('win-bg');
+                    document.querySelector('.game-container').classList.add('win-effect');
+                    
+                    resultMessage.textContent = `おめでとう！${gameResult.prize}円の当たり！`;
+                    resultMessage.className = 'result-message win-message';
+                    resultDetail.textContent = `${gameResult.winningSymbol} が3つ揃いました！`;
+                    
+                    // 所持金を増やす
+                    balance += gameResult.prize;
+                    balanceAmount.textContent = balance;
+                    
+                    // ゴールド会員ステータスをチェック
+                    checkGoldUpgrade();
+                    
+                    // 勝利音を再生
+                    if (gameResult.prize >= 5000) {
+                        playSound('jackpot');
+                    } else {
+                        playSound('win');
+                    }
+                    
+                    // 大きな当たりの場合はコンフェティを表示
+                    if (gameResult.prize >= 3000) {
+                        createConfetti();
+                    }
+                } else {
+                    // 追加: 2つ揃いのチェック
+                    const twoMatchSymbol = checkTwoMatches();
+                    
+                    if (twoMatchSymbol) {
+                        // 2つ揃いの場合は小当たり
+                        document.body.classList.add('win-bg');
+                        document.querySelector('.game-container').classList.add('win-effect');
+                        
+                        resultMessage.textContent = `おめでとう！${TWO_MATCH_PAYOUT}円の当たり！`;
+                        resultMessage.className = 'result-message win-message';
+                        resultDetail.textContent = `${twoMatchSymbol} が2つ揃いました！`;
+                        
+                        // 所持金を増やす
+                        balance += TWO_MATCH_PAYOUT;
+                        balanceAmount.textContent = balance;
+                        
+                        // ゴールド会員ステータスをチェック
+                        checkGoldUpgrade();
+                        
+                        // 勝利音を再生
+                        playSound('win');
+                    } else {
+                        // 完全なハズレの場合
+                        resultMessage.textContent = 'ハズレ！次回に挑戦しよう！';
+                        resultMessage.className = 'result-message lose-message';
+                        
+                        if (gameResult.isWin && !gameResult.positions.every(pos => revealedCells.includes(pos))) {
+                            resultDetail.textContent = '惜しい！当たりを見逃してしまいました。';
+                        } else {
+                            resultDetail.textContent = '揃うシンボルがありませんでした。';
+                        }
+                        
+                        // ハズレ音を再生
+                        playSound('lose');
+                        
+                        // 修正: 残高が少ない場合に無料券を付与
+                        if (balance < TICKET_PRICE && !hasFreeTicket) {
+                            hasFreeTicket = true;
+                            freeTicketBadge.style.display = 'block';
+                            
+                            // 詳細メッセージに追加
+                            resultDetail.textContent += ' 無料券をゲットしました！';
+                        }
+                    }
+                }
+                
+                // 次のゲームボタンを表示
+                nextGameBtn.style.display = 'block';
+            }
+            
+            // コンフェッティ効果
+            function createConfetti() {
+                const confettiCount = 100;
+                const colors = ['#ffd700', '#ff0000', '#00ff00', '#0000ff', '#ff00ff', '#00ffff', '#ff8c00', '#ffffff'];
+                
+                for (let i = 0; i < confettiCount; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = -10 + 'px';
+                    confetti.style.width = Math.random() * 10 + 5 + 'px';
+                    confetti.style.height = Math.random() * 8 + 4 + 'px';
+                    
+                    // 様々な形状
+                    if (Math.random() > 0.5) {
+                        confetti.style.borderRadius = '50%';
+                    } else if (Math.random() > 0.5) {
+                        confetti.style.borderRadius = '5px';
+                    }
+                    
+                    confetti.style.opacity = '1';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    confetti.style.animation = `fall ${Math.random() * 3 + 2}s ease-in forwards ${Math.random() * 1.5}s`;
+                    
+                    document.body.appendChild(confetti);
+                    
+                    // アニメーション終了後に要素を削除
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }
+            }
+            
+            // 配列をシャッフルする関数
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+            
+            // リサイズイベント処理
+            window.addEventListener('resize', function() {
+                if (gameActive) {
+                    canvasList.forEach(canvas => {
+                        updateCanvasSize(canvas);
+                        
+                        const index = parseInt(canvas.dataset.index);
+                        if (!isNaN(index) && ctxList[index]) {
+                            drawScratchLayer(ctxList[index], canvas.width, canvas.height);
+                            
+                            // すでにスクラッチされている場合は更新
+                            if (scratchPercentages[index] >= SCRATCH_THRESHOLD) {
+                                ctxList[index].clearRect(0, 0, canvas.width, canvas.height);
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // 初期化を実行
+            init();
+        });
+    </script>
+</body>
+</html>
