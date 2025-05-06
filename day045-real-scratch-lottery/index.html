@@ -230,12 +230,13 @@
         
         .scratch-counter {
             position: absolute;
-            top: -20px;
+            top: -15px;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(0, 0, 0, 0.7);
             border-radius: 20px;
             padding: 8px 15px;
+            min-width: 100px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -246,6 +247,7 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
             z-index: 10;
             transition: all 0.3s ease;
+            text-align: center;
         }
         
         .scratch-counter.warning {
@@ -254,11 +256,10 @@
         }
         
         @keyframes pulse {
-            0%   { transform: translateX(-50%) scale(1);   }
-            50%  { transform: translateX(-50%) scale(1.1); }
-            100% { transform: translateX(-50%) scale(1);   }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
-
         
         /* ロード時のアニメーション */
         .loading-overlay {
@@ -757,11 +758,14 @@
             
             // 新しいゲームを開始
             function startNewGame() {
+                // ゲームがアクティブな場合は開始しない
+                if (gameActive) {
+                    return;
+                }
+                
                 // 無料券があるか残高が十分かチェック
-                if (gameActive || (!hasFreeTicket && balance < TICKET_PRICE)) {
-                    if (!hasFreeTicket && balance < TICKET_PRICE) {
-                        alert('所持金が足りません！');
-                    }
+                if (!hasFreeTicket && balance < TICKET_PRICE) {
+                    alert('所持金が足りません！');
                     return;
                 }
                 
