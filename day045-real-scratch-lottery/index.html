@@ -199,6 +199,7 @@
             display: flex;
             justify-content: center;
             margin-top: 15px;
+            margin-bottom: 20px;
         }
         
         .btn {
@@ -229,16 +230,16 @@
         
         .scratch-counter {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: rgba(0, 0, 0, 0.6);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 8px 15px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: bold;
             color: #fff;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -253,10 +254,11 @@
         }
         
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0%   { transform: translateX(-50%) scale(1);   }
+            50%  { transform: translateX(-50%) scale(1.1); }
+            100% { transform: translateX(-50%) scale(1);   }
         }
+
         
         /* ロード時のアニメーション */
         .loading-overlay {
@@ -577,16 +579,26 @@
             <div class="gold-member-badge" id="goldMemberBadge">ゴールド会員</div>
         </div>
         
+        <div class="scratch-counter" id="scratchCounter">残り: 3</div>
         <div class="card-container" id="cardContainer">
             <div class="card-background"></div>
             <div class="card-grid" id="symbolGrid"></div>
-            <div class="scratch-counter" id="scratchCounter">3</div>
             <div class="win-pattern-highlight" id="winPatternHighlight"></div>
             <div class="scratch-limit-warning" id="scratchLimitWarning">残り1回のスクラッチ！</div>
             <div class="bonus-notification" id="bonusNotification">+100円!</div>
         </div>
         
-        <!-- 修正：ルール表示を常に表示 -->
+        <!-- 修正：結果パネルと次のくじボタンを先に表示 -->
+        <div class="result-panel" id="resultPanel">
+            <div class="result-message" id="resultMessage"></div>
+            <div class="result-detail" id="resultDetail"></div>
+        </div>
+        
+        <div class="action-button">
+            <button class="btn" id="nextGameBtn">次のくじを買う</button>
+        </div>
+        
+        <!-- 修正：ルール表示を最後に移動 -->
         <div class="rules-panel">
             <div class="rules-header">当選ルール</div>
             <table class="rules-table">
@@ -626,15 +638,6 @@
                 ・所持金が5,000円を超えると、ゴールド会員になり当選確率アップ！<br>
                 ・所持金が500円未満でハズレると、1回無料でくじが引けます
             </div>
-        </div>
-        
-        <div class="result-panel" id="resultPanel">
-            <div class="result-message" id="resultMessage"></div>
-            <div class="result-detail" id="resultDetail"></div>
-        </div>
-        
-        <div class="action-button">
-            <button class="btn" id="nextGameBtn">次のくじを買う</button>
         </div>
     </div>
     
@@ -713,6 +716,10 @@
             // 修正: ゴールド会員フラグ
             let isGoldMember = false;
             
+            // 修正: ボーナスシンボルのカウントと支払い状況の追跡
+            let bonusSymbolsRevealed = 0;
+            let bonusSymbolsPaid = 0;
+            
             // 初期化
             function init() {
                 // 金額の初期表示
@@ -781,7 +788,7 @@
                     
                     // スクラッチ回数をリセット
                     remainingScratches = MAX_SCRATCHES;
-                    scratchCounter.textContent = remainingScratches;
+                    scratchCounter.textContent = `残り: ${remainingScratches}`;
                     scratchCounter.classList.remove('warning');
                     
                     // 結果パネルを隠す
@@ -813,6 +820,10 @@
                     
                     // 次のゲームボタンを非表示
                     nextGameBtn.style.display = 'none';
+                    
+                    // 修正: ボーナスシンボルの追跡をリセット
+                    bonusSymbolsRevealed = 0;
+                    bonusSymbolsPaid = 0;
                     
                     // ローディング非表示
                     loadingOverlay.classList.remove('show');
@@ -1536,6 +1547,7 @@
                         
                         // 修正: ボーナスシンボルチェック
                         if (symbols[index] === BONUS_SYMBOL) {
+                            bonusSymbolsRevealed++;
                             checkBonusPayout(index);
                         }
                     }
@@ -1549,9 +1561,13 @@
             function checkBonusPayout(index) {
                 if (!gameActive) return;
                 
+                // 既に支払い済みのボーナスシンボルはスキップ
+                if (bonusSymbolsPaid >= bonusSymbolsRevealed) return;
+                
                 // ボーナスシンボルが見つかった場合、支払い
                 balance += BONUS_PAYOUT;
                 balanceAmount.textContent = balance;
+                bonusSymbolsPaid++;
                 
                 // ボーナス通知を表示
                 bonusNotification.textContent = `+${BONUS_PAYOUT}円!`;
@@ -1573,7 +1589,7 @@
             function decrementScratches() {
                 if (remainingScratches > 0) {
                     remainingScratches--;
-                    scratchCounter.textContent = remainingScratches;
+                    scratchCounter.textContent = `残り: ${remainingScratches}`;
                     
                     // 残り1回の場合は警告表示
                     if (remainingScratches === 1) {
@@ -1624,7 +1640,32 @@
                 
                 let shouldShowResult = false;
                 
-                if (gameResult.isWin) {
+                // 修正: クローバー3つ揃いのチェックを追加
+                if (bonusSymbolsRevealed === 3 && !winPatternShown) {
+                    // クローバーが3つ揃った場合は特別に勝利パターンを作成
+                    const cloverIndices = [];
+                    for (let i = 0; i < symbols.length; i++) {
+                        if (symbols[i] === BONUS_SYMBOL && revealedCells.includes(i)) {
+                            cloverIndices.push(i);
+                        }
+                    }
+                    
+                    if (cloverIndices.length === 3) {
+                        // クローバー3つ揃いの勝利パターンを設定
+                        gameResult = {
+                            isWin: true,
+                            winningSymbol: BONUS_SYMBOL,
+                            prize: 1000,
+                            positions: cloverIndices,
+                            patternType: { type: 'special', position: 'clover' }
+                        };
+                        
+                        // 勝利パターンを表示
+                        showWinPattern();
+                        shouldShowResult = true;
+                    }
+                }
+                else if (gameResult.isWin) {
                     // 当たりパターンのシンボルが全て見つかったか確認
                     const winningRevealed = gameResult.positions.filter(pos => revealedCells.includes(pos));
                     
@@ -1705,26 +1746,36 @@
                         // 勝利音を再生
                         playSound('win');
                     } else {
-                        // 完全なハズレの場合
-                        resultMessage.textContent = 'ハズレ！次回に挑戦しよう！';
-                        resultMessage.className = 'result-message lose-message';
-                        
-                        if (gameResult.isWin && !gameResult.positions.every(pos => revealedCells.includes(pos))) {
-                            resultDetail.textContent = '惜しい！当たりを見逃してしまいました。';
-                        } else {
-                            resultDetail.textContent = '揃うシンボルがありませんでした。';
-                        }
-                        
-                        // ハズレ音を再生
-                        playSound('lose');
-                        
-                        // 修正: 残高が少ない場合に無料券を付与
-                        if (balance < TICKET_PRICE && !hasFreeTicket) {
-                            hasFreeTicket = true;
-                            freeTicketBadge.style.display = 'block';
+                        // 完全なハズレの場合（ボーナスシンボルがある場合は除く）
+                        if (bonusSymbolsRevealed === 0) {
+                            resultMessage.textContent = 'ハズレ！次回に挑戦しよう！';
+                            resultMessage.className = 'result-message lose-message';
                             
-                            // 詳細メッセージに追加
-                            resultDetail.textContent += ' 無料券をゲットしました！';
+                            if (gameResult.isWin && !gameResult.positions.every(pos => revealedCells.includes(pos))) {
+                                resultDetail.textContent = '惜しい！当たりを見逃してしまいました。';
+                            } else {
+                                resultDetail.textContent = '揃うシンボルがありませんでした。';
+                            }
+                            
+                            // ハズレ音を再生
+                            playSound('lose');
+                            
+                            // 修正: 残高が少ない場合に無料券を付与
+                            if (balance < TICKET_PRICE && !hasFreeTicket) {
+                                hasFreeTicket = true;
+                                freeTicketBadge.style.display = 'block';
+                                
+                                // 詳細メッセージに追加
+                                resultDetail.textContent += ' 無料券をゲットしました！';
+                            }
+                        } else {
+                            // ボーナスシンボルがあった場合
+                            resultMessage.textContent = `${bonusSymbolsRevealed * BONUS_PAYOUT}円獲得！`;
+                            resultMessage.className = 'result-message win-message';
+                            resultDetail.textContent = `${BONUS_SYMBOL} が${bonusSymbolsRevealed}つ見つかりました！`;
+                            
+                            // 勝利音を再生
+                            playSound('win');
                         }
                     }
                 }
