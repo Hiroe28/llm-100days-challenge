@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/llm-100days-challenge/day046-sound-novel-maker/static/css/main.c4614acd.css",
+    "main.js": "/llm-100days-challenge/day046-sound-novel-maker/static/js/main.568b33ed.js",
+    "index.html": "/llm-100days-challenge/day046-sound-novel-maker/index.html",
+    "main.c4614acd.css.map": "/llm-100days-challenge/day046-sound-novel-maker/static/css/main.c4614acd.css.map",
+    "main.568b33ed.js.map": "/llm-100days-challenge/day046-sound-novel-maker/static/js/main.568b33ed.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.c4614acd.css",
+    "static/js/main.568b33ed.js"
+  ]
+}
