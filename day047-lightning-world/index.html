@@ -21,10 +21,12 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            font-family: 'M PLUS Rounded 1c', sans-serif;
+            font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, sans-serif;
             touch-action: manipulation;
             position: relative;
             background-color: #000;
+            height: 100%;
+            width: 100%;
         }
         
         @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700&display=swap');
@@ -129,23 +131,32 @@
         
         .ui-container {
             position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 10px;
+            left: 0;
+            right: 0;
             z-index: 100;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 90%;
+            justify-content: center;
+            width: 100%;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* ボタンコンテナのレイアウト変更 */
+        .button-container {
+            width: 95%;
             max-width: 600px;
+            margin: 0 auto;
         }
         
         .controls {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
             width: 100%;
         }
         
@@ -153,8 +164,8 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
             width: 100%;
         }
         
@@ -162,8 +173,8 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
             width: 100%;
             display: none;
         }
@@ -171,8 +182,8 @@
         .theme-selector {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 8px;
             width: 100%;
         }
         
@@ -180,11 +191,11 @@
             background: rgba(46, 51, 90, 0.8);
             color: white;
             border: 2px solid #a3a7cc;
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 16px;
-            font-family: 'M PLUS Rounded 1c', sans-serif;
+            font-size: 14px;
+            font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 700;
             transition: all 0.3s;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -192,6 +203,11 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            min-height: 36px;
+            touch-action: manipulation;
         }
         
         button:hover {
@@ -210,8 +226,10 @@
         }
         
         .theme-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
             border-radius: 50%;
             padding: 0;
         }
@@ -372,10 +390,10 @@
             transform: translateX(-50%) translateY(-50%);
             background: rgba(46, 51, 90, 0.9);
             color: white;
-            padding: 20px 30px;
+            padding: 20px;
             border-radius: 20px;
             font-size: 24px;
-            max-width: 80%;
+            max-width: 90%;
             text-align: center;
             z-index: 150;
             display: none;
@@ -394,16 +412,20 @@
             background: rgba(0, 170, 70, 0.9);
             color: white;
             border: 2px solid #80ffaa;
-            padding: 12px 30px;
+            padding: 12px 25px;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 20px;
-            font-family: 'M PLUS Rounded 1c', sans-serif;
+            font-size: 18px;
+            font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 700;
             transition: all 0.3s;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             margin-top: 20px;
             display: inline-block;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
         }
         
         .start-button:hover {
@@ -418,10 +440,10 @@
             transform: translateX(-50%) translateY(-50%) scale(0.9);
             background: rgba(46, 51, 90, 0.9);
             color: white;
-            padding: 30px 40px;
+            padding: 25px;
             border-radius: 20px;
-            font-size: 28px;
-            max-width: 80%;
+            font-size: 22px;
+            max-width: 90%;
             text-align: center;
             z-index: 150;
             display: none;
@@ -437,42 +459,45 @@
         }
         
         .result-title {
-            font-size: 32px;
-            margin-bottom: 20px;
+            font-size: 28px;
+            margin-bottom: 15px;
             color: #ffcc00;
         }
         
         .result-score {
-            font-size: 48px;
+            font-size: 44px;
             margin-bottom: 10px;
             color: #ffffff;
         }
         
         .result-stats {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 20px;
             color: #c3b2ff;
         }
         
         .result-message {
-            margin-bottom: 30px;
-            font-size: 20px;
+            margin-bottom: 25px;
+            font-size: 18px;
         }
         
         .retry-button {
             background: rgba(116, 97, 195, 0.9);
             color: white;
             border: 2px solid #c3b2ff;
-            padding: 10px 30px;
+            padding: 10px 25px;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 18px;
             margin-top: 10px;
             transition: all 0.3s;
-            /* ボタンを中央揃えするための追加 */
             display: block;
             margin-left: auto;
             margin-right: auto;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
         }
         
         .retry-button:hover {
@@ -487,8 +512,9 @@
         }
         
         .emoji {
-            font-size: 24px;
+            font-size: 18px;
             margin-right: 5px;
+            display: inline-block;
         }
         
         .impact-effect {
@@ -513,6 +539,27 @@
             transition: transform 1s, opacity 1s;
         }
         
+        /* 情報表示バナー */
+        .info-banner {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffe0a0;
+            text-align: center;
+            padding: 5px 10px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+        
+        .info-banner.show {
+            opacity: 1;
+        }
+        
         /* モーション削減への対応 */
         @media (prefers-reduced-motion: reduce) {
             .target {
@@ -520,29 +567,34 @@
             }
         }
         
-        /* レスポンシブデザイン */
+        /* レスポンシブデザイン - 修正：Safari対応 */
         @media (max-width: 768px) {
             button {
                 padding: 8px 12px;
                 font-size: 14px;
-            }
-            
-            .ui-container {
-                bottom: 10px;
+                min-height: 36px;
             }
             
             .theme-btn {
-                width: 34px;
-                height: 34px;
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                min-height: 32px;
             }
             
-            .mode-selector, .controls, .difficulty-selector {
-                gap: 6px;
+            .controls {
+                gap: 5px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .mode-selector, .difficulty-selector {
+                gap: 5px;
             }
             
             .message-box {
                 font-size: 18px;
-                padding: 15px 20px;
+                padding: 15px;
             }
             
             .instructions {
@@ -551,39 +603,116 @@
             
             .timer-display, .score-display {
                 font-size: 20px;
-                padding: 8px 20px;
+                padding: 8px 15px;
             }
             
             .combo-display, .level-display {
                 font-size: 16px;
-                padding: 6px 12px;
+                padding: 5px 10px;
             }
             
             .countdown {
-                font-size: 90px;
+                font-size: 80px;
             }
             
             .result-box {
-                padding: 20px 25px;
-                font-size: 22px;
+                padding: 20px;
+                font-size: 18px;
             }
             
             .result-title {
-                font-size: 26px;
+                font-size: 24px;
             }
             
             .result-score {
-                font-size: 36px;
+                font-size: 32px;
             }
             
             .retry-button {
-                font-size: 18px;
+                font-size: 16px;
                 padding: 8px 20px;
             }
             
             .start-button {
-                font-size: 18px;
-                padding: 10px 20px;
+                font-size: 16px;
+                padding: 8px 20px;
+            }
+        }
+        
+        /* 小さいスマホ画面 */
+        @media (max-width: 480px) {
+            .button-container {
+                width: 98%;
+            }
+            
+            button {
+                padding: 6px;
+                font-size: 12px;
+                min-height: 34px;
+            }
+            
+            .emoji {
+                font-size: 14px;
+                margin-right: 3px;
+            }
+            
+            .theme-btn {
+                width: 28px;
+                height: 28px;
+                min-width: 28px;
+                min-height: 28px;
+            }
+            
+            .theme-selector {
+                margin-bottom: 5px;
+            }
+            
+            .controls {
+                margin-bottom: 5px;
+                grid-template-columns: 1fr 1fr;
+                grid-gap: 4px;
+            }
+            
+            .mode-selector, .difficulty-selector {
+                gap: 4px;
+                margin-bottom: 5px;
+            }
+            
+            .result-title {
+                font-size: 22px;
+            }
+            
+            .result-score {
+                font-size: 28px;
+            }
+            
+            .result-stats {
+                font-size: 14px;
+            }
+            
+            .result-message {
+                font-size: 14px;
+            }
+        }
+        
+        /* 特に小さな画面での最終調整 */
+        @media (max-width: 360px) {
+            button {
+                padding: 4px 6px;
+                font-size: 11px;
+                min-height: 30px;
+            }
+            
+            .emoji {
+                font-size: 12px;
+                margin-right: 2px;
+            }
+            
+            .theme-btn {
+                width: 24px;
+                height: 24px;
+                min-width: 24px;
+                min-height: 24px;
             }
         }
     </style>
@@ -593,6 +722,8 @@
         <div class="background" id="background"></div>
         <div class="moon" id="moon"></div>
         <div class="stars" id="starsContainer"></div>
+        
+        <div class="info-banner" id="infoBanner">スマホモードで表示中 - パフォーマンス最適化済み</div>
         
         <div class="game-header">
             <div class="timer-display" id="timerDisplay">あと30秒</div>
@@ -626,27 +757,29 @@
         </div>
         
         <div class="ui-container">
-            <div class="theme-selector">
-                <button id="nightTheme" class="theme-btn active" title="夜のテーマ"></button>
-                <button id="sunsetTheme" class="theme-btn" title="夕焼けテーマ"></button>
-                <button id="fantasyTheme" class="theme-btn" title="ファンタジーテーマ"></button>
-            </div>
-            
-            <div class="mode-selector">
-                <button id="normalMode" class="active"><span class="emoji">⚡</span>ふつうモード</button>
-                <button id="gameMode"><span class="emoji">🎮</span>ゲームモード</button>
-            </div>
-            
-            <div class="difficulty-selector" id="difficultySelector">
-                <button id="easyMode" class="active"><span class="emoji">😊</span>かんたん</button>
-                <button id="normalDifficulty"><span class="emoji">😐</span>ふつう</button>
-                <button id="hardMode"><span class="emoji">😆</span>むずかしい</button>
-            </div>
-            
-            <div class="controls">
-                <button id="playButton"><span class="emoji">🔄</span>自動雷 ON</button>
-                <button id="soundButton"><span class="emoji">🔊</span>音 ON</button>
-                <button id="infoButton"><span class="emoji">ℹ️</span>説明</button>
+            <div class="button-container">
+                <div class="theme-selector">
+                    <button id="nightTheme" class="theme-btn active" title="夜のテーマ"></button>
+                    <button id="sunsetTheme" class="theme-btn" title="夕焼けテーマ"></button>
+                    <button id="fantasyTheme" class="theme-btn" title="ファンタジーテーマ"></button>
+                </div>
+                
+                <div class="mode-selector">
+                    <button id="normalMode" class="active"><span class="emoji">⚡</span>ふつうモード</button>
+                    <button id="gameMode"><span class="emoji">🎮</span>ゲームモード</button>
+                </div>
+                
+                <div class="difficulty-selector" id="difficultySelector">
+                    <button id="easyMode" class="active"><span class="emoji">😊</span>かんたん</button>
+                    <button id="normalDifficulty"><span class="emoji">😐</span>ふつう</button>
+                    <button id="hardMode"><span class="emoji">😆</span>むずかしい</button>
+                </div>
+                
+                <div class="controls">
+                    <button id="playButton"><span class="emoji">🔄</span>自動雷 ON</button>
+                    <button id="soundButton"><span class="emoji">🔊</span>音 ON</button>
+                    <button id="infoButton"><span class="emoji">ℹ️</span>説明</button>
+                </div>
             </div>
         </div>
     </div>
@@ -698,7 +831,7 @@
             
             let currentDifficulty = 'easy'; // デフォルトの難易度
             
-            // 音声ファイルパス - これらは実際のファイルに置き換えてください
+            // 音声ファイルパス
             const THUNDER_SOUNDS = [
                 'sounds/thunder1.mp3',
                 'sounds/thunder2.mp3',
@@ -774,6 +907,7 @@
             const resultStats = document.getElementById('resultStats');
             const resultMessage = document.getElementById('resultMessage');
             const retryButton = document.getElementById('retryButton');
+            const infoBanner = document.getElementById('infoBanner');
             
             // SVG名前空間
             const svgNS = "http://www.w3.org/2000/svg";
@@ -796,7 +930,22 @@
             let targetMovementTimerId = null;
             let targetsActive = [];
             let countdownActive = false;
-            let messageHideTimeout = null; // メッセージの自動消去タイマー変数を追加
+            let messageHideTimeout = null; // メッセージの自動消去タイマー変数
+            let audioContext = null; // Web Audio API用
+            let audioInitialized = false; // 音声初期化フラグ
+            let audioUnlocked = false; // 音声再生ロック解除フラグ
+            let highQualityMode = false; // 品質モード（高品質/スマホモード）、デフォルトでスマホモード
+            
+            // モバイルデバイスかどうか判定
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // iOSかどうか判定
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            // フルサイズPCからのアクセスの場合は高品質モードに設定
+            if (!isMobile) {
+                highQualityMode = true;
+            }
             
             // ターゲットの移動に関する変数
             let targetVelocityX = 0;
@@ -816,20 +965,126 @@
                 rects: []
             };
             
-            // Audio要素プール
-            const audioPool = [];
-            for (let i = 0; i < 5; i++) {
-                const audio = new Audio();
-                audio.volume = 0.5;
-                audioPool.push(audio);
+            // 修正: 音声用のオブジェクトを格納する単一のオブジェクト
+            const audioElements = {
+                thunder: null,
+                click: null,
+                success: null,
+                fail: null,
+                countdown: null,
+                start: null,
+                levelup: null,
+                combo: null
+            };
+            
+            // 品質モードに応じた情報バナー表示
+            function showQualityBanner() {
+                if (isMobile) {
+                    infoBanner.innerText = "スマホモードで表示中 - パフォーマンス最適化済み";
+                    infoBanner.classList.add('show');
+                    
+                    setTimeout(() => {
+                        infoBanner.classList.remove('show');
+                    }, 5000);
+                }
             }
             
-            // 効果音プール
-            const sfxPool = {};
-            for (const [key, url] of Object.entries(SFX)) {
-                sfxPool[key] = new Audio();
-                sfxPool[key].src = url;
-                sfxPool[key].volume = 0.3;
+            // オーディオシステムのロック解除（特にiOS用）
+            function unlockAudio() {
+                if (audioUnlocked) return;
+                
+                // まだ初期化されていない場合
+                if (!audioInitialized) {
+                    initAudio();
+                }
+                
+                // タッチ/クリックイベントで一度だけ無音を再生して解除
+                const silentSound = new Audio();
+                silentSound.autoplay = true;
+                
+                // iOS Safariでの自動再生許可
+                silentSound.src = "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV6urq6urq6urq6urq6urq6urq6urq6urq6v////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAASDs90hvAAAAAAAAAAAAAAAAAAAA//MUZAAAAAGkAAAAAAAAA0gAAAAATEFN//MUZAMAAAGkAAAAAAAAA0gAAAAAOTku//MUZAkAAAGkAAAAAAAAA0gAAAAANVVV";
+                
+                silentSound.onended = function() {
+                    audioUnlocked = true;
+                    console.log("Audio unlocked");
+                };
+                
+                silentSound.play().catch(function(e) {
+                    console.log("Audio unlock failed: " + e);
+                });
+            }
+            
+            // 音声システムの初期化
+            function initAudio() {
+                if (audioInitialized) return;
+                
+                // 一定時間経過後に音声をクリーンアップする関数（メモリ管理用）
+                function cleanupAudio(audio) {
+                    if (audio) {
+                        setTimeout(function() {
+                            if (audio.paused) {
+                                audio.src = '';
+                            }
+                        }, 5000);
+                    }
+                }
+                
+                // シンプルな効果音を作成する関数
+                function createAudio(url) {
+                    const audio = new Audio();
+                    audio.preload = 'none'; // プリロードしない
+                    audio.src = url;
+                    audio.volume = 0.3;
+                    
+                    // iOSの場合は無音にして非同期ロード
+                    if (isIOS) {
+                        audio.volume = 0;
+                        audio.play().then(function() {
+                            audio.pause();
+                            audio.currentTime = 0;
+                            audio.volume = 0.3;
+                        }).catch(function() {
+                            // エラーは無視（後でunlockAudioで解決）
+                        });
+                    }
+                    
+                    return audio;
+                }
+                
+                // 必要最小限の音声素材だけを初期化
+                audioElements.click = createAudio(SFX.click);
+                
+                // フラグを設定
+                audioInitialized = true;
+            }
+            
+            // オーディオの遅延ロード
+            function loadAudio(type) {
+                if (!audioInitialized) {
+                    initAudio();
+                }
+                
+                if (!audioElements[type]) {
+                    switch (type) {
+                        case 'thunder':
+                            // ランダムな雷音を選択
+                            const soundIndex = Math.floor(Math.random() * THUNDER_SOUNDS.length);
+                            audioElements[type] = new Audio(THUNDER_SOUNDS[soundIndex]);
+                            audioElements[type].volume = 0.5;
+                            break;
+                        case 'click':
+                            // すでに初期化済み
+                            break;
+                        default:
+                            // その他の効果音
+                            if (SFX[type]) {
+                                audioElements[type] = new Audio(SFX[type]);
+                                audioElements[type].volume = 0.3;
+                            }
+                            break;
+                    }
+                }
             }
             
             // 星を作成
@@ -837,8 +1092,10 @@
                 // 既存の星を削除
                 starsContainer.innerHTML = '';
                 
-                // 新しい星を生成
-                const starCount = Math.min(window.innerWidth, window.innerHeight) / 3;
+                // モバイルモードでは星の数を減らす
+                const starCount = highQualityMode 
+                    ? Math.min(window.innerWidth, window.innerHeight) / 3
+                    : Math.min(window.innerWidth, window.innerHeight) / 6;
                 
                 for (let i = 0; i < starCount; i++) {
                     const star = document.createElement('div');
@@ -1072,7 +1329,6 @@
                         setTimeout(() => {
                             countdown.textContent = count;
                             countdown.classList.add('show');
-                            // 追加のカウントダウン音の再生を削除
                         }, 100);
                     } else {
                         // カウントダウン終了、ゲーム開始
@@ -1160,10 +1416,8 @@
                 
                 if (speed <= 0) return; // 移動速度が0以下なら動かさない
                 
-                // ランダムな初期方向
-                const angle = Math.random() * Math.PI * 2;
-                targetVelocityX = Math.cos(angle) * speed;
-                targetVelocityY = Math.sin(angle) * speed;
+                // モバイルモードかどうかによってフレームレート調整
+                const frameInterval = highQualityMode ? 20 : 30; // スマホモードでは更新頻度を下げる
                 
                 // 移動更新タイマー
                 targetMovementTimerId = setInterval(() => {
@@ -1224,7 +1478,7 @@
                         targetElem.style.left = `${newX}px`;
                         targetElem.style.top = `${newY}px`;
                     });
-                }, 20); // 滑らかな動きのために頻繁に更新
+                }, frameInterval);
             }
             
             // ゲームを終了
@@ -1572,10 +1826,49 @@
             function playSFX(type) {
                 if (!soundEnabled) return;
                 
-                const sfx = sfxPool[type];
-                if (sfx) {
-                    sfx.currentTime = 0;
-                    sfx.play().catch(e => console.log('SFX play failed:', e));
+                // 音声のロード
+                loadAudio(type);
+                
+                if (audioElements[type]) {
+                    // 音声が再生中なら停止
+                    if (!audioElements[type].paused) {
+                        audioElements[type].pause();
+                        audioElements[type].currentTime = 0;
+                    }
+                    
+                    // 再生試行
+                    audioElements[type].play().catch(function(e) {
+                        console.log('SFX play failed: ' + e);
+                        // エラー時は音声解除を試行
+                        unlockAudio();
+                    });
+                }
+            }
+            
+            // 雷の音を再生
+            function playThunderSound() {
+                if (!soundEnabled) return;
+                
+                // 雷音声のロード
+                loadAudio('thunder');
+                
+                // 雷オーディオが存在する場合のみ再生
+                if (audioElements.thunder) {
+                    // 音量設定
+                    audioElements.thunder.volume = 0.3 + Math.random() * 0.3;
+                    
+                    // 再生中なら現在の音を停止
+                    if (!audioElements.thunder.paused) {
+                        audioElements.thunder.pause();
+                        audioElements.thunder.currentTime = 0;
+                    }
+                    
+                    // 再生
+                    audioElements.thunder.play().catch(e => {
+                        console.log('Thunder sound play failed: ' + e);
+                        // エラー時は音声解除を試行
+                        unlockAudio();
+                    });
                 }
             }
             
@@ -1606,38 +1899,32 @@
                 gameActive = false;
             }
             
-            // オーディオ事前ロード（モバイル対応）
-            function preloadAudio() {
-                if (!soundEnabled) return;
-                
-                const audio = audioPool[0];
-                audio.src = THUNDER_SOUNDS[0];
-                audio.play().then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                }).catch(err => {
-                    console.log('Auto-play prevented: ' + err);
-                });
-                
-                // 効果音も事前ロード
-                for (const [key, sfx] of Object.entries(sfxPool)) {
-                    sfx.play().then(() => {
-                        sfx.pause();
-                        sfx.currentTime = 0;
-                    }).catch(err => {
-                        console.log(`SFX ${key} auto-play prevented: ${err}`);
-                    });
-                }
-            }
-            
-            // タッチイベントでオーディオ事前ロード
-            window.addEventListener('touchstart', function() {
-                preloadAudio();
-            }, { once: true });
-            
             // 雷のグロー効果用フィルター作成
             function createLightningFilter() {
-                // SVGにフィルターを追加
+                // モバイルモードでは簡略化
+                if (!highQualityMode) {
+                    // シンプルなフィルターのみ
+                    const filterDefs = document.createElementNS(svgNS, "defs");
+                    
+                    const filter = document.createElementNS(svgNS, "filter");
+                    filter.setAttribute("id", "lightningGlow");
+                    filter.setAttribute("x", "-30%");
+                    filter.setAttribute("y", "-30%");
+                    filter.setAttribute("width", "160%");
+                    filter.setAttribute("height", "160%");
+                    
+                    // ぼかし効果（軽量化）
+                    const gaussianBlur = document.createElementNS(svgNS, "feGaussianBlur");
+                    gaussianBlur.setAttribute("in", "SourceGraphic");
+                    gaussianBlur.setAttribute("stdDeviation", "5");
+                    filter.appendChild(gaussianBlur);
+                    
+                    filterDefs.appendChild(filter);
+                    svg.appendChild(filterDefs);
+                    return;
+                }
+                
+                // 高品質モード用の完全なフィルター
                 const filterDefs = document.createElementNS(svgNS, "defs");
                 
                 const filter = document.createElementNS(svgNS, "filter");
@@ -1687,8 +1974,14 @@
                 svg.appendChild(filterDefs);
             }
             
-            // 雷パスを生成する関数（より複雑で自然な形状に）
+            // 雷パスを生成する関数
             function generateLightningPath(startX, startY, endX, endY, displacementFactor, iterations, segmentLength = 30) {
+                // スマホモードでは単純化
+                if (!highQualityMode) {
+                    iterations = Math.min(iterations, 2); // 繰り返し回数を減らす
+                    segmentLength = Math.max(segmentLength, 40); // セグメント長を増やす
+                }
+                
                 let points = [];
                 points.push({ x: startX, y: startY });
                 
@@ -1734,37 +2027,40 @@
                 points.push({ x: endX, y: endY });
                 
                 // ジグザグ処理をさらに細かく（より雷らしく）
-                for (let iter = 0; iter < iterations; iter++) {
-                    let newPoints = [];
-                    for (let j = 0; j < points.length - 1; j++) {
-                        const start = points[j];
-                        const end = points[j + 1];
-                        newPoints.push(start);
-                        
-                        // 点間の中間点を計算
-                        const midX = (start.x + end.x) / 2;
-                        const midY = (start.y + end.y) / 2;
-                        
-                        // 中間点を変位
-                        const displacement = (Math.random() * 2 - 1) * displacementFactor / (iter + 1);
-                        const dx = end.x - start.x;
-                        const dy = end.y - start.y;
-                        const perpX = -dy;
-                        const perpY = dx;
-                        
-                        const length = Math.sqrt(perpX * perpX + perpY * perpY);
-                        if (length > 0) {
-                            const normalizedPerpX = perpX / length;
-                            const normalizedPerpY = perpY / length;
+                // スマホモードでは省略可能な場合もある
+                if (highQualityMode || Math.random() < 0.5) {
+                    for (let iter = 0; iter < iterations; iter++) {
+                        let newPoints = [];
+                        for (let j = 0; j < points.length - 1; j++) {
+                            const start = points[j];
+                            const end = points[j + 1];
+                            newPoints.push(start);
                             
-                            const newX = midX + normalizedPerpX * displacement;
-                            const newY = midY + normalizedPerpY * displacement;
+                            // 点間の中間点を計算
+                            const midX = (start.x + end.x) / 2;
+                            const midY = (start.y + end.y) / 2;
                             
-                            newPoints.push({ x: newX, y: newY });
+                            // 中間点を変位
+                            const displacement = (Math.random() * 2 - 1) * displacementFactor / (iter + 1);
+                            const dx = end.x - start.x;
+                            const dy = end.y - start.y;
+                            const perpX = -dy;
+                            const perpY = dx;
+                            
+                            const length = Math.sqrt(perpX * perpX + perpY * perpY);
+                            if (length > 0) {
+                                const normalizedPerpX = perpX / length;
+                                const normalizedPerpY = perpY / length;
+                                
+                                const newX = midX + normalizedPerpX * displacement;
+                                const newY = midY + normalizedPerpY * displacement;
+                                
+                                newPoints.push({ x: newX, y: newY });
+                            }
                         }
+                        newPoints.push(points[points.length - 1]);
+                        points = newPoints;
                     }
-                    newPoints.push(points[points.length - 1]);
-                    points = newPoints;
                 }
                 
                 return points;
@@ -1781,7 +2077,11 @@
             
             // 雷を生成する関数
             function createLightning(startX, startY, endX, endY, color, width, brightness = 1) {
-                const points = generateLightningPath(startX, startY, endX, endY, 40, 5, 20);
+                // モバイルモードでは単純化
+                const iterations = highQualityMode ? 5 : 2;
+                const segmentLength = highQualityMode ? 20 : 40;
+                
+                const points = generateLightningPath(startX, startY, endX, endY, 40, iterations, segmentLength);
                 const pathString = createPathString(points);
                 
                 const path = document.createElementNS(svgNS, "path");
@@ -1812,12 +2112,20 @@
                 
                 // 枝分かれの方向にランダム性を追加
                 const branchAngle = angle + (Math.random() * 1.5 - 0.5);
-                const branchLength = Math.random() * 300 + 100;
+                
+                // モバイルモードでは短く
+                const branchLength = highQualityMode ? 
+                    (Math.random() * 300 + 100) : 
+                    (Math.random() * 150 + 50);
                 
                 const endX = startPoint.x + Math.cos(branchAngle) * branchLength;
                 const endY = startPoint.y + Math.sin(branchAngle) * branchLength;
                 
-                const points = generateLightningPath(startPoint.x, startPoint.y, endX, endY, 25, 4, 15);
+                // モバイルモードでは単純化
+                const iterations = highQualityMode ? 4 : 2;
+                const segmentLength = highQualityMode ? 15 : 30;
+                
+                const points = generateLightningPath(startPoint.x, startPoint.y, endX, endY, 25, iterations, segmentLength);
                 const pathString = createPathString(points);
                 
                 const path = document.createElementNS(svgNS, "path");
@@ -1831,9 +2139,9 @@
                 path.setAttribute("filter", "url(#lightningGlow)");
                 svg.appendChild(path);
                 
-                // さらに枝分かれする可能性
+                // サブ枝分かれはモバイルモードでは省略
                 let subBranch = null;
-                if (Math.random() < 0.5 && points.length > 3) {
+                if (highQualityMode && Math.random() < 0.5 && points.length > 3) {
                     const subBranchIndex = Math.floor(Math.random() * (points.length - 2)) + 1;
                     subBranch = createBranchLightning(points, subBranchIndex, color, width * 0.6, brightness * 0.7);
                 }
@@ -1871,10 +2179,12 @@
                 impact.style.top = `${y - 50}px`;
                 container.appendChild(impact);
                 
+                // モバイルモードでは簡略化
+                const maxSize = highQualityMode ? 300 : 200;
+                const duration = highQualityMode ? 1000 : 700;
+                
                 // アニメーション
                 let size = 0;
-                const maxSize = 300;
-                const duration = 1000;
                 const startTime = Date.now();
                 
                 function animateImpact() {
@@ -1903,11 +2213,11 @@
                 rects: []
             };
             
-            // 雷アニメーションのタイマーID（キャンセル用）
+            // 雷アニメーションのタイマーID
             let lightningTimerId = null;
             let isAnimating = false;
             
-            // 雷全体をアニメーションする関数（タップ位置対応版）
+            // 雷全体をアニメーションする関数
             function animateLightning(targetX = null, targetY = null) {
                 // 現在アニメーション中かつタップ位置指定でない場合は何もしない
                 if (isAnimating && targetX === null && targetY === null) {
@@ -1982,8 +2292,11 @@
                 mainLightnings.push(outerLightning);
                 activeNodes.paths.push(outerLightning.path);
                 
+                // モバイルモードでは内側の光を減らす
+                const innerLightCount = highQualityMode ? 3 : 1;
+                
                 // 内側の光
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < innerLightCount; i++) {
                     const lightning = createLightning(
                         mainStartX, mainStartY, mainEndX, mainEndY, 
                         colorPalette[i], 10 - i * 2, 0.9 - i * 0.1
@@ -2000,9 +2313,12 @@
                 mainLightnings.push(coreLightning);
                 activeNodes.paths.push(coreLightning.path);
                 
-                // 枝分かれ雷を追加（より複雑に）
+                // 枝分かれ雷を追加
                 const branches = [];
-                const branchCount = Math.floor(Math.random() * 4) + 2; // 最低2つの枝
+                
+                // モバイルモードでは枝の数を減らす
+                const branchCount = highQualityMode ? Math.floor(Math.random() * 4) + 2 : Math.floor(Math.random() * 2) + 1;
+                
                 const mainPoints = mainLightnings[0].points;
                 
                 for (let i = 0; i < branchCount; i++) {
@@ -2021,15 +2337,17 @@
                         }
                     }
                     
-                    // 内側の明るい部分
-                    const innerBranch = createBranchLightning(
-                        mainPoints, branchIndex, colorPalette[2], 3, 0.8
-                    );
-                    if (innerBranch) {
-                        branches.push(innerBranch);
-                        activeNodes.paths.push(innerBranch.path);
-                        if (innerBranch.subBranch && innerBranch.subBranch.path) {
-                            activeNodes.paths.push(innerBranch.subBranch.path);
+                    // 高品質モードのみ内側の明るい部分も追加
+                    if (highQualityMode) {
+                        const innerBranch = createBranchLightning(
+                            mainPoints, branchIndex, colorPalette[2], 3, 0.8
+                        );
+                        if (innerBranch) {
+                            branches.push(innerBranch);
+                            activeNodes.paths.push(innerBranch.path);
+                            if (innerBranch.subBranch && innerBranch.subBranch.path) {
+                                activeNodes.paths.push(innerBranch.subBranch.path);
+                            }
                         }
                     }
                     
@@ -2057,12 +2375,14 @@
                 
                 // アニメーションタイマー
                 const startTime = Date.now();
-                const flashDuration = 150; // フラッシュ継続時間
-                const fadeDuration = 350;  // フェードアウト時間
+                
+                // モバイルモードではアニメーション時間を短縮
+                const flashDuration = highQualityMode ? 150 : 100; // フラッシュ継続時間
+                const fadeDuration = highQualityMode ? 350 : 250;  // フェードアウト時間
                 
                 let isVisible = false;
                 let lastToggleTime = 0;
-                const flickerInterval = 15; // 点滅間隔（ms）
+                const flickerInterval = highQualityMode ? 15 : 30; // 点滅間隔（ms）
                 
                 function animate() {
                     const now = Date.now();
@@ -2145,8 +2465,9 @@
                         });
                     }
                     
-                    // アニメーション終了判定
-                    if (elapsed < flashDuration + fadeDuration + 500) {
+                    // アニメーション終了判定 - モバイルモードでは早く終了
+                    const totalDuration = highQualityMode ? 500 : 400;
+                    if (elapsed < flashDuration + fadeDuration + totalDuration) {
                         requestAnimationFrame(animate);
                     } else {
                         // アニメーション完了
@@ -2173,7 +2494,11 @@
                         
                         // 次の雷までの遅延（自動再生モードのみ）
                         if (autoPlay) {
-                            const nextDelay = Math.random() * 3000 + 2000;
+                            // モバイルモードではより長い間隔
+                            const nextDelay = highQualityMode ? 
+                                (Math.random() * 3000 + 2000) : 
+                                (Math.random() * 4000 + 3000);
+                            
                             lightningTimerId = setTimeout(() => {
                                 animateLightning();
                             }, nextDelay);
@@ -2186,26 +2511,6 @@
                 
                 // アニメーション開始
                 requestAnimationFrame(animate);
-            }
-            
-            // 雷の音を再生（オーディオプールから取得）
-            function playThunderSound() {
-                if (!soundEnabled) return;
-                
-                // 利用可能なオーディオを見つける
-                const audio = audioPool.find(a => a.paused) || audioPool[0];
-                
-                // ランダムな雷音を設定
-                const soundIndex = Math.floor(Math.random() * THUNDER_SOUNDS.length);
-                audio.src = THUNDER_SOUNDS[soundIndex];
-                
-                // 音量をランダムに変化させる（バリエーション）
-                audio.volume = 0.3 + Math.random() * 0.4;
-                
-                // 再生
-                audio.play().catch(e => {
-                    console.log('Thunder sound play failed: ' + e);
-                });
             }
             
             // ウィンドウサイズ変更時のリサイズ処理
@@ -2241,6 +2546,9 @@
                     }, 300);
                 });
                 
+                // モード情報表示
+                showQualityBanner();
+                
                 // 初期テーマ設定
                 setTheme('night');
                 
@@ -2254,171 +2562,211 @@
                 setDifficulty('easy');
                 
                 // 初期メッセージ表示（最後に実行して上書きされないように）
-                showMessage('雷の世界へようこそ！', 'タップして遊んでみよう！', 3000);
+                showMessage('雷の世界へようこそ！', 'タップして遊んでみよう！', 4000);
             }
             
-            // タップ/クリックで雷を発生させる
-            container.addEventListener('click', function(e) {
-                // コントロールUIパネル内のクリックは無視
-                if (e.target.closest('.ui-container') || e.target.closest('.message-box') || e.target.closest('.result-box')) return;
+            // ユーザーインタラクションがあったときにオーディオを初期化
+            function handleFirstInteraction() {
+                if (!audioInitialized) {
+                    initAudio();
+                }
                 
-                // 結果表示中のクリックは無視（追加）
-                if (resultBox.style.display === 'block') return;
-                
-                // クリック座標を取得
-                const clickX = e.clientX;
-                const clickY = e.clientY;
-                
-                // モードに応じた処理
-                if (currentMode === 'normal') {
-                    // 通常モード - クリック位置に雷を発生
-                    animateLightning(clickX, clickY);
-                } else if (currentMode === 'game') {
-                    // ゲームモード
-                    if (!gameActive && !countdownActive) {
-                        // ゲームが開始されていない場合はカウントダウン表示
-                        showCountdown();
-                    } else if (gameActive) {
-                        // ターゲットのヒット判定
-                        let targetHit = false;
-                        
-                        // 各ターゲットについてチェック
-                        for (let i = 0; i < targetsActive.length; i++) {
-                            const targetData = targetsActive[i];
-                            const targetElement = targetData.element;
-                            const targetRect = targetElement.getBoundingClientRect();
-                            const targetX = targetRect.left + targetRect.width / 2;
-                            const targetY = targetRect.top + targetRect.height / 2;
+                if (!audioUnlocked) {
+                    unlockAudio();
+                }
+            }
+            
+            // イベントハンドラの設定を修正
+            function setupEventHandlers() {
+                // タップ/クリックで雷を発生させる - 修正
+                function handleScreenTap(e) {
+                    // コントロールパネル内か結果画面のタッチは処理しない
+                    if (e.target.closest('.ui-container') || 
+                        e.target.closest('.message-box') || 
+                        e.target.closest('.result-box') ||
+                        e.target.closest('.info-banner')) {
+                        return; // これらの要素内のクリックは無視
+                    }
+                    
+                    // 結果表示中のタッチは無視
+                    if (resultBox.style.display === 'block') return;
+                    
+                    // 初回インタラクション時に音声を初期化
+                    handleFirstInteraction();
+                    
+                    // タッチ/クリック座標を取得
+                    let x, y;
+                    
+                    if (e.type === 'touchstart') {
+                        const touch = e.touches[0];
+                        x = touch.clientX;
+                        y = touch.clientY;
+                    } else {
+                        x = e.clientX;
+                        y = e.clientY;
+                    }
+                    
+                    // モードに応じた処理
+                    if (currentMode === 'normal') {
+                        // 通常モード - クリック位置に雷を発生
+                        animateLightning(x, y);
+                    } else if (currentMode === 'game') {
+                        // ゲームモード
+                        if (!gameActive && !countdownActive) {
+                            // ゲームが開始されていない場合はカウントダウン表示
+                            showCountdown();
+                        } else if (gameActive) {
+                            // ターゲットのヒット判定
+                            let targetHit = false;
                             
-                            // ターゲットの当たり判定（円形）
-                            const dx = targetX - clickX;
-                            const dy = targetY - clickY;
-                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            // 各ターゲットについてチェック
+                            for (let i = 0; i < targetsActive.length; i++) {
+                                const targetData = targetsActive[i];
+                                const targetElement = targetData.element;
+                                const targetRect = targetElement.getBoundingClientRect();
+                                const targetX = targetRect.left + targetRect.width / 2;
+                                const targetY = targetRect.top + targetRect.height / 2;
+                                
+                                // ターゲットの当たり判定（円形）
+                                const dx = targetX - x;
+                                const dy = targetY - y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                
+                                if (distance < targetData.size / 2 + 10) { // ターゲットサイズに応じた当たり判定
+                                    // ヒット処理
+                                    targetHit = true;
+                                    hitTarget(targetElement, targetX, targetY);
+                                    break;
+                                }
+                            }
                             
-                            if (distance < targetData.size / 2 + 10) { // ターゲットサイズに応じた当たり判定
-                                // ヒット処理
-                                targetHit = true;
-                                hitTarget(targetElement, targetX, targetY);
-                                break;
+                            if (!targetHit) {
+                                // ミス - 雷は発生させるが得点は入らない
+                                combo = 0; // コンボをリセット
+                                updateCombo();
+                                animateLightning(x, y);
+                                playSFX('fail');
                             }
                         }
+                    }
+                }
+                
+                // クリックとタッチ両方に同じハンドラーを設定
+                container.addEventListener('click', handleScreenTap);
+                
+                container.addEventListener('touchstart', e => {
+                // UI やダイアログ・バナー上なら何もしない
+                if (e.target.closest('.ui-container, .message-box, .result-box, .info-banner')) return;
+                e.preventDefault();          // ← ここで初めて実行
+                handleScreenTap(e);
+                }, { passive:false });
+
+                
+                // ゲームモードボタン - 修正
+                gameMode.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    setMode('game');
+                });
+                
+                // 通常モードボタン - 修正
+                normalMode.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    setMode('normal');
+                });
+                
+                // 難易度ボタン - 修正
+                easyMode.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    setDifficulty('easy');
+                });
+                
+                normalDifficulty.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    setDifficulty('normal');
+                });
+                
+                hardMode.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    setDifficulty('hard');
+                });
+                
+                // 再生ボタン - 修正
+                playButton.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    
+                    autoPlay = !autoPlay;
+                    
+                    if (autoPlay) {
+                        this.innerHTML = '<span class="emoji">⏹️</span>自動雷 OFF';
+                        animateLightning();
+                    } else {
+                        this.innerHTML = '<span class="emoji">🔄</span>自動雷 ON';
                         
-                        if (!targetHit) {
-                            // ミス - 雷は発生させるが得点は入らない
-                            combo = 0; // コンボをリセット
-                            updateCombo();
-                            animateLightning(clickX, clickY);
-                            playSFX('fail');
+                        // 既存のアニメーションをキャンセル
+                        if (lightningTimerId) {
+                            clearTimeout(lightningTimerId);
+                            lightningTimerId = null;
                         }
                     }
-                }
-            });
-            
-            // ゲームモードボタン
-            gameMode.addEventListener('click', function(e) {
-                e.stopPropagation();
-                setMode('game');
-            });
-            
-            // 通常モードボタン
-            normalMode.addEventListener('click', function(e) {
-                e.stopPropagation();
-                setMode('normal');
-            });
-            
-            // 難易度ボタン
-            easyMode.addEventListener('click', function(e) {
-                e.stopPropagation();
-                setDifficulty('easy');
-            });
-            
-            normalDifficulty.addEventListener('click', function(e) {
-                e.stopPropagation();
-                setDifficulty('normal');
-            });
-            
-            hardMode.addEventListener('click', function(e) {
-                e.stopPropagation();
-                setDifficulty('hard');
-            });
-            
-            // 再生ボタン
-            playButton.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                autoPlay = !autoPlay;
-                
-                if (autoPlay) {
-                    this.innerHTML = '<span class="emoji">⏹️</span>自動雷 OFF';
-                    animateLightning();
-                } else {
-                    this.innerHTML = '<span class="emoji">🔄</span>自動雷 ON';
                     
-                    // 既存のアニメーションをキャンセル
-                    if (lightningTimerId) {
-                        clearTimeout(lightningTimerId);
-                        lightningTimerId = null;
+                    playSFX('click');
+                });
+                
+                // サウンドボタン - 修正
+                soundButton.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    
+                    soundEnabled = !soundEnabled;
+                    
+                    if (soundEnabled) {
+                        this.innerHTML = '<span class="emoji">🔊</span>音 ON';
+                    } else {
+                        this.innerHTML = '<span class="emoji">🔇</span>音 OFF';
                     }
-                }
-                
-                playSFX('click');
-            });
-            
-            // サウンドボタン
-            soundButton.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                soundEnabled = !soundEnabled;
-                
-                if (soundEnabled) {
-                    this.innerHTML = '<span class="emoji">🔊</span>音 ON';
                     
-                    // サウンドを有効にしたらプリロード
-                    preloadAudio();
-                } else {
-                    this.innerHTML = '<span class="emoji">🔇</span>音 OFF';
-                }
+                    playSFX('click');
+                });
                 
-                playSFX('click');
-            });
-            
-            // 情報ボタン
-            infoButton.addEventListener('click', function(e) {
-                e.stopPropagation();
+                // 情報ボタン - 修正
+                infoButton.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    
+                    const tips = [
+                        'いろいろなところをタップして雷を落としてみよう！',
+                        'ゲームモードではコンボを繋げると高得点が狙えるよ！',
+                        'テーマを変えると雷の色も変わるよ！',
+                        'レベルが上がるとターゲットが小さくなったり速くなったりするよ！',
+                        '一番難しい「むずかしい」モードで高得点を狙おう！'
+                    ];
+                    
+                    const tipIndex = Math.floor(Math.random() * tips.length);
+                    showMessage('あそびかた', tips[tipIndex], 4000);
+                    
+                    playSFX('click');
+                });
                 
-                const tips = [
-                    'いろいろなところをタップして雷を落としてみよう！',
-                    'ゲームモードではコンボを繋げると高得点が狙えるよ！',
-                    'テーマを変えると雷の色も変わるよ！',
-                    'レベルが上がるとターゲットが小さくなったり速くなったりするよ！',
-                    '難易度によってターゲットの数や動き方が変わるよ！',
-                    '一番難しい「むずかしい」モードで高得点を狙おう！'
-                ];
+                // テーマ選択 - 修正
+                nightTheme.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    setTheme('night');
+                });
                 
-                const tipIndex = Math.floor(Math.random() * tips.length);
-                showMessage('あそびかた', tips[tipIndex], 4000);
+                sunsetTheme.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    setTheme('sunset');
+                });
                 
-                playSFX('click');
-            });
+                fantasyTheme.addEventListener('click', function() {
+                    handleFirstInteraction();
+                    setTheme('fantasy');
+                });
+                
+                // ウィンドウサイズ変更イベント
+                window.addEventListener('resize', handleResize);
+            }
             
-            // テーマ選択
-            nightTheme.addEventListener('click', function(e) {
-                e.stopPropagation();
-                setTheme('night');
-            });
-            
-            sunsetTheme.addEventListener('click', function(e) {
-                e.stopPropagation();
-                setTheme('sunset');
-            });
-            
-            fantasyTheme.addEventListener('click', function(e) {
-                e.stopPropagation();
-                setTheme('fantasy');
-            });
-            
-            // ウィンドウサイズ変更イベント
-            window.addEventListener('resize', handleResize);
+            // イベントハンドラの設定
+            setupEventHandlers();
             
             // 初期化
             init();
