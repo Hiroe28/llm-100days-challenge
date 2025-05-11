@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="UFOキャッチャーゲーム - 6種類のかわいいキャラクターを集めよう！" />
+    <meta property="og:description" content="Three.jsで作られたブラウザ対応UFOキャッチャー。かわいいキャラクターをクレーンで獲得して6種コンプリートを目指す。スマホ対応。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day048-ufo-catcher/assets/images/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day048-ufo-catcher/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="UFOキャッチャーゲーム" />
+    <meta name="twitter:description" content="Three.jsで作られたUFOキャッチャーゲーム。かわいいキャラクターをクレーンで獲得し6種コンプリートを目指す。直感的操作で子供から大人まで楽しめる！" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day048-ufo-catcher/assets/images/screenshot.png" />
+
+    <title>UFOキャッチャー</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #0a0a2a;
+            color: #fff;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            z-index: 100;
+            color: #0ff;
+            text-shadow: 0 0 10px #0ff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* スマホ向けコントロールレイアウトの最適化 */
+        #d-pad {
+            display: grid;
+            grid-template-areas:
+                ". up ."
+                "left down right";
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 5px;
+            margin-right: 15px;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #0ff;
+            color: #0ff;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px #0ff;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            /* タッチ操作の最適化 */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* 十字キーの配置 */
+        #up-btn {
+            grid-area: up;
+            justify-self: center;
+        }
+        
+        #left-btn {
+            grid-area: left;
+            justify-self: end;
+        }
+        
+        #right-btn {
+            grid-area: right;
+            justify-self: start;
+        }
+        
+        #down-btn {
+            grid-area: down;
+            justify-self: center;
+        }
+        
+        #grab-btn {
+            background: rgba(255, 0, 128, 0.2);
+            border-color: #f08;
+            color: #f08;
+            box-shadow: 0 0 15px #f08;
+            width: 80px;
+            height: 80px;
+        }
+        
+        /* スマホ対応のために操作ボタンを調整 */
+        @media (max-width: 768px) {
+            .control-btn {
+                width: 65px;
+                height: 65px;
+                font-size: 24px;
+            }
+            
+            #grab-btn {
+                width: 80px;
+                height: 80px;
+                font-size: 30px;
+            }
+            
+            #d-pad {
+                grid-gap: 3px;
+                margin-right: 10px;
+            }
+        }
+        
+        /* 小さい画面用にさらに最適化 */
+        @media (max-width: 360px) {
+            .control-btn {
+                width: 55px;
+                height: 55px;
+                font-size: 20px;
+            }
+            
+            #grab-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 26px;
+            }
+            
+            #d-pad {
+                grid-gap: 2px;
+                margin-right: 8px;
+            }
+            
+            #home-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 16px;
+            }
+        }
+        
+        .control-btn:active {
+            transform: scale(0.9);
+            box-shadow: 0 0 25px #0ff;
+        }
+        
+        #grab-btn {
+            background: rgba(255, 0, 128, 0.2);
+            border-color: #f08;
+            color: #f08;
+            box-shadow: 0 0 15px #f08;
+            width: 80px;
+            height: 80px;
+
+        }
+        
+        #grab-btn:active {
+            box-shadow: 0 0 25px #f08;
+        }
+        
+        /* ホームボタン（戻るボタン） */
+        #home-btn {
+            position: fixed;
+            top: 40px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            font-size: 18px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #0ff;
+            color: #0ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px #0ff;
+            cursor: pointer;
+            z-index: 200;
+
+        }
+        
+        /* ゲーム開始オーバーレイ */
+        #start-overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+            color: #0ff;
+            text-shadow: 0 0 10px #0ff;
+        }
+        
+        #start-overlay h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #start-overlay p {
+            font-size: 24px;
+            text-align: center;
+            margin: 10px 20px;
+        }
+        
+        /* 難易度選択ボタン */
+        #difficulty-selector {
+            display: flex;
+            gap: 20px;
+            margin: 30px 0;
+            justify-content: center; /* これを追加 */
+        }
+        
+        .difficulty-btn {
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #0ff;
+            color: #0ff;
+            font-size: 24px;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px #0ff;
+            transition: all 0.3s;
+        }
+        
+        .difficulty-btn:hover, .difficulty-btn.selected {
+            background: rgba(0, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+        
+        /* スマホ対応の難易度ボタン */
+        @media (max-width: 768px) {
+            #difficulty-selector {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .difficulty-btn {
+                font-size: 22px;
+                padding: 12px 25px;
+            }
+            
+            #start-overlay h2 {
+                font-size: 28px;
+            }
+            
+            #start-overlay p {
+                font-size: 20px;
+            }
+        }
+        
+        /* 演出効果用 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        #start-button {
+            background: rgba(255, 0, 128, 0.2);
+            border: 2px solid #f08;
+            color: #f08;
+            font-size: 24px;
+            padding: 15px 30px;
+            border-radius: 50px;
+            margin-top: 20px;
+            cursor: pointer;
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 20px #f08;
+        }
+        
+        /* スコア表示のスマホ最適化 */
+        #score-display, #collection-display {
+            font-size: 16px;
+            padding: 8px 15px;
+        }
+        
+        @media (max-width: 480px) {
+            #score-display {
+                top: 15px;
+                right: 15px;
+            }
+            
+            #collection-display {
+                top: 60px;
+                right: 15px;
+            }
+            
+            /* スマホでタイトル表示を小さくする */
+            #info {
+                font-size: 20px;
+                top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="info">UFOキャッチャーゲーム</div>
+    
+    <!-- ホームボタン（戻るボタン） -->
+    <div id="home-btn">戻る</div>
+    
+    <!-- ゲーム開始オーバーレイ -->
+    <div id="start-overlay">
+        <h2>UFOキャッチャーゲーム</h2>
+        <p>クレーンを操作して、かわいいキャラクターを集めよう！</p>
+        <p>全6種類のキャラクターをコンプリートできるかな？</p>
+        
+        <!-- 難易度選択 -->
+        <div id="difficulty-selector">
+            <div class="difficulty-btn selected" id="easy-mode">ふつうモード</div>
+            <div class="difficulty-btn" id="hard-mode">むずかしいモード</div>
+        </div>
+        
+        <button id="start-button">タップしてスタート！</button>
+    </div>
+    
+    <div id="controls">
+        <div id="d-pad">
+            <div class="control-btn" id="up-btn">↑</div>
+            <div class="control-btn" id="left-btn">←</div>
+            <div class="control-btn" id="down-btn">↓</div>
+            <div class="control-btn" id="right-btn">→</div>
+        </div>
+        <div class="control-btn" id="grab-btn">GO!</div>
+    </div>
+
+    <script type="module">
+        // オーディオコンテキストを作成して再開する関数
+        const resumeAudioContext = () => {
+            // AudioContextを作成して再開
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            // 無音の短いサウンドを再生して音声を有効化
+            const silentSound = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = 0.001; // ほぼ無音
+            silentSound.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            silentSound.start();
+            setTimeout(() => {
+                silentSound.stop();
+            }, 10); // 0.01秒後に停止
+            
+            return audioCtx;
+        };
+
+        // ゲーム設定（コード上部に追加）
+        const gameSettings = {
+            // 難易度設定
+            difficulty: "easy", // デフォルトはふつうモード("hard" or "easy")
+            
+            // 景品関連
+            prizeSettings: {
+                eachTypeCount: 1,          // 各タイプの最低個数
+                randomAdditionalCount: 4,   // ランダム追加数
+                getTotalCount: function() { // 合計数を計算
+                    return (6 * this.eachTypeCount) + this.randomAdditionalCount;
+                }
+            },
+            
+            // 他のゲーム設定
+            soundEnabled: true              // サウンド有効化設定
+        };
+        
+
+        // 難易度選択ボタンのイベントリスナー
+        document.getElementById('easy-mode').addEventListener('click', () => {
+            // ふつうモードを選択
+            gameSettings.difficulty = "easy";
+            
+            // ボタンの見た目を変更
+            document.getElementById('easy-mode').classList.add('selected');
+            document.getElementById('hard-mode').classList.remove('selected');
+        });
+        
+        document.getElementById('hard-mode').addEventListener('click', () => {
+            // むずかしいモードを選択
+            gameSettings.difficulty = "hard";
+            
+            // ボタンの見た目を変更
+            document.getElementById('hard-mode').classList.add('selected');
+            document.getElementById('easy-mode').classList.remove('selected');
+        });
+        
+        // ゲーム開始処理
+        const startGame = () => {
+            // オーディオコンテキストを再開してサウンドを有効化
+            const audioCtx = resumeAudioContext();
+            
+            // オーバーレイを非表示
+            document.getElementById('start-overlay').style.display = 'none';
+            
+            // BGM再生開始
+            sounds.bgmMain.volume = 0.03; // 音量を下げる
+            sounds.bgmMain.currentTime = 0;
+            sounds.bgmMain.play().catch(e => console.log("BGMの再生に失敗しました"));
+        };
+        
+        // ゲーム終了&リスタート処理
+        const restartGame = () => {
+            // オーバーレイを表示
+            document.getElementById('start-overlay').style.display = 'flex';
+            
+            // BGMを停止
+            sounds.bgmMain.pause();
+            
+            // コレクション状態をリセット
+            for (const type in collection) {
+                if (typeof collection[type] === 'boolean') {
+                    collection[type] = false;
+                }
+            }
+            collection.updateDisplay();
+            
+            // スコアをリセット
+            gameState.collectedCount = 0;
+            scoreDisplay.textContent = `獲得: ${gameState.collectedCount}個`;
+            
+            // 残っている景品を削除
+            prizes.forEach(prize => {
+                scene.remove(prize);
+            });
+            prizes = [];
+            
+            // クレーンを初期位置にリセット
+            gameState.clawX = 0;
+            gameState.clawZ = 0;
+            updateCranePosition();
+            
+            // 新しい景品を生成
+            prizes = initializePrizes();
+        };
+        
+        // スタートボタンのイベントリスナー
+        document.getElementById('start-button').addEventListener('click', startGame);
+        
+        // ホームボタン（戻るボタン）のイベントリスナー
+        document.getElementById('home-btn').addEventListener('click', restartGame);
+        
+        // ゲームクリアメッセージとボタン
+        const createClearMessageAndButton = () => {
+            // クリアメッセージ
+            const clearDiv = document.createElement('div');
+            clearDiv.id = 'clear-message';
+            clearDiv.style.position = 'absolute';
+            clearDiv.style.top = '50%';
+            clearDiv.style.left = '50%';
+            clearDiv.style.transform = 'translate(-50%, -50%)';
+            clearDiv.style.padding = '30px';
+            clearDiv.style.background = 'rgba(0, 0, 0, 0.8)';
+            clearDiv.style.border = '3px solid #f08';
+            clearDiv.style.borderRadius = '15px';
+            clearDiv.style.color = '#0ff';
+            clearDiv.style.fontSize = '24px';
+            clearDiv.style.fontWeight = 'bold';
+            clearDiv.style.textShadow = '0 0 10px #0ff';
+            clearDiv.style.zIndex = '300';
+            clearDiv.style.textAlign = 'center';
+            clearDiv.style.display = 'none';
+            
+            // クリアメッセージテキスト
+            const clearText = document.createElement('p');
+            clearText.id = 'clear-text';
+            clearText.style.marginBottom = '20px';
+            clearDiv.appendChild(clearText);
+            
+            // 戻るボタン
+            const restartButton = document.createElement('button');
+            restartButton.textContent = '最初の画面に戻る';
+            restartButton.style.background = 'rgba(255, 0, 128, 0.2)';
+            restartButton.style.border = '2px solid #f08';
+            restartButton.style.color = '#f08';
+            restartButton.style.fontSize = '24px'; // 大きくする
+            restartButton.style.padding = '15px 30px'; // パディングを増やす
+            restartButton.style.borderRadius = '30px';
+            restartButton.style.cursor = 'pointer';
+            restartButton.style.boxShadow = '0 0 20px #f08'; // より明るい光彩
+            restartButton.style.animation = 'pulse 1.5s infinite'; // パルスアニメーションを追加
+
+            // ボタンのホバーエフェクト
+            restartButton.addEventListener('mouseover', () => {
+                restartButton.style.background = 'rgba(255, 0, 128, 0.4)';
+                restartButton.style.transform = 'scale(1.05)'; // 少し大きくする
+            });
+
+            restartButton.addEventListener('mouseout', () => {
+                restartButton.style.background = 'rgba(255, 0, 128, 0.2)';
+                restartButton.style.transform = 'scale(1)';
+            });
+            
+            // クリックイベント
+            restartButton.addEventListener('click', () => {
+                clearDiv.style.display = 'none';
+                restartGame();
+            });
+            
+            clearDiv.appendChild(restartButton);
+            document.body.appendChild(clearDiv);
+            
+            return clearDiv;
+        };
+        
+        const clearMessageDiv = createClearMessageAndButton();
+        
+        // サウンド要素
+        const createSounds = () => {
+            const sounds = {
+                move: new Audio(),
+                grab: new Audio(),
+                success: new Audio(),
+                drop: new Audio(),
+                fail: new Audio(),
+                collect: new Audio(),
+                complete: new Audio(),
+                allComplete: new Audio(),
+                bgmMain: new Audio()
+            };
+            
+            // サウンドファイルのパスを設定（実際のプロジェクトでは適切なファイルパスに置き換え）
+            // 現在はダミーのデータURLを使用（実際には音が出ません）
+            const dummyAudio = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+            
+            // 効果音
+            sounds.move.src = "se_move.mp3" || dummyAudio;
+            sounds.grab.src = "se_grab.mp3" || dummyAudio;
+            sounds.success.src = "se_success.mp3" || dummyAudio;
+            sounds.drop.src = "se_drop.mp3" || dummyAudio;
+            sounds.fail.src = "se_fail.mp3" || dummyAudio;
+            sounds.collect.src = "se_collect.mp3" || dummyAudio;
+            sounds.complete.src = "se_complete.mp3" || dummyAudio;
+            sounds.allComplete.src = "se_allcomplete.mp3" || dummyAudio;
+            
+            // BGM - ひとつだけに簡略化
+            sounds.bgmMain.src = "bgm_main.mp3" || dummyAudio;
+            sounds.bgmMain.loop = true;
+            sounds.bgmMain.volume = 0.25; // 音量を下げる
+            
+            return sounds;
+        };
+        
+        const sounds = createSounds();
+        
+        // スコア表示
+        const createScoreDisplay = () => {
+            const scoreDiv = document.createElement('div');
+            scoreDiv.id = 'score-display';
+            scoreDiv.style.position = 'absolute';
+            scoreDiv.style.top = '50px';
+            scoreDiv.style.right = '20px';
+            scoreDiv.style.padding = '10px 20px';
+            scoreDiv.style.background = 'rgba(0, 0, 0, 0.7)';
+            scoreDiv.style.border = '2px solid #0ff';
+            scoreDiv.style.borderRadius = '10px';
+            scoreDiv.style.color = '#0ff';
+            scoreDiv.style.fontSize = '18px';
+            scoreDiv.style.textShadow = '0 0 5px #0ff';
+            scoreDiv.style.zIndex = '100';
+            scoreDiv.textContent = '獲得: 0個';
+            document.body.appendChild(scoreDiv);
+            return scoreDiv;
+        };
+        
+        const scoreDisplay = createScoreDisplay();
+        
+        // キャラクターコレクション表示
+        const createCollectionDisplay = () => {
+            const collectionDiv = document.createElement('div');
+            collectionDiv.id = 'collection-display';
+            collectionDiv.style.position = 'absolute';
+            collectionDiv.style.top = '100px';
+            collectionDiv.style.right = '20px';
+            collectionDiv.style.padding = '10px 20px';
+            collectionDiv.style.background = 'rgba(0, 0, 0, 0.7)';
+            collectionDiv.style.border = '2px solid #ff9900';
+            collectionDiv.style.borderRadius = '10px';
+            collectionDiv.style.color = '#ff9900';
+            collectionDiv.style.fontSize = '18px';
+            collectionDiv.style.textShadow = '0 0 5px #ff9900';
+            collectionDiv.style.zIndex = '100';
+            collectionDiv.textContent = 'コレクション: 0/6';
+            document.body.appendChild(collectionDiv);
+            return collectionDiv;
+        };
+        
+        const collectionDisplay = createCollectionDisplay();
+        
+        // ゲーム状態メッセージ
+        const createGameMessage = () => {
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'game-message';
+            messageDiv.style.position = 'absolute';
+            messageDiv.style.top = '50%';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translate(-50%, -50%)';
+            messageDiv.style.padding = '15px 30px';
+            messageDiv.style.background = 'rgba(0, 0, 0, 0.8)';
+            messageDiv.style.border = '2px solid #f08';
+            messageDiv.style.borderRadius = '10px';
+            messageDiv.style.color = '#f08';
+            messageDiv.style.fontSize = '24px';
+            messageDiv.style.fontWeight = 'bold';
+            messageDiv.style.textShadow = '0 0 10px #f08';
+            messageDiv.style.zIndex = '200';
+            messageDiv.style.display = 'none';
+            document.body.appendChild(messageDiv);
+            return messageDiv;
+        };
+        
+        const gameMessage = createGameMessage();
+        
+        // メッセージ表示関数
+        const showMessage = (text, duration = 2000) => {
+            gameMessage.textContent = text;
+            gameMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                gameMessage.style.display = 'none';
+            }, duration);
+        };
+        
+        // 基本設定
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a2a);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 10);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        
+        // ライト
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        
+        const frontLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        frontLight.position.set(0, 5, 10);
+        scene.add(frontLight);
+        
+        const topLight = new THREE.DirectionalLight(0x0088ff, 0.5);
+        topLight.position.set(0, 10, 0);
+        scene.add(topLight);
+
+        const EXIT_Z = 4.0;   // 筐体前面パネルと面一 (Z = +4)
+        
+        // 景品リスト
+        let prizes = [];
+        
+        // コレクション管理
+        const collection = {
+            bear: false,
+            rabbit: false,
+            dog: false,
+            cat: false,
+            penguin: false,
+            frog: false,
+            getCount: function() {
+                let count = 0;
+                if (this.bear) count++;
+                if (this.rabbit) count++;
+                if (this.dog) count++;
+                if (this.cat) count++;
+                if (this.penguin) count++;
+                if (this.frog) count++;
+                return count;
+            },
+            updateDisplay: function() {
+                collectionDisplay.textContent = `コレクション: ${this.getCount()}/6`;
+            },
+            // 未獲得のキャラクタータイプのリストを取得
+            getNotCollectedTypes: function() {
+                const types = [];
+                if (!this.bear) types.push('bear');
+                if (!this.rabbit) types.push('rabbit');
+                if (!this.dog) types.push('dog');
+                if (!this.cat) types.push('cat');
+                if (!this.penguin) types.push('penguin');
+                if (!this.frog) types.push('frog');
+                return types;
+            }
+        };
+        
+        // キャラクター作成関数
+        const createCharacter = (type) => {
+            const character = new THREE.Group();
+            
+            // キャラクタータイプに応じて色を設定
+            let color;
+            switch(type) {
+                case 'bear':
+                    color = 0x8B4513; // 茶色
+                    break;
+                case 'rabbit':
+                    color = 0xF0F0F0; // 白
+                    break;
+                case 'dog':
+                    color = 0xC49A69; // ベージュ
+                    break;
+                case 'cat':
+                    color = 0xFFD700; // 黄色
+                    break;
+                case 'penguin':
+                    color = 0x000080; // 紺
+                    break;
+                case 'frog':
+                    color = 0x00FF00; // 緑
+                    break;
+                default:
+                    color = 0xFF00FF; // デフォルトはマゼンタ
+            }
+            
+            // 体の部分（基本形状）
+            const body = new THREE.Mesh(
+                new THREE.SphereGeometry(0.4, 20, 20),
+                new THREE.MeshPhongMaterial({ color: color })
+            );
+            character.add(body);
+            
+            // キャラクター固有のパーツを追加
+            switch(type) {
+                case 'bear':
+                    // クマの耳
+                    const earL = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.15, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    earL.position.set(-0.25, 0.3, 0);
+                    character.add(earL);
+                    
+                    const earR = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.15, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    earR.position.set(0.25, 0.3, 0);
+                    character.add(earR);
+                    
+                    // クマの鼻
+                    const nose = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.1, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: 0x000000 })
+                    );
+                    nose.position.set(0, 0, 0.35);
+                    character.add(nose);
+                    
+                    // 目を追加
+                    addEyes(character);
+                    break;
+                    
+                case 'rabbit':
+                    // ウサギの長い耳
+                    const rabbitEarL = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.08, 0.05, 0.5, 12),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    rabbitEarL.position.set(-0.15, 0.5, 0);
+                    rabbitEarL.rotation.x = -0.2;
+                    rabbitEarL.rotation.z = 0.1;
+                    character.add(rabbitEarL);
+                    
+                    const rabbitEarR = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.08, 0.05, 0.5, 12),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    rabbitEarR.position.set(0.15, 0.5, 0);
+                    rabbitEarR.rotation.x = -0.2;
+                    rabbitEarR.rotation.z = -0.1;
+                    character.add(rabbitEarR);
+                    
+                    // ウサギの鼻
+                    const rabbitNose = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.06, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: 0xFF9999 })
+                    );
+                    rabbitNose.position.set(0, 0, 0.35);
+                    character.add(rabbitNose);
+                    
+                    // 目を追加
+                    addEyes(character);
+                    break;
+                    
+                case 'dog':
+                    // 犬の耳
+                    const dogEarL = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.15, 0.25, 0.05),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    dogEarL.position.set(-0.25, 0.3, 0);
+                    dogEarL.rotation.z = -0.3;
+                    character.add(dogEarL);
+                    
+                    const dogEarR = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.15, 0.25, 0.05),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    dogEarR.position.set(0.25, 0.3, 0);
+                    dogEarR.rotation.z = 0.3;
+                    character.add(dogEarR);
+                    
+                    // 犬の鼻
+                    const dogNose = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.08, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: 0x000000 })
+                    );
+                    dogNose.position.set(0, 0, 0.35);
+                    character.add(dogNose);
+                    
+                    // 犬の口
+                    const dogMouth = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.1, 0.05, 0.05),
+                        new THREE.MeshPhongMaterial({ color: 0x000000 })
+                    );
+                    dogMouth.position.set(0, -0.1, 0.35);
+                    character.add(dogMouth);
+                    
+                    // 目を追加
+                    addEyes(character);
+                    break;
+                    
+                case 'cat':
+                    // 猫の耳（三角形）
+                    const catEarL = new THREE.Mesh(
+                        new THREE.ConeGeometry(0.12, 0.2, 3),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    catEarL.position.set(-0.2, 0.3, 0);
+                    catEarL.rotation.x = -0.5;
+                    character.add(catEarL);
+                    
+                    const catEarR = new THREE.Mesh(
+                        new THREE.ConeGeometry(0.12, 0.2, 3),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    catEarR.position.set(0.2, 0.3, 0);
+                    catEarR.rotation.x = -0.5;
+                    character.add(catEarR);
+                    
+                    // 猫の鼻
+                    const catNose = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.05, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: 0xFF9999 })
+                    );
+                    catNose.position.set(0, 0, 0.35);
+                    character.add(catNose);
+                    
+                    // 猫のひげ
+                    const whiskerL1 = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.2, 0.01, 0.01),
+                        new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+                    );
+                    whiskerL1.position.set(-0.15, 0, 0.35);
+                    whiskerL1.rotation.y = -0.3;
+                    character.add(whiskerL1);
+                    
+                    const whiskerR1 = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.2, 0.01, 0.01),
+                        new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+                    );
+                    whiskerR1.position.set(0.15, 0, 0.35);
+                    whiskerR1.rotation.y = 0.3;
+                    character.add(whiskerR1);
+                    
+                    // 目を追加
+                    addEyes(character);
+                    break;
+                    
+                case 'penguin':
+                    // ペンギンの体（少し大きめ）
+                    body.scale.set(1, 1.2, 0.8);
+                    
+                    // ペンギンのお腹（白）
+                    const belly = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.3, 20, 20),
+                        new THREE.MeshPhongMaterial({ color: 0xFFFFFF })
+                    );
+                    belly.position.set(0, -0.05, 0.2);
+                    belly.scale.set(0.8, 1, 0.6);
+                    character.add(belly);
+                    
+                    // ペンギンのくちばし
+                    const beak = new THREE.Mesh(
+                        new THREE.ConeGeometry(0.08, 0.15, 4),
+                        new THREE.MeshPhongMaterial({ color: 0xFFA500 })
+                    );
+                    beak.position.set(0, 0, 0.4);
+                    beak.rotation.x = Math.PI / 2;
+                    character.add(beak);
+                    
+                    // ペンギンの翼（左）
+                    const wingL = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.1, 0.25, 0.05),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    wingL.position.set(-0.35, 0, 0);
+                    wingL.rotation.z = -0.2;
+                    character.add(wingL);
+                    
+                    // ペンギンの翼（右）
+                    const wingR = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.1, 0.25, 0.05),
+                        new THREE.MeshPhongMaterial({ color: color })
+                    );
+                    wingR.position.set(0.35, 0, 0);
+                    wingR.rotation.z = 0.2;
+                    character.add(wingR);
+                    
+                    // 目を追加
+                    addEyes(character);
+                    break;
+                    
+                case 'frog':
+                    // カエルの目（飛び出た目）- 修正版
+                    const frogEyeL = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.12, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: 0xFFFFFF })
+                    );
+                    frogEyeL.position.set(-0.15, 0.25, 0.25);
+                    character.add(frogEyeL);
+                    
+                    const frogEyeR = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.12, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: 0xFFFFFF })
+                    );
+                    frogEyeR.position.set(0.15, 0.25, 0.25);
+                    character.add(frogEyeR);
+                    
+                    // カエルの瞳（黒目）
+                    const frogPupilL = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.05, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: 0x000000 })
+                    );
+                    frogPupilL.position.set(-0.15, 0.27, 0.35);
+                    character.add(frogPupilL);
+                    
+                    const frogPupilR = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.05, 12, 12),
+                        new THREE.MeshPhongMaterial({ color: 0x000000 })
+                    );
+                    frogPupilR.position.set(0.15, 0.27, 0.35);
+                    character.add(frogPupilR);
+                    
+                    // カエルの口（修正版 - より可愛らしく）
+                    const frogMouth = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.15, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.25),
+                        new THREE.MeshPhongMaterial({ color: 0xffcccc })
+                    );
+                    frogMouth.position.set(0, -0.05, 0.35);
+                    frogMouth.rotation.x = Math.PI;
+                    character.add(frogMouth);
+                    
+                    // カエルには共通の目を追加しない（目が4つになってしまうため）
+                    break;
+            }
+            
+            // すべてのキャラクターに目を追加する関数
+            function addEyes(character) {
+                const eyeL = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.08, 12, 12),
+                    new THREE.MeshPhongMaterial({ color: 0xFFFFFF })
+                );
+                eyeL.position.set(-0.15, 0.1, 0.3);
+                character.add(eyeL);
+                
+                const eyeR = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.08, 12, 12),
+                    new THREE.MeshPhongMaterial({ color: 0xFFFFFF })
+                );
+                eyeR.position.set(0.15, 0.1, 0.3);
+                character.add(eyeR);
+                
+                // 黒目
+                const pupilL = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.04, 12, 12),
+                    new THREE.MeshPhongMaterial({ color: 0x000000 })
+                );
+                pupilL.position.set(-0.15, 0.12, 0.37);
+                character.add(pupilL);
+                
+                const pupilR = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.04, 12, 12),
+                    new THREE.MeshPhongMaterial({ color: 0x000000 })
+                );
+                pupilR.position.set(0.15, 0.12, 0.37);
+                character.add(pupilR);
+            }
+            
+            // キャラクタータイプを保存
+            character.characterType = type;
+            
+            // 掴みにくさ係数を設定
+            character.grabDifficulty = getCharacterGrabDifficulty(type);
+            
+            return character;
+        };
+        
+        // キャラクタータイプごとの掴みにくさを定義
+        const getCharacterGrabDifficulty = (type) => {
+            switch(type) {
+                case 'bear': return 0.9;  // 比較的掴みやすい
+                case 'rabbit': return 0.7; // 耳が引っかかりやすいが、体が小さい
+                case 'dog': return 0.8;   // 標準的
+                case 'cat': return 0.6;   // やや掴みにくい
+                case 'penguin': return 0.5; // 滑りやすい形
+                case 'frog': return 0.7;  // 中程度
+                default: return 0.75;     // デフォルト値
+            }
+        };
+        
+        // ゲーム筐体
+        const createMachine = () => {
+            const machine = new THREE.Group();
+            
+            // 背面パネル
+            const backPanel = new THREE.Mesh(
+                new THREE.BoxGeometry(8, 10, 0.2),
+                new THREE.MeshPhongMaterial({ color: 0x222244 })
+            );
+            backPanel.position.z = -4;
+            machine.add(backPanel);
+            
+            // 左右パネル
+            const sideGeometry = new THREE.BoxGeometry(0.2, 10, 8);
+            const sideL = new THREE.Mesh(
+                sideGeometry,
+                new THREE.MeshPhongMaterial({ color: 0x222244 })
+            );
+            sideL.position.x = -4;
+            machine.add(sideL);
+            
+            const sideR = new THREE.Mesh(
+                sideGeometry,
+                new THREE.MeshPhongMaterial({ color: 0x222244 })
+            );
+            sideR.position.x = 4;
+            machine.add(sideR);
+            
+            // 下部パネル
+            const bottomPanel = new THREE.Mesh(
+                new THREE.BoxGeometry(8, 0.2, 8),
+                new THREE.MeshPhongMaterial({ color: 0x333355 })
+            );
+            bottomPanel.position.y = -5;
+            machine.add(bottomPanel);
+            
+            // 景品取り出し口（前面が開いたコの字型に変更）
+            const prizeBox = new THREE.Group();
+            const frameMaterial = new THREE.MeshPhongMaterial({ color: 0x111122 });
+            
+            // 取り出し口のサイズ
+            const boxWidth = 3, boxHeight = 1.5, boxDepth = 1.5;
+            const thickness = 0.12;
+            
+            // 左側面
+            const leftSide = new THREE.Mesh(
+                new THREE.BoxGeometry(thickness, boxHeight, boxDepth),
+                frameMaterial
+            );
+            leftSide.position.set(-boxWidth/2 + thickness/2, 0, 0);
+            prizeBox.add(leftSide);
+            
+            // 右側面
+            const rightSide = new THREE.Mesh(
+                new THREE.BoxGeometry(thickness, boxHeight, boxDepth),
+                frameMaterial
+            );
+            rightSide.position.set(boxWidth/2 - thickness/2, 0, 0);
+            prizeBox.add(rightSide);
+            
+            // 底面
+            const bottom = new THREE.Mesh(
+                new THREE.BoxGeometry(boxWidth, thickness, boxDepth),
+                frameMaterial
+            );
+            bottom.position.set(0, -boxHeight/2 + thickness/2, 0);
+            prizeBox.add(bottom);
+            
+            // 奥面
+            const back = new THREE.Mesh(
+                new THREE.BoxGeometry(boxWidth, boxHeight, thickness),
+                frameMaterial
+            );
+            back.position.set(0, 0, -boxDepth/2 + thickness/2);
+            prizeBox.add(back);
+            
+            // 上面
+            // const top = new THREE.Mesh(
+            //     new THREE.BoxGeometry(boxWidth, thickness, boxDepth),
+            //     frameMaterial
+            // );
+            // top.position.set(0, boxHeight/2 - thickness/2, 0);
+            // prizeBox.add(top);
+            const holeLight = new THREE.PointLight(0xffffff, 0.5, 3);
+            holeLight.position.set(0, -4.5, 4.5);
+            scene.add(holeLight);
+
+            
+            // prizeBox.position.set(0, -4, 4.5);
+            // const EXIT_Z = 4.0;          // 前面パネルは Z = +4
+            prizeBox.position.set(0, -4, EXIT_Z);
+
+            machine.add(prizeBox);
+            
+            // ネオンエフェクト - エッジ
+            const createEdge = (width, height, depth, x, y, z) => {
+                const edge = new THREE.Mesh(
+                    new THREE.BoxGeometry(width, height, depth),
+                    new THREE.MeshBasicMaterial({ color: 0x00ffff })
+                );
+                edge.position.set(x, y, z);
+                return edge;
+            };
+            
+            machine.add(createEdge(8.4, 0.05, 0.05, 0, 5, -4));
+            machine.add(createEdge(8.4, 0.05, 0.05, 0, -5, -4));
+            machine.add(createEdge(0.05, 10.4, 0.05, -4, 0, -4));
+            machine.add(createEdge(0.05, 10.4, 0.05, 4, 0, -4));
+            
+            return machine;
+        };
+        
+        const machine = createMachine();
+        scene.add(machine);
+        
+        // クレーン機構を作成
+        const createCraneSystem = () => {
+            // 全体のグループ
+            const system = new THREE.Group();
+            
+            // 上部のレール（X軸方向）
+            const railX = new THREE.Mesh(
+                new THREE.BoxGeometry(8, 0.15, 0.15),
+                new THREE.MeshPhongMaterial({ color: 0x666666 })
+            );
+            railX.position.y = 5;
+            system.add(railX);
+            
+            // X軸キャリッジ（左右に動く部分）
+            const xCarriage = new THREE.Group();
+            
+            const xCarriageBody = new THREE.Mesh(
+                new THREE.BoxGeometry(0.5, 0.3, 0.4),
+                new THREE.MeshPhongMaterial({ color: 0x888888 })
+            );
+            xCarriageBody.position.y = 5;
+            xCarriage.add(xCarriageBody);
+            
+            // Z軸レール（X軸キャリッジから下に伸びる）
+            const railZ = new THREE.Mesh(
+                new THREE.BoxGeometry(0.15, 0.15, 8),
+                new THREE.MeshPhongMaterial({ color: 0x666666 })
+            );
+            railZ.position.y = 5;
+            xCarriage.add(railZ);
+            
+            // Z軸キャリッジ（前後に動く部分）
+            const zCarriage = new THREE.Group();
+            
+            const zCarriageBody = new THREE.Mesh(
+                new THREE.BoxGeometry(0.4, 0.3, 0.5),
+                new THREE.MeshPhongMaterial({ color: 0x888888 })
+            );
+            zCarriageBody.position.y = 5;
+            zCarriage.add(zCarriageBody);
+            
+            // 接続ロッド（伸縮する垂直棒）
+            const rod = new THREE.Group();
+            rod.position.y = 5;
+            
+            const rodBody = new THREE.Mesh(
+                new THREE.BoxGeometry(0.1, 2, 0.1),
+                new THREE.MeshBasicMaterial({ color: 0xaaaaaa })
+            );
+            rodBody.position.y = -1;
+            rod.add(rodBody);
+            
+            // クレーンヘッド（UFOキャッチャーの本体）
+            const crane = new THREE.Group();
+            
+            // クレーン本体
+            const craneBody = new THREE.Mesh(
+                new THREE.BoxGeometry(1, 0.5, 1),
+                new THREE.MeshPhongMaterial({ color: 0xdddddd })
+            );
+            crane.add(craneBody);
+            
+            // アーム
+            const createArm = () => {
+                const arm = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.2, 1, 0.2),
+                    new THREE.MeshPhongMaterial({ color: 0xcccccc })
+                );
+                arm.position.y = -0.75;
+                return arm;
+            };
+            
+            const armL = createArm();
+            armL.position.x = -0.4;
+            armL.position.z = -0.4;
+            crane.add(armL);
+            
+            const armR = createArm();
+            armR.position.x = 0.4;
+            armR.position.z = -0.4;
+            crane.add(armR);
+            
+            const armFront = createArm();
+            armFront.position.x = -0.4;
+            armFront.position.z = 0.4;
+            crane.add(armFront);
+            
+            const armBack = createArm();
+            armBack.position.x = 0.4;
+            armBack.position.z = 0.4;
+            crane.add(armBack);
+            
+            // クレーンの初期配置
+            crane.position.y = -2; // 垂直棒の下端
+            rod.add(crane);
+            
+            // 影の作成
+            const createShadow = () => {
+                // 影のテクスチャを作成（単色の円形グラデーション）
+                const canvas = document.createElement('canvas');
+                const size = 128;
+                canvas.width = size;
+                canvas.height = size;
+                const context = canvas.getContext('2d');
+                
+                // グラデーション円を描画
+                const gradient = context.createRadialGradient(
+                    size / 2, size / 2, 0,
+                    size / 2, size / 2, size / 2
+                );
+                gradient.addColorStop(0, 'rgba(0,0,0,0.3)'); // 中心は濃い（修正：より濃く）
+                gradient.addColorStop(0.7, 'rgba(0,0,0,0.1)'); // 外側に向かって薄くなる
+                gradient.addColorStop(1, 'rgba(0,0,0,0)'); // 完全に透明
+                
+                context.fillStyle = gradient;
+                context.fillRect(0, 0, size, size);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                
+                // 影のメッシュ
+                const shadowGeometry = new THREE.PlaneGeometry(2, 2);
+                
+                const shadowMaterial = new THREE.MeshBasicMaterial({
+                    map: texture,
+                    transparent: true,
+                    depthWrite: false
+                });
+                
+                const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
+                shadow.rotation.x = -Math.PI / 2; // 水平にする
+                shadow.position.y = -4.9; // 底面のすぐ上
+                shadow.renderOrder = 1;
+                shadow.material.depthTest = false;
+                
+                return shadow;
+            };
+            
+            const shadow = createShadow();
+            system.add(shadow);
+            
+            // 構造体を組み立てる
+            zCarriage.add(rod);
+            xCarriage.add(zCarriage);
+            system.add(xCarriage);
+            
+            // 操作用のプロパティをシステムに追加
+            system.xCarriage = xCarriage;
+            system.zCarriage = zCarriage;
+            system.rod = rod;
+            system.crane = crane;
+            system.shadow = shadow;
+            system.arms = [armL, armR, armFront, armBack];
+            
+            // 衝突判定用に追加
+            system.craneBox = {
+                minX: -0.5,
+                maxX: 0.5,
+                minZ: -0.5,
+                maxZ: 0.5,
+                minY: -2,
+                maxY: -1
+            };
+            
+            // 初期位置に配置
+            system.position.set(0, 0, 0);
+            
+            return system;
+        };
+        
+        const craneSystem = createCraneSystem();
+        scene.add(craneSystem);
+        
+        // 景品同士の衝突を検出して調整する関数
+        const checkPrizeCollisions = (newPrize, attempts = 0) => {
+            if (attempts > 50) return false; // 試行回数の上限
+            
+            let hasCollision = false;
+            for (const prize of prizes) {
+                if (prize === newPrize) continue;
+                
+                const dx = newPrize.position.x - prize.position.x;
+                const dz = newPrize.position.z - prize.position.z;
+                const distance = Math.sqrt(dx*dx + dz*dz);
+                
+                // 衝突判定（半径の合計より近い場合）
+                if (distance < newPrize.radius + prize.radius) {
+                    hasCollision = true;
+                    
+                    // 衝突方向ベクトルを計算して少し押し出す
+                    const pushDistance = (newPrize.radius + prize.radius - distance) / 2;
+                    if (distance > 0) {
+                        const pushX = (dx / distance) * pushDistance;
+                        const pushZ = (dz / distance) * pushDistance;
+                        
+                        // 片方だけを動かす（新しい景品を優先）
+                        newPrize.position.x += pushX;
+                        newPrize.position.z += pushZ;
+                    } else {
+                        // 完全に重なっている場合は少しランダムにずらす
+                        newPrize.position.x += (Math.random() - 0.5) * 0.1;
+                        newPrize.position.z += (Math.random() - 0.5) * 0.1;
+                    }
+                    
+                    // 境界チェック
+                    newPrize.position.x = Math.max(-3.5, Math.min(3.5, newPrize.position.x));
+                    newPrize.position.z = Math.max(-3.5, Math.min(3.5, newPrize.position.z));
+                }
+            }
+            
+            // 衝突があった場合、再度チェック（再帰）
+            if (hasCollision) {
+                return checkPrizeCollisions(newPrize, attempts + 1);
+            }
+            
+            return true; // 衝突なし（配置成功）
+        };
+        
+        // キャラクター景品の生成（修正版：衝突処理と全種類が出るようにする）
+        const createPrizes = (count) => {
+            const newPrizes = [];
+            const characterTypes = ['bear', 'rabbit', 'dog', 'cat', 'penguin', 'frog'];
+            
+            // 未獲得のキャラクタータイプを優先的に出現させる
+            const notCollectedTypes = collection.getNotCollectedTypes();
+            
+            // 現在の景品の種類を収集
+            const existingTypes = {};
+            prizes.forEach(prize => {
+                existingTypes[prize.characterType] = true;
+            });
+            
+            // 未獲得かつ現在ない種類を優先
+            const priorityTypes = notCollectedTypes.filter(type => !existingTypes[type]);
+            
+            // 各キャラクターが少なくとも1つは登場するようにする
+            for (let i = 0; i < count; i++) {
+                let type;
+                if (priorityTypes.length > 0 && i < priorityTypes.length) {
+                    // 未獲得かつ現在ないキャラクターを優先
+                    type = priorityTypes[i];
+                } else if (notCollectedTypes.length > 0 && Math.random() < 0.7) {
+                    // 未獲得のキャラクターを次に優先（70%の確率）
+                    type = notCollectedTypes[Math.floor(Math.random() * notCollectedTypes.length)];
+                } else {
+                    // それ以外はランダム
+                    type = characterTypes[Math.floor(Math.random() * characterTypes.length)];
+                }
+                
+                // キャラクターを作成
+                const prize = createCharacter(type);
+                
+                // 位置をランダムに設定
+                // prize.position.x = (Math.random() - 0.5) * 6;
+                // prize.position.y = -4.5 + Math.random() * 0.2;
+                // prize.position.z = (Math.random() - 0.5) * 6;
+                prize.position.x = (Math.random() - 0.5) * 6;
+                prize.position.y = -4.5 + Math.random() * 0.2;
+                // Z座標を取り出し口から十分離れた範囲(-3.5〜3.0)に制限
+                prize.position.z = (Math.random() * 5.5) - 3.5;
+                
+
+                // 水平回転
+                prize.rotation.y = Math.random() * Math.PI * 2;
+                
+                // 衝突判定用の半径
+                prize.radius = 0.6; // 少し大きめに設定して余裕を持たせる
+                
+                // 景品の状態
+                prize.isGrabbed = false;
+                prize.isCollected = false;
+                
+                // 他の景品との衝突を避ける
+                scene.add(prize);
+                checkPrizeCollisions(prize);
+                
+                newPrizes.push(prize);
+            }
+            
+            return newPrizes;
+        };
+        
+
+        // 初期景品を追加 - 設定から数を取得
+        const initializePrizes = () => {
+            const types = ['bear', 'rabbit', 'dog', 'cat', 'penguin', 'frog'];
+            const eachTypeCount = gameSettings.prizeSettings.eachTypeCount;
+            const randomAdditionalCount = gameSettings.prizeSettings.randomAdditionalCount;
+            const initialPrizes = [];
+            
+            // 各タイプを指定数ずつ配置
+            for (let typeIndex = 0; typeIndex < types.length; typeIndex++) {
+                // 固定値2ではなく、設定値を使用
+                for (let count = 0; count < eachTypeCount; count++) {
+                    const prize = createCharacter(types[typeIndex]);
+                    
+                    // 位置をランダムに設定
+                    // prize.position.x = (Math.random() - 0.5) * 6;
+                    // prize.position.y = -4.5 + Math.random() * 0.2;
+                    // prize.position.z = (Math.random() - 0.5) * 6;
+                    prize.position.x = (Math.random() - 0.5) * 6;
+                    prize.position.y = -4.5 + Math.random() * 0.2;
+                    // Z座標を取り出し口から十分離れた範囲(-3.5〜3.0)に制限
+                    prize.position.z = (Math.random() * 5.5) - 3.5;
+
+
+                    
+                    // 水平回転
+                    prize.rotation.y = Math.random() * Math.PI * 2;
+                    
+                    // 景品の状態設定
+                    prize.radius = 0.6;
+                    prize.isGrabbed = false;
+                    prize.isCollected = false;
+                    
+                    // シーンに追加
+                    scene.add(prize);
+                    initialPrizes.push(prize);
+                }
+            }
+            
+            // 残りをランダムに追加 - 固定値8ではなく、設定値を使用
+            for (let i = 0; i < randomAdditionalCount; i++) {
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                const prize = createCharacter(randomType);
+                
+                // 位置をランダムに設定
+                // prize.position.x = (Math.random() - 0.5) * 6;
+                // prize.position.y = -4.5 + Math.random() * 0.2;
+                // prize.position.z = (Math.random() - 0.5) * 6;
+                prize.position.x = (Math.random() - 0.5) * 6;
+                prize.position.y = -4.5 + Math.random() * 0.2;
+                // Z座標を取り出し口から十分離れた範囲(-3.5〜3.0)に制限
+                prize.position.z = (Math.random() * 5.5) - 3.5;
+
+
+
+                // 水平回転
+                prize.rotation.y = Math.random() * Math.PI * 2;
+                
+                // 景品の状態設定
+                prize.radius = 0.6;
+                prize.isGrabbed = false;
+                prize.isCollected = false;
+                
+                // シーンに追加
+                scene.add(prize);
+                initialPrizes.push(prize);
+            }
+            
+            // ログ出力はループの外に移動
+            console.log(`合計${gameSettings.prizeSettings.getTotalCount()}個の景品を配置しました`);
+            
+            // 衝突チェックと調整
+            for (const prize of initialPrizes) {
+                checkPrizeCollisions(prize);
+            }
+            
+            return initialPrizes;
+        };
+                        
+        // 初期化
+        prizes = initializePrizes();
+        
+        // アニメーション状態管理
+        const gameState = {
+            clawX: 0,
+            clawZ: 0,
+            isGrabbing: false,
+            moveSpeed: 0.05,
+            grabbedPrize: null,
+            collectedCount: 0,
+            bounds: {
+                minX: -3.5,
+                maxX: 3.5,
+                minZ: -3.5,
+                maxZ: 3.5
+            }
+        };
+        
+        // 移動状態の管理
+        const moveState = {
+            left: false,
+            right: false,
+            up: false,
+            down: false
+        };
+        
+        // クレーン位置の更新 (改良版: 衝突判定を追加)
+        const updateCranePosition = () => {
+            // クレーンの新しい位置を設定
+            craneSystem.xCarriage.position.x = gameState.clawX;
+            craneSystem.zCarriage.position.z = gameState.clawZ;
+            craneSystem.shadow.position.x = gameState.clawX;
+            craneSystem.shadow.position.z = gameState.clawZ;
+            
+            // 掴んでいる景品があれば位置を更新
+            if (gameState.grabbedPrize && gameState.grabbedPrize.isGrabbed) {
+                // クレーンの世界座標を取得
+                const p = new THREE.Vector3();
+                craneSystem.crane.getWorldPosition(p);
+                
+                // 景品の位置をクレーンの下に設定
+                gameState.grabbedPrize.position.x = p.x;
+                gameState.grabbedPrize.position.y = p.y - 1.2;
+                gameState.grabbedPrize.position.z = p.z;
+            }
+        };
+        
+        // クレーンを初期位置に戻す関数 (改良版: タイミング修正)
+        const resetCranePosition = () => {
+            gsap.to(gameState, {
+                clawX: 0,
+                clawZ: 0,
+                duration: 1.5,
+                ease: "power2.inOut",
+                onUpdate: function() {
+                    updateCranePosition();
+                },
+                onComplete: () => {
+                    gameState.isGrabbing = false; // 操作可能に戻す
+                }
+            });
+        };
+        
+        // クレーンの動きをコントロール (改良版: 衝突判定を追加)
+        const controlCrane = () => {
+            const { bounds } = gameState;
+            const prevX = gameState.clawX;
+            const prevZ = gameState.clawZ;
+            
+            // 移動状態に基づいて位置を更新
+            if (moveState.left) gameState.clawX -= gameState.moveSpeed;
+            if (moveState.right) gameState.clawX += gameState.moveSpeed;
+            if (moveState.up) gameState.clawZ -= gameState.moveSpeed;
+            if (moveState.down) gameState.clawZ += gameState.moveSpeed;
+            
+            // 境界チェック
+            gameState.clawX = Math.max(bounds.minX, Math.min(bounds.maxX, gameState.clawX));
+            gameState.clawZ = Math.max(bounds.minZ, Math.min(bounds.maxZ, gameState.clawZ));
+            
+            // 位置を更新
+            updateCranePosition();
+        };
+        
+        // 垂直棒を伸ばす関数（クレーン下降時に使用）
+        const extendRod = (scale) => {
+            // 垂直棒のスケールを変更
+            craneSystem.rod.children[0].scale.y = scale;
+            // 位置も調整して見た目が自然になるようにする
+            craneSystem.rod.children[0].position.y = -1 - (scale - 1);
+        };
+        
+        // 距離計算関数
+        const distance = (obj1, obj2) => {
+            const dx = obj1.position.x - obj2.position.x;
+            const dz = obj1.position.z - obj2.position.z;
+            return Math.sqrt(dx * dx + dz * dz);
+        };
+        
+        // キャラクターの獲得メッセージを取得
+        const getCharacterMessage = (type) => {
+            switch(type) {
+                case 'bear':
+                    return "クマをゲット！";
+                case 'rabbit':
+                    return "ウサギをゲット！";
+                case 'dog':
+                    return "イヌをゲット！";
+                case 'cat':
+                    return "ネコをゲット！";
+                case 'penguin':
+                    return "ペンギンをゲット！";
+                case 'frog':
+                    return "カエルをゲット！";
+                default:
+                    return "GET!";
+            }
+        };
+        
+        // クレーンのアームの囲む領域を計算する関数
+        const calculateArmArea = () => {
+            // クレーンの世界座標を取得
+            const craneWorldPos = new THREE.Vector3();
+            craneSystem.crane.getWorldPosition(craneWorldPos);
+            
+            // アームの先端位置を計算
+            const armPositions = craneSystem.arms.map(arm => {
+                const pos = new THREE.Vector3();
+                arm.getWorldPosition(pos);
+                return {
+                    x: pos.x,
+                    y: pos.y - 0.75, // アームの先端
+                    z: pos.z
+                };
+            });
+            
+            // アームの囲む領域を計算
+            const minX = Math.min(...armPositions.map(p => p.x));
+            const maxX = Math.max(...armPositions.map(p => p.x));
+            const minZ = Math.min(...armPositions.map(p => p.z));
+            const maxZ = Math.max(...armPositions.map(p => p.z));
+            const avgY = armPositions.reduce((sum, p) => sum + p.y, 0) / armPositions.length;
+            
+            return {
+                minX, maxX, minZ, maxZ, avgY,
+                centerX: (minX + maxX) / 2,
+                centerZ: (minZ + maxZ) / 2,
+                width: maxX - minX,
+                depth: maxZ - minZ,
+                armPositions: armPositions // アームの先端位置も返す
+            };
+        };
+        
+        // ふつうモード用の掴み判定（接触判定）
+        const checkGrabEasyMode = (armArea) => {
+            // クレーンの世界座標を取得
+            const craneWorldPos = new THREE.Vector3();
+            craneSystem.crane.getWorldPosition(craneWorldPos);
+            
+            // アームの先端位置
+            const armTips = armArea.armPositions;
+            
+            // アームが景品に接触したかチェック
+            let contacted = false;
+            let closestPrize = null;
+            let minDistance = Infinity;
+            
+            for (const prize of prizes) {
+                if (!prize.isCollected && !prize.isGrabbed && prize.parent === scene) {
+                    // アームの先端と景品の距離をチェック
+                    for (const tip of armTips) {
+                        const dx = tip.x - prize.position.x;
+                        const dy = tip.y - prize.position.y;
+                        const dz = tip.z - prize.position.z;
+                        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                        
+                        // if (dist < prize.radius + 0.1) {
+                        if (dist < prize.radius + 0.25) {
+                            contacted = true;
+                            if (dist < minDistance) {
+                                minDistance = dist;
+                                closestPrize = prize;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 接触していれば掴む確率計算
+            if (contacted && closestPrize) {
+                // 掴む確率 (キャラクターの掴みやすさを考慮) - より掴みやすく調整
+                const grabChance = 0.9 * closestPrize.grabDifficulty;
+                
+                if (Math.random() < grabChance) {
+                    // 景品を掴んだ
+                    closestPrize.isGrabbed = true;
+                    gameState.grabbedPrize = closestPrize;
+                    return true;
+                }
+            }
+            
+            return false;
+        };
+        
+        // むずかしいモード用の掴み判定（エリア判定）
+        const checkGrabHardMode = (armArea) => {
+            // 掴める可能性のある景品を探す
+            let bestPrize = null;
+            let bestScore = 0;
+            
+            for (const prize of prizes) {
+                if (!prize.isCollected && !prize.isGrabbed && prize.parent === scene) {
+                    // 景品の位置
+                    const { x, y, z } = prize.position;
+                    
+                    // 景品がアームの囲む領域内にあるかチェック
+                    const isInArea = 
+                        x >= armArea.minX - 0.1 && 
+                        x <= armArea.maxX + 0.1 &&
+                        z >= armArea.minZ - 0.1 && 
+                        z <= armArea.maxZ + 0.1 &&
+                        Math.abs(y - armArea.avgY) < 1.0; // 高さも考慮
+                    
+                    if (isInArea) {
+                        // 中心からの距離をスコアとして計算
+                        const dx = x - armArea.centerX;
+                        const dz = z - armArea.centerZ;
+                        const distFromCenter = Math.sqrt(dx*dx + dz*dz);
+                        
+                        // アームの中心に近いほど掴みやすい
+                        const distanceFactor = 1 - (distFromCenter / (armArea.width / 2));
+                        
+                        // キャラクターの掴みやすさ係数を考慮
+                        const finalScore = distanceFactor * prize.grabDifficulty;
+                        
+                        if (finalScore > bestScore) {
+                            bestScore = finalScore;
+                            bestPrize = prize;
+                        }
+                    }
+                }
+            }
+            
+            // 最終的な掴み判定（スコアが高いほど掴みやすい）
+            if (bestPrize && Math.random() < bestScore) {
+                // 景品を掴んだ
+                bestPrize.isGrabbed = true;
+                gameState.grabbedPrize = bestPrize;
+                return true;
+            }
+            
+            return false;
+        };
+        
+        // 難易度に応じた掴み判定処理
+        const checkGrab = () => {
+            // クレーンのアーム領域を計算
+            const armArea = calculateArmArea();
+            
+            // 難易度に応じた判定処理を実行
+            const grabbed = (gameSettings.difficulty === "easy") ? 
+                checkGrabEasyMode(armArea) : 
+                checkGrabHardMode(armArea);
+            
+            if (grabbed) {
+                // キャラクタータイプに応じたメッセージを表示
+                const message = getCharacterMessage(gameState.grabbedPrize.characterType);
+                showMessage(message, 1000);
+                
+                // 成功音再生
+                sounds.success.play().catch(e => console.log("音の再生に失敗しました"));
+                
+                // 少し浮かせるアニメーション
+                gsap.to(gameState.grabbedPrize.position, {
+                    y: gameState.grabbedPrize.position.y + 0.3,
+                    duration: 0.2
+                });
+                
+                // アームをわずかに閉じる（景品に合わせる）
+                gsap.to(craneSystem.arms[0].position, { x: -0.25, duration: 0.3 });
+                gsap.to(craneSystem.arms[1].position, { x: 0.25, duration: 0.3 });
+                gsap.to(craneSystem.arms[2].position, { x: -0.25, duration: 0.3 });
+                gsap.to(craneSystem.arms[3].position, { x: 0.25, duration: 0.3 });
+                
+                return true;
+            } else {
+                // 掴み失敗
+                showMessage("失敗...", 1000);
+                sounds.fail.play().catch(e => console.log("音の再生に失敗しました"));
+                return false;
+            }
+        };
+        
+        // 景品回収処理 (改良版: 処理順序を修正)
+        const collectPrize = () => {
+            if (gameState.grabbedPrize) {
+                const prize = gameState.grabbedPrize;
+                
+                // まだ移動中状態を維持
+                gameState.isGrabbing = true;
+                
+                // クレーンを景品取り出し口の上まで移動
+                gsap.to(gameState, {
+                    clawX: 0,
+                    // clawZ: 3.8, // 取り出し口の少し手前に
+                    clawZ: EXIT_Z - 0.2,        // 手前 20 cm で停止
+                    duration: 1.0,
+                    ease: "power1.inOut",
+                    onUpdate: function() {
+                        // クレーンが移動する間、位置を更新
+                        updateCranePosition();
+                    },
+                    onComplete: () => {
+                        // アームを開く
+                        gsap.to(craneSystem.arms[0].position, { x: -0.4, duration: 0.3 });
+                        gsap.to(craneSystem.arms[1].position, { x: 0.4, duration: 0.3 });
+                        gsap.to(craneSystem.arms[2].position, { x: -0.4, duration: 0.3 });
+                        gsap.to(craneSystem.arms[3].position, { x: 0.4, duration: 0.3 });
+                        
+                        // 景品を掴み状態から解除
+                        prize.isGrabbed = false;
+                        
+                        // 落下先の目標Y座標（取り出し口の底）
+                        const targetY = -4.8;
+                        
+                        // 景品をクレーンから落とすアニメーション
+                        gsap.to(prize.position, {
+                            x: 0,
+                            y: targetY,
+                            // z: 5.0, // 少し奥へ移動
+                            z: EXIT_Z,
+                            duration: 0.8,
+                            ease: "bounce.out",
+                            onComplete: function() {
+                                // 獲得成功音を再生
+                                sounds.collect.play().catch(e => console.log("音の再生に失敗しました"));
+                                
+                                // 獲得数カウントアップ
+                                gameState.collectedCount++;
+                                scoreDisplay.textContent = `獲得: ${gameState.collectedCount}個`;
+                                
+                                // 新規キャラクター獲得かどうかをチェック
+                                const isNewCharacter = !collection[prize.characterType];
+                                
+                                // コレクション更新
+                                collection[prize.characterType] = true;
+                                collection.updateDisplay();
+                                
+                                // 新規キャラクター獲得時の効果音
+                                if (isNewCharacter) {
+                                    sounds.complete.play().catch(e => console.log("音の再生に失敗しました"));
+                                    
+                                    // 獲得メッセージ
+                                    if (collection.getCount() === 6) {
+                                        showMessage("全キャラクターコンプリート！", 3000);
+                                    } else {
+                                        showMessage("新しいキャラクターをゲット！", 1500);
+                                    }
+                                } else {
+                                    // 通常の獲得メッセージ
+                                    showMessage("景品獲得！", 1500);
+                                }
+
+                                // 景品を消去
+                                scene.remove(prize);
+                                
+                                // 景品リストから削除
+                                const prizeIndex = prizes.indexOf(prize);
+                                if (prizeIndex !== -1) {
+                                    prizes.splice(prizeIndex, 1);
+                                }
+
+                                // ここに追加：景品がなくなったかチェック
+                                if (prizes.length === 0) {
+                                    // 少し遅延させてクリアメッセージを表示（アニメーション完了後に表示）
+                                    setTimeout(() => {
+                                        // BGMを停止
+                                        sounds.bgmMain.pause();
+                                        
+                                        // クリアメッセージの内容を設定
+                                        const clearText = document.getElementById('clear-text');
+                                        
+                                        if (collection.getCount() === 6) {
+                                            // 全キャラコンプリート＆全景品取り切り
+                                            clearText.textContent = "全キャラクターコンプリート＆クリアおめでとう！";
+                                            // コンプリート音を再生
+                                            sounds.allComplete.play().catch(e => console.log("音の再生に失敗しました"));
+                                        } else {
+                                            // 全景品取り切りのみ
+                                            clearText.textContent = "クリア！おめでとう！";
+                                        }
+                                        
+                                        // クリアメッセージを表示
+                                        clearMessageDiv.style.display = 'block';
+                                    }, 1000); // 1秒後に表示
+                                }
+                                
+                                // grabbedPrizeをリセット
+                                gameState.grabbedPrize = null;
+                                
+                                // クレーンを初期位置に戻す (削除後に呼び出す)
+                                resetCranePosition();
+                            }
+                        });
+                    }
+                });
+            }
+        };
+        
+        // 途中で落とす演出付きドロップ関数
+        const dropPrizeWithAnimation = () => {
+            if (gameState.grabbedPrize) {
+                const prize = gameState.grabbedPrize;
+                
+                // 掴み状態を解除
+                prize.isGrabbed = false;
+                
+                // 「すべり落ちた」メッセージ
+                showMessage("滑り落ちた...", 1000);
+                
+                // 失敗音再生
+                sounds.drop.play().catch(e => console.log("音の再生に失敗しました"));
+                
+                // 落下アニメーション (改良: より自然な物理挙動)
+                const randomRotX = (Math.random() - 0.5) * 0.3;
+                const randomRotZ = (Math.random() - 0.5) * 0.3;
+                
+                gsap.to(prize.rotation, {
+                    x: prize.rotation.x + randomRotX,
+                    z: prize.rotation.z + randomRotZ,
+                    duration: 0.5
+                });
+                
+                // 少しランダムに散らばるようにする
+                gsap.to(prize.position, {
+                    y: -4.5,
+                    x: prize.position.x + (Math.random() - 0.5) * 0.5,
+                    // z: prize.position.z + (Math.random() - 0.5) * 0.5,
+                    z: prize.position.z,  // Z は変えず真下に落とす
+                    duration: 1.0,
+                    ease: "bounce.out",
+                    onComplete: function() {
+                        // 落下完了後、他の景品との衝突チェック
+                        checkPrizeCollisions(prize);
+                    }
+                });
+                
+                // クレーンの掴んでいる景品をリセット
+                gameState.grabbedPrize = null;
+            }
+        };
+        
+        // クレーン下降・上昇アニメーション (改良版: 掴み判定改善)
+        const grabAnimation = () => {
+            if (gameState.isGrabbing) return;
+            
+            gameState.isGrabbing = true;
+            
+            // 移動音再生
+            sounds.grab.play().catch(e => console.log("音の再生に失敗しました"));
+            
+            // クレーンの初期位置を保存
+            const startY = craneSystem.crane.position.y;
+            const floorWorldY = -3.5;
+            const floorY = floorWorldY - craneSystem.rod.position.y; // ローカル座標へ
+            
+            // 下降アニメーション
+            gsap.timeline()
+                .to({}, { // ダミーオブジェクトでアニメーション
+                    duration: 1.5,
+                    onUpdate: function() {
+                        // 現在のアニメーション進行度（0～1）
+                        const progress = this.progress();
+                        
+                        // 下降中のY座標を計算
+                        const currentY = startY * (1 - progress) + floorY * progress;
+                        
+                        // クレーン位置の更新
+                        craneSystem.crane.position.y = currentY;
+                        
+                        // 垂直棒を伸ばす（スケーリング）
+                        const rodScale = 1 + Math.abs(currentY - startY) / 2;
+                        extendRod(rodScale);
+                    }
+                })
+                .call(() => {
+                    // アームを閉じる
+                    gsap.to(craneSystem.arms[0].position, { x: -0.2, duration: 0.3 });
+                    gsap.to(craneSystem.arms[1].position, { x: 0.2, duration: 0.3 });
+                    gsap.to(craneSystem.arms[2].position, { x: -0.2, duration: 0.3 });
+                    gsap.to(craneSystem.arms[3].position, { x: 0.2, duration: 0.3 });
+                    
+                    // 掴む判定
+                    const grabbed = checkGrab();
+                    
+                    // 掴んだ場合は景品の位置をクレーンのアーム位置に調整
+                    if (gameState.grabbedPrize) {
+                        // クレーンの世界座標を取得
+                        const craneWorldPos = new THREE.Vector3();
+                        craneSystem.crane.getWorldPosition(craneWorldPos);
+                        
+                        // 景品の位置を調整
+                        gsap.to(gameState.grabbedPrize.position, {
+                            x: craneWorldPos.x,
+                            z: craneWorldPos.z,
+                            y: craneWorldPos.y - 1.2,
+                            duration: 0.3
+                        });
+                    }
+                })
+                .to({}, { // 上昇アニメーション
+                    duration: 2,
+                    delay: 0.5,
+                    onUpdate: function() {
+                        // 現在のアニメーション進行度（0～1）
+                        const progress = this.progress();
+                        
+                        // 上昇中のY座標を計算
+                        const currentY = floorY * (1 - progress) + startY * progress;
+                        
+                        // クレーン位置の更新
+                        craneSystem.crane.position.y = currentY;
+                        
+                        // 垂直棒を縮める（スケーリング）
+                        const rodScale = 1 + Math.abs(currentY - startY) / 2;
+                        extendRod(rodScale);
+                        
+                        // クレーン上昇中も景品を一緒に上げる（掴んでいる場合）
+                        if (gameState.grabbedPrize && gameState.grabbedPrize.isGrabbed) {
+                            // 掴む強さ（確率）に応じて途中で落とすことがある
+                            const dropChance = 0.003; // 毎フレーム0.3%の確率で落とす
+                            
+                            // キャラクターの掴みやすさ係数を考慮
+                            const adjustedDropChance = dropChance * (1.5 - gameState.grabbedPrize.grabDifficulty);
+                            
+                            // 難易度に応じて落下率を調整（ふつうモードではさらに落ちにくく）
+                            const finalDropChance = gameSettings.difficulty === "easy" ? 
+                                adjustedDropChance * 0.3 : adjustedDropChance;
+                            
+                            if (Math.random() < finalDropChance && craneSystem.crane.position.y < -2) {
+                                // 途中で落とすアニメーション
+                                dropPrizeWithAnimation();
+                            } else {
+                                // クレーンの世界座標を取得
+                                const craneWorldPos = new THREE.Vector3();
+                                craneSystem.crane.getWorldPosition(craneWorldPos);
+                                
+                                // 景品をクレーンに追従させる
+                                gameState.grabbedPrize.position.x = craneWorldPos.x;
+                                gameState.grabbedPrize.position.z = craneWorldPos.z;
+                                gameState.grabbedPrize.position.y = craneWorldPos.y - 1.2;
+                            }
+                        }
+                    }
+                })
+                .call(() => {
+                    // 垂直棒を元の長さに戻す
+                    extendRod(1);
+                    
+                    // 景品獲得処理
+                    if (gameState.grabbedPrize) {
+                        collectPrize();
+                    } else {
+                        // 景品を獲得できなかった場合も初期位置に戻す
+                        resetCranePosition();
+                        
+                        // アームを開く
+                        gsap.to(craneSystem.arms[0].position, { x: -0.4, duration: 0.3 });
+                        gsap.to(craneSystem.arms[1].position, { x: 0.4, duration: 0.3 });
+                        gsap.to(craneSystem.arms[2].position, { x: -0.4, duration: 0.3 });
+                        gsap.to(craneSystem.arms[3].position, { x: 0.4, duration: 0.3 });
+                        
+                        // 移動可能状態に戻す
+                        gameState.isGrabbing = false;
+                    }
+                });
+        };
+        
+        // キーボード操作
+        document.addEventListener('keydown', (e) => {
+            if (gameState.isGrabbing) return;
+            
+            switch (e.key) {
+                case 'ArrowLeft':
+                    moveState.left = true;
+                    sounds.move.play().catch(e => console.log("音の再生に失敗しました"));
+                    break;
+                case 'ArrowRight':
+                    moveState.right = true;
+                    sounds.move.play().catch(e => console.log("音の再生に失敗しました"));
+                    break;
+                case 'ArrowUp':
+                    moveState.up = true;
+                    sounds.move.play().catch(e => console.log("音の再生に失敗しました"));
+                    break;
+                case 'ArrowDown':
+                    moveState.down = true;
+                    sounds.move.play().catch(e => console.log("音の再生に失敗しました"));
+                    break;
+                case ' ':
+                case 'Enter':
+                    grabAnimation();
+                    break;
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    moveState.left = false;
+                    break;
+                case 'ArrowRight':
+                    moveState.right = false;
+                    break;
+                case 'ArrowUp':
+                    moveState.up = false;
+                    break;
+                case 'ArrowDown':
+                    moveState.down = false;
+                    break;
+            }
+        });
+        
+        // タッチコントロール（押している間だけ移動）
+        // 左ボタン
+        document.getElementById('left-btn').addEventListener('pointerdown', () => {
+            if (!gameState.isGrabbing) {
+                moveState.left = true;
+                sounds.move.play().catch(e => console.log("音の再生に失敗しました"));
+            }
+        });
+        
+        document.getElementById('left-btn').addEventListener('pointerup', () => {
+            moveState.left = false;
+        });
+        
+        document.getElementById('left-btn').addEventListener('pointerleave', () => {
+            moveState.left = false;
+        });
+        
+        // 右ボタン
+        document.getElementById('right-btn').addEventListener('pointerdown', () => {
+            if (!gameState.isGrabbing) {
+                moveState.right = true;
+                sounds.move.play().catch(e => console.log("音の再生に失敗しました"));
+            }
+        });
+        
+        document.getElementById('right-btn').addEventListener('pointerup', () => {
+            moveState.right = false;
+        });
+        
+        document.getElementById('right-btn').addEventListener('pointerleave', () => {
+            moveState.right = false;
+        });
+        
+        // 上ボタン
+        document.getElementById('up-btn').addEventListener('pointerdown', () => {
+            if (!gameState.isGrabbing) {
+                moveState.up = true;
+                sounds.move.play().catch(e => console.log("音の再生に失敗しました"));
+            }
+        });
+        
+        document.getElementById('up-btn').addEventListener('pointerup', () => {
+            moveState.up = false;
+        });
+        
+        document.getElementById('up-btn').addEventListener('pointerleave', () => {
+            moveState.up = false;
+        });
+        
+        // 下ボタン
+        document.getElementById('down-btn').addEventListener('pointerdown', () => {
+            if (!gameState.isGrabbing) {
+                moveState.down = true;
+                sounds.move.play().catch(e => console.log("音の再生に失敗しました"));
+            }
+        });
+        
+        document.getElementById('down-btn').addEventListener('pointerup', () => {
+            moveState.down = false;
+        });
+        
+        document.getElementById('down-btn').addEventListener('pointerleave', () => {
+            moveState.down = false;
+        });
+        
+        document.getElementById('grab-btn').addEventListener('click', () => {
+            if (!gameState.isGrabbing) {
+                grabAnimation();
+            }
+        });
+        
+        // 景品同士の衝突処理（アニメーションループ内で呼び出す）
+        const updatePrizePositions = () => {
+            // 景品同士の衝突を処理
+            for (let i = 0; i < prizes.length; i++) {
+                const prize1 = prizes[i];
+                if (prize1.isGrabbed || prize1.isCollected) continue;
+                
+                for (let j = i + 1; j < prizes.length; j++) {
+                    const prize2 = prizes[j];
+                    if (prize2.isGrabbed || prize2.isCollected) continue;
+                    
+                    // 距離を計算
+                    const dx = prize1.position.x - prize2.position.x;
+                    const dz = prize1.position.z - prize2.position.z;
+                    const distance = Math.sqrt(dx*dx + dz*dz);
+                    
+                    // 衝突判定（半径の合計より近い場合）
+                    const minDistance = prize1.radius + prize2.radius;
+                    
+                    if (distance < minDistance) {
+                        // 衝突していれば離す方向に動かす
+                        const overlap = minDistance - distance;
+                        const pushFactor = overlap * 0.5; // 半分ずつ移動
+                        
+                        if (distance > 0) { // ゼロ除算回避
+                            const pushX = (dx / distance) * pushFactor;
+                            const pushZ = (dz / distance) * pushFactor;
+                            
+                            // それぞれを反対方向に移動
+                            prize1.position.x += pushX;
+                            prize1.position.z += pushZ;
+                            prize2.position.x -= pushX;
+                            prize2.position.z -= pushZ;
+                            
+                            // 境界チェック
+                            prize1.position.x = Math.max(-3.5, Math.min(3.5, prize1.position.x));
+                            prize1.position.z = Math.max(-3.5, Math.min(3.5, prize1.position.z));
+                            prize2.position.x = Math.max(-3.5, Math.min(3.5, prize2.position.x));
+                            prize2.position.z = Math.max(-3.5, Math.min(3.5, prize2.position.z));
+                        }
+                    }
+                }
+            }
+        };
+        
+        // アニメーションループ
+        const animate = () => {
+            requestAnimationFrame(animate);
+            
+            // クレーン移動（isGrabbingがtrueの場合は移動しない）
+            if (!gameState.isGrabbing) {
+                controlCrane();
+            }
+            
+            // 景品同士の衝突処理
+            updatePrizePositions();
+            
+            // 景品アニメーション
+            prizes.forEach(prize => {
+                if (prize.parent === scene && !prize.isGrabbed && !prize.isCollected) {
+                    // わずかに回転させる
+                    prize.rotation.y += 0.01;
+                    
+                    // 微妙に上下に動かす
+                    prize.position.y = -4.5 + Math.sin(Date.now() * 0.002 + prizes.indexOf(prize) * 0.5) * 0.1;
+                }
+            });
+            
+            renderer.render(scene, camera);
+        };
+        
+        animate();
+        
+        // リサイズ対応
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
