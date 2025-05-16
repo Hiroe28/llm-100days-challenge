@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content="テキストカウンター - リアルタイム文字数・単語数計測ツール" />
+  <meta property="og:description" content="テキストの文字数、単語数、段落数をリアルタイムで計測。ダークモード対応、よく使われる単語分析機能付きの使いやすい文章統計ツール。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day050-text-counter/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day050-text-counter/index.html" />
+  <meta property="og:type" content="website" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="テキストカウンター" />
+  <meta name="twitter:description" content="文章の文字数や単語数をリアルタイムで計測。ダークモード対応で使いやすく、よく使われる単語の分析も可能な文章統計ツール。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day050-text-counter/screenshot.png" />
+
+  <title>テキストカウンター</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* ベース設定 */
+    :root {
+      --bg-main: #f9fafb;
+      --bg-card: #ffffff;
+      --text-primary: #1f2937;
+      --text-secondary: #4b5563;
+      --border-color: #e5e7eb;
+    }
+    
+    .dark {
+      --bg-main: #111827;
+      --bg-card: #1f2937;
+      --text-primary: #f9fafb;
+      --text-secondary: #d1d5db;
+      --border-color: #374151;
+    }
+    
+    /* ダークモード全般の設定 */
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* グラデーション背景 */
+    .gradient-bg {
+      background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+    }
+    
+    .dark .gradient-bg {
+      background: linear-gradient(120deg, #1e3a8a 0%, #3b82f6 100%);
+    }
+    
+    /* カードスタイル */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+    }
+    
+    /* カスタムスクロールバー */
+    textarea::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    textarea::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    textarea::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+    
+    textarea::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    
+    .dark textarea::-webkit-scrollbar-track {
+      background: #1f2937;
+    }
+    
+    .dark textarea::-webkit-scrollbar-thumb {
+      background: #4b5563;
+    }
+    
+    .dark textarea::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+    
+    /* テキストエリア設定 */
+    textarea {
+      background-color: #fff;
+      color: #1f2937;
+    }
+    
+    .dark textarea {
+      background-color: #374151 !important;
+      color: #f9fafb !important;
+      border-color: #4b5563 !important;
+    }
+    
+    /* テキスト色の強制上書き */
+    .dark .dark-text-white {
+      color: #f9fafb !important;
+    }
+    
+    .dark .dark-text-gray {
+      color: #d1d5db !important;
+    }
+    
+    /* アニメーション */
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .animate-pulse-slow {
+      animation: pulse 2s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8">
+      <!-- ヘッダー -->
+      <header class="mb-8">
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl md:text-4xl font-bold dark-text-white">
+            文字数カウンター
+          </h1>
+          <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 focus:outline-none">
+            <svg id="sun-icon" class="w-6 h-6 text-yellow-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <svg id="moon-icon" class="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- メインコンテンツ -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- テキスト入力エリア -->
+        <div class="lg:col-span-2">
+          <div class="card rounded-xl shadow-md overflow-hidden">
+            <div class="gradient-bg p-4">
+              <div class="flex justify-between items-center">
+                <label for="text-input" class="text-lg font-medium dark-text-white">
+                  テキストを入力してください
+                </label>
+                <div id="char-counter" class="text-sm font-medium dark-text-gray">
+                  <span id="current-chars">0</span> / <span id="max-chars">10000</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="p-4">
+              <textarea 
+                id="text-input"
+                class="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                placeholder="ここにテキストを入力..."
+              ></textarea>
+              
+              <!-- プログレスバー -->
+              <div class="w-full h-2 mt-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+            
+            <!-- アクションボタン -->
+            <div class="p-4 card border-t flex gap-2 flex-wrap">
+              <button 
+                id="copy-btn"
+                class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center gap-1 transition"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                <span>コピー</span>
+              </button>
+              
+              <button 
+                id="clear-btn"
+                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white rounded-lg flex items-center gap-1 transition"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>クリア</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- 設定 -->
+          <div class="mt-6 card rounded-xl shadow-md p-6">
+            <h2 class="text-lg font-medium dark-text-white mb-4">設定</h2>
+            
+            <div class="space-y-4">
+              <div class="flex items-center">
+                <label class="flex items-center dark-text-gray cursor-pointer">
+                  <input 
+                    id="include-newlines" 
+                    type="checkbox" 
+                    checked
+                    class="form-checkbox h-5 w-5 text-blue-500 rounded focus:ring-blue-500"
+                  >
+                  <span class="ml-2">改行を文字数に含める</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 統計情報 -->
+        <div class="card rounded-xl shadow-md p-6">
+          <h2 class="text-xl font-bold dark-text-white mb-6">テキスト統計</h2>
+          
+          <div class="space-y-6">
+            <!-- 基本情報 -->
+            <div>
+              <h3 class="text-lg font-medium dark-text-white mb-3">基本情報</h3>
+              <ul class="space-y-2">
+                <li class="flex justify-between items-center">
+                  <span class="dark-text-gray">文字数 (スペース込み):</span>
+                  <span id="count-with-spaces" class="font-medium dark-text-white">0</span>
+                </li>
+                <li class="flex justify-between items-center">
+                  <span class="dark-text-gray">文字数 (スペースなし):</span>
+                  <span id="count-without-spaces" class="font-medium dark-text-white">0</span>
+                </li>
+                <li class="flex justify-between items-center">
+                  <span class="dark-text-gray">単語数:</span>
+                  <span id="word-count" class="font-medium dark-text-white">0</span>
+                </li>
+                <li class="flex justify-between items-center">
+                  <span class="dark-text-gray">段落数:</span>
+                  <span id="paragraph-count" class="font-medium dark-text-white">0</span>
+                </li>
+                <li class="flex justify-between items-center">
+                  <span class="dark-text-gray">行数:</span>
+                  <span id="line-count" class="font-medium dark-text-white">0</span>
+                </li>
+              </ul>
+            </div>
+            
+            <!-- よく使われている単語 -->
+            <div id="common-words-container" class="hidden">
+              <h3 class="text-lg font-medium dark-text-white mb-3">よく使われている単語</h3>
+              <ul id="common-words-list" class="space-y-1">
+                <!-- JavaScript で動的に生成 -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- フッター -->
+      <footer class="mt-12 text-center text-sm dark-text-gray">
+        <p>© 2025 テキストカウンター | GitHub Pages で公開</p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM要素の取得
+      const textInput = document.getElementById('text-input');
+      const currentChars = document.getElementById('current-chars');
+      const maxChars = document.getElementById('max-chars');
+      const countWithSpaces = document.getElementById('count-with-spaces');
+      const countWithoutSpaces = document.getElementById('count-without-spaces');
+      const wordCount = document.getElementById('word-count');
+      const paragraphCount = document.getElementById('paragraph-count');
+      const lineCount = document.getElementById('line-count');
+      const progressBar = document.getElementById('progress-bar');
+      const copyBtn = document.getElementById('copy-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const includeNewlines = document.getElementById('include-newlines');
+      const themeToggle = document.getElementById('theme-toggle');
+      const sunIcon = document.getElementById('sun-icon');
+      const moonIcon = document.getElementById('moon-icon');
+      const commonWordsContainer = document.getElementById('common-words-container');
+      const commonWordsList = document.getElementById('common-words-list');
+      
+      // 最大文字数の固定値
+      const maxLength = 10000;
+      maxChars.textContent = maxLength;
+      
+      // テーマの初期設定
+      function applyTheme() {
+        const isDarkMode = localStorage.getItem('darkMode') === 'true' || 
+            (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && 
+             localStorage.getItem('darkMode') === null);
+             
+        if (isDarkMode) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
+        }
+      }
+      
+      // 初期テーマ適用
+      applyTheme();
+      
+      // テキスト解析関数
+      function analyzeText() {
+        const text = textInput.value;
+        const includeNewlinesChecked = includeNewlines.checked;
+        
+        // 文字数（スペース込み）- 改行含める/含めないの設定に応じて
+        let withSpaces;
+        if (includeNewlinesChecked) {
+          withSpaces = text.length;
+        } else {
+          withSpaces = text.replace(/\n/g, '').length;
+        }
+        
+        // 文字数（スペースなし）- 改行含める/含めないの設定に応じて
+        let withoutSpaces;
+        if (includeNewlinesChecked) {
+          withoutSpaces = text.replace(/[\s]/g, '').length;
+        } else {
+          withoutSpaces = text.replace(/[\s\n]/g, '').length;
+        }
+        
+        // 単語数
+        const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+        
+        // 段落数
+        const paragraphs = text.trim() === '' ? 0 : text.trim().split(/\n\s*\n/).length;
+        
+        // 行数
+        const lines = text.trim() === '' ? 0 : text.trim().split('\n').length;
+        
+        // よく使われている単語
+        let wordCounts = {};
+        if (text.trim() !== '') {
+          const wordList = text.toLowerCase().match(/[\wぁ-んァ-ヶー一-龠々]+/g) || [];
+          wordList.forEach(word => {
+            if (word.length > 1) { // 1文字の単語を除外
+              wordCounts[word] = (wordCounts[word] || 0) + 1;
+            }
+          });
+        }
+        
+        const mostUsedWords = Object.entries(wordCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+        
+        // UI更新
+        currentChars.textContent = withSpaces;
+        countWithSpaces.textContent = withSpaces;
+        countWithoutSpaces.textContent = withoutSpaces;
+        wordCount.textContent = words;
+        paragraphCount.textContent = paragraphs;
+        lineCount.textContent = lines;
+        
+        // プログレスバー更新
+        const percentage = Math.min((withSpaces / maxLength) * 100, 100);
+        progressBar.style.width = `${percentage}%`;
+        
+        // プログレスバーの色を更新
+        if (percentage > 90) {
+          progressBar.classList.remove('bg-blue-500');
+          progressBar.classList.add('bg-red-500');
+        } else {
+          progressBar.classList.remove('bg-red-500');
+          progressBar.classList.add('bg-blue-500');
+        }
+        
+        // 文字数制限の警告
+        if (withSpaces > maxLength) {
+          currentChars.classList.add('text-red-500', 'font-bold');
+        } else {
+          currentChars.classList.remove('text-red-500', 'font-bold');
+        }
+        
+        // よく使われている単語の表示
+        if (mostUsedWords.length > 0) {
+          commonWordsContainer.classList.remove('hidden');
+          commonWordsList.innerHTML = '';
+          
+          mostUsedWords.forEach(([word, count]) => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center';
+            li.innerHTML = `
+              <span class="dark-text-gray">${word}</span>
+              <span class="font-medium dark-text-white">${count}回</span>
+            `;
+            commonWordsList.appendChild(li);
+          });
+        } else {
+          commonWordsContainer.classList.add('hidden');
+        }
+      }
+      
+      // テキスト入力イベント
+      textInput.addEventListener('input', analyzeText);
+      
+      // コピーボタン
+      copyBtn.addEventListener('click', function() {
+        const text = textInput.value;
+        if (text) {
+          navigator.clipboard.writeText(text)
+            .then(() => {
+              const originalText = copyBtn.innerHTML;
+              copyBtn.innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>コピーしました！</span>
+              `;
+              
+              setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+              }, 2000);
+            })
+            .catch(err => {
+              console.error('クリップボードへのコピーに失敗しました:', err);
+            });
+        }
+      });
+      
+      // クリアボタン
+      clearBtn.addEventListener('click', function() {
+        textInput.value = '';
+        analyzeText();
+      });
+      
+      // 改行を含めるかどうかのチェックボックス
+      includeNewlines.addEventListener('change', analyzeText);
+      
+      // テーマ切り替え
+      themeToggle.addEventListener('click', function() {
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        
+        if (isDarkMode) {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
+          localStorage.setItem('darkMode', 'false');
+        } else {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+          localStorage.setItem('darkMode', 'true');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
