@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark:bg-gray-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日常単位変換ツール | 単位を簡単に変換</title>
+  
+  <!-- メタディスクリプション -->
+  <meta name="description" content="長さ、重さ、温度、体積、時間など様々な単位を簡単に変換できるツール。スマホ対応で、ダークモードにも対応しています。シンプルで使いやすいUIを採用。">
+  
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content="日常単位変換ツール | 単位を簡単に変換" />
+  <meta property="og:description" content="長さ、重さ、温度など日常で使う単位を簡単に変換。スマホ対応でダークモードも搭載した、シンプルで使いやすい単位変換ツール。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day051-unit-converter/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day051-unit-converter/index.html" />
+  <meta property="og:type" content="website" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="日常単位変換ツール" />
+  <meta name="twitter:description" content="長さ、重さ、温度、体積、時間などの単位を簡単に変換できるツール。スマホ対応でダークモードも搭載。リアルタイム計算で結果をすぐに確認できます。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day051-unit-converter/screenshot.png" />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- レスポンシブスタイル用のカスタム設定 -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  
+  <style>
+    /* カスタムスタイル */
+    .tab-active {
+      background-color: #3b82f6;
+      color: white;
+    }
+    
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    
+    /* スクロールバーを非表示 */
+    .overflow-x-auto::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .overflow-x-auto {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    /* アニメーション */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    /* ダークモード */
+    .dark-mode {
+      background-color: #111827; /* より暗い背景 */
+      color: #f3f4f6; /* より明るいテキスト */
+    }
+    
+    .dark-mode .card {
+      background-color: #1f2937; /* カードの背景 */
+      border-color: #374151;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+    
+    .dark-mode .tab:not(.tab-active) {
+      background-color: #374151;
+      color: #e5e7eb;
+    }
+    
+    .dark-mode .tab-active {
+      background-color: #2563eb; /* 青色をより鮮やかに */
+    }
+    
+    .dark-mode input, .dark-mode select {
+      background-color: #374151;
+      color: #f3f4f6;
+      border-color: #4b5563;
+    }
+    
+    .dark-mode input:focus, .dark-mode select:focus {
+      border-color: #60a5fa;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+    }
+    
+    .dark-mode .result-box {
+      background-color: #2d3748; /* 結果ボックスの背景 */
+    }
+    
+    .dark-mode footer {
+      border-color: #374151;
+      color: #9ca3af;
+    }
+    
+    .dark-mode button:hover {
+      background-color: #374151;
+    }
+    
+    /* ダークモード時のコピーボタンのホバー */
+    .dark-mode .copy-button:hover {
+      background-color: #4b5563;
+    }
+    
+    /* ラベルの強調 (ダークモード) */
+    .dark-mode label {
+      color: #d1d5db;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 transition-colors duration-300">
+  <div class="container mx-auto max-w-3xl py-8 px-4">
+    <!-- ヘッダー -->
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">単位変換ツール</h1>
+      <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200" aria-label="テーマ切り替え">
+        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon">
+          <path d="M12 3a6.364 6.364 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+        </svg>
+        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun hidden">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2"></path>
+          <path d="M12 20v2"></path>
+          <path d="m4.93 4.93 1.41 1.41"></path>
+          <path d="m17.66 17.66 1.41 1.41"></path>
+          <path d="M2 12h2"></path>
+          <path d="M20 12h2"></path>
+          <path d="m6.34 17.66-1.41 1.41"></path>
+          <path d="m19.07 4.93-1.41 1.41"></path>
+        </svg>
+      </button>
+    </header>
+    
+    <!-- タブ -->
+    <div class="flex overflow-x-auto mb-4 pb-2">
+      <button class="tab tab-active px-4 py-2 rounded-lg mr-2 whitespace-nowrap" data-tab="length">長さ</button>
+      <button class="tab px-4 py-2 rounded-lg mr-2 whitespace-nowrap bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300" data-tab="mass">重さ</button>
+      <button class="tab px-4 py-2 rounded-lg mr-2 whitespace-nowrap bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300" data-tab="temperature">温度</button>
+      <button class="tab px-4 py-2 rounded-lg mr-2 whitespace-nowrap bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300" data-tab="volume">体積</button>
+      <button class="tab px-4 py-2 rounded-lg mr-2 whitespace-nowrap bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300" data-tab="time">時間</button>
+      <button class="tab px-4 py-2 rounded-lg mr-2 whitespace-nowrap bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300" data-tab="currency">通貨</button>
+    </div>
+    
+    <!-- メインカード -->
+    <div class="card bg-white rounded-lg shadow-lg p-4 dark:bg-gray-800 transition-colors duration-300">
+      <!-- 通貨変換APIステータス表示 (通貨タブ用) -->
+      <div id="currency-api-status" class="mb-4 p-3 rounded-lg bg-blue-50 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hidden">
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span id="currency-status-text">為替レートを取得中...</span>
+        </div>
+        <div class="mt-2 text-xs" id="currency-last-updated"></div>
+      </div>
+      
+      <!-- 入力フィールド -->
+      <div class="mb-6">
+        <label for="input-value" class="block text-sm font-medium mb-1">値</label>
+        <input id="input-value" type="number" value="1" min="0" step="any" class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-blue-700 dark:focus:border-blue-500">
+      </div>
+      
+      <!-- 単位選択 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div>
+          <label for="from-unit" class="block text-sm font-medium mb-1">変換元</label>
+          <select id="from-unit" class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-blue-700 dark:focus:border-blue-500"></select>
+        </div>
+        
+        <div>
+          <label for="to-unit" class="block text-sm font-medium mb-1">変換先</label>
+          <select id="to-unit" class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-blue-700 dark:focus:border-blue-500"></select>
+        </div>
+      </div>
+      
+      <!-- 結果表示 -->
+      <div class="mb-6">
+        <div class="flex justify-between items-center mb-1">
+          <label for="result" class="text-sm font-medium">結果</label>
+          <div class="flex items-center">
+            <span class="text-sm mr-2">小数点以下桁数: </span>
+            <select id="precision" class="p-1 border border-gray-300 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-blue-700 dark:focus:border-blue-500">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="result-box flex items-center justify-between p-3 bg-gray-100 rounded-lg dark:bg-gray-700 transition-colors duration-300">
+          <div class="flex items-center flex-grow">
+            <span id="input-display" class="text-lg font-medium">1 メートル (m)</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right mx-2 text-gray-500">
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+            <span id="output-display" class="text-lg font-medium">100 センチメートル (cm)</span>
+          </div>
+          
+          <div class="flex items-center">
+            <button id="copy-button" class="copy-button ml-2 p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors duration-200" aria-label="結果をコピー">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard">
+                <rect width="14" height="14" x="8" y="2" rx="2" ry="2"></rect>
+                <path d="M16 2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"></path>
+                <path d="M16 2h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"></path>
+              </svg>
+            </button>
+            
+            <svg id="copy-success" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle-2 text-green-500 hidden">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- フッター -->
+    <footer class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+      <p>© 2025 単位変換ツール | GitHub Pagesで公開</p>
+    </footer>
+  </div>
+
+  <!-- Math.jsライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+  
+  <!-- メインスクリプト -->
+  <script>
+    // 通貨API用の変数
+    let currencyRates = {};
+    let currencyLastUpdated = null;
+    
+    // 単位データ
+    const units = {
+      length: ['mm', 'cm', 'm', 'km', 'inch', 'ft', 'yd', 'mile'],
+      mass: ['mg', 'g', 'kg', 'ton', 'oz', 'lb'],
+      temperature: ['celsius', 'fahrenheit', 'kelvin'],
+      volume: ['ml', 'l', 'cubic_m', 'gallon', 'quart', 'cup', 'tbsp', 'tsp'],
+      time: ['ms', 's', 'min', 'h', 'day', 'week', 'month', 'year'],
+      currency: ['JPY', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'KRW']
+    };
+    
+    // 日本語表示用の単位名
+    const unitLabels = {
+      // 長さ
+      mm: 'ミリメートル (mm)',
+      cm: 'センチメートル (cm)',
+      m: 'メートル (m)',
+      km: 'キロメートル (km)',
+      inch: 'インチ (in)',
+      ft: 'フィート (ft)',
+      yd: 'ヤード (yd)',
+      mile: 'マイル',
+      // 重さ
+      mg: 'ミリグラム (mg)',
+      g: 'グラム (g)',
+      kg: 'キログラム (kg)',
+      ton: 'トン (t)',
+      oz: 'オンス (oz)',
+      lb: 'ポンド (lb)',
+      // 温度
+      celsius: '摂氏 (°C)',
+      fahrenheit: '華氏 (°F)',
+      kelvin: 'ケルビン (K)',
+      // 体積
+      ml: 'ミリリットル (ml)',
+      l: 'リットル (l)',
+      cubic_m: '立方メートル (m³)',
+      gallon: 'ガロン',
+      quart: 'クォート',
+      cup: 'カップ',
+      tbsp: '大さじ',
+      tsp: '小さじ',
+      // 時間
+      ms: 'ミリ秒',
+      s: '秒',
+      min: '分',
+      h: '時間',
+      day: '日',
+      week: '週',
+      month: '月',
+      year: '年',
+      // 通貨
+      JPY: '日本円 (¥)',
+      USD: '米ドル ($)',
+      EUR: 'ユーロ (€)',
+      GBP: '英ポンド (£)',
+      AUD: '豪ドル (A$)',
+      CAD: '加ドル (C$)',
+      CHF: 'スイスフラン',
+      CNY: '中国元 (元)',
+      HKD: '香港ドル (HK$)',
+      KRW: '韓国ウォン (₩)'
+    };
+    
+    // タブラベル
+    const tabLabels = {
+      length: '長さ',
+      mass: '重さ',
+      temperature: '温度',
+      volume: '体積',
+      time: '時間',
+      currency: '通貨'
+    };
+    
+    // DOM要素
+    const inputValue = document.getElementById('input-value');
+    const fromUnitSelect = document.getElementById('from-unit');
+    const toUnitSelect = document.getElementById('to-unit');
+    const precisionSelect = document.getElementById('precision');
+    const inputDisplay = document.getElementById('input-display');
+    const outputDisplay = document.getElementById('output-display');
+    const copyButton = document.getElementById('copy-button');
+    const copySuccess = document.getElementById('copy-success');
+    const tabs = document.querySelectorAll('.tab');
+    const themeToggle = document.getElementById('theme-toggle');
+    const moonIcon = document.getElementById('moon-icon');
+    const sunIcon = document.getElementById('sun-icon');
+    
+    // 現在のタブとダークモード状態
+    let currentTab = 'length';
+    let isDarkMode = localStorage.getItem('darkMode') === 'true';
+    
+    // 通貨レートの取得とキャッシュ
+    async function fetchCurrencyRates(baseCurrency) {
+      const cacheKey = `currency_rates_${baseCurrency}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      const oneDayInMs = 24 * 60 * 60 * 1000; // 24時間（ミリ秒）
+      
+      // キャッシュチェック
+      if (cachedData) {
+        const { rates, timestamp } = JSON.parse(cachedData);
+        
+        // 24時間以内ならキャッシュを使用
+        if (Date.now() - timestamp < oneDayInMs) {
+          console.log('キャッシュしたレートを使用');
+          currencyLastUpdated = new Date(timestamp);
+          return rates;
+        }
+      }
+      
+      // 新しいレート取得
+      try {
+        updateStatusText('為替レートを取得中...');
+        const response = await fetch(`https://api.frankfurter.app/latest?from=${baseCurrency}`);
+        
+        if (!response.ok) throw new Error('APIエラー');
+        
+        const data = await response.json();
+        
+        // キャッシュに保存
+        const timestamp = Date.now();
+        localStorage.setItem(
+          cacheKey, 
+          JSON.stringify({ 
+            rates: data.rates, 
+            timestamp: timestamp
+          })
+        );
+        
+        currencyLastUpdated = new Date(timestamp);
+        updateStatusText('為替レートを更新しました');
+        return data.rates;
+      } catch (error) {
+        console.error('レート取得エラー:', error);
+        updateStatusText('為替レートの取得に失敗しました');
+        
+        // エラー時は古いキャッシュでも使用
+        if (cachedData) {
+          const { rates, timestamp } = JSON.parse(cachedData);
+          currencyLastUpdated = new Date(timestamp);
+          updateStatusText('キャッシュした為替レートを使用しています');
+          return rates;
+        }
+        
+        return null;
+      }
+    }
+    
+    // 通貨変換処理
+    async function convertCurrency(amount, fromCurrency, toCurrency, precision) {
+      if (fromCurrency === toCurrency) {
+        return amount;
+      }
+      
+      try {
+        // fromCurrencyをベースとしたレートを取得
+        if (!currencyRates[fromCurrency]) {
+          currencyRates[fromCurrency] = await fetchCurrencyRates(fromCurrency);
+        }
+        
+        if (!currencyRates[fromCurrency]) {
+          throw new Error('レートが取得できませんでした');
+        }
+        
+        // 変換計算
+        const rate = currencyRates[fromCurrency][toCurrency];
+        if (!rate) {
+          throw new Error(`${toCurrency}のレートが見つかりません`);
+        }
+        
+        return amount * rate;
+      } catch (error) {
+        console.error('通貨変換エラー:', error);
+        return null;
+      }
+    }
+    
+    // 通貨APIステータスの更新
+    function updateStatusText(text) {
+      const statusText = document.getElementById('currency-status-text');
+      const lastUpdatedText = document.getElementById('currency-last-updated');
+      
+      if (statusText) statusText.textContent = text;
+      
+      if (lastUpdatedText && currencyLastUpdated) {
+        const dateOptions = { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        };
+        lastUpdatedText.textContent = `最終更新: ${currencyLastUpdated.toLocaleDateString('ja-JP', dateOptions)}`;
+      }
+    }
+    
+    // 通貨タブの状態更新
+    function updateCurrencyStatus() {
+      if (currencyLastUpdated) {
+        updateStatusText('為替レートをロード済み');
+      } else {
+        // 初回ロード
+        const defaultCurrency = 'JPY';
+        fetchCurrencyRates(defaultCurrency).then(rates => {
+          if (rates) {
+            currencyRates[defaultCurrency] = rates;
+            updateConversion();
+          }
+        });
+      }
+    }
+    
+    // 初期化
+    function init() {
+      // ダークモードの適用
+      if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        moonIcon.classList.add('hidden');
+        sunIcon.classList.remove('hidden');
+        
+        // タブの色を更新
+        tabs.forEach(t => {
+          if (!t.classList.contains('tab-active')) {
+            t.classList.add('dark:bg-gray-700', 'dark:text-gray-300');
+          }
+        });
+      }
+      
+      // タブの初期設定
+      loadTab(currentTab);
+      
+      // イベントリスナー
+      inputValue.addEventListener('input', updateConversion);
+      fromUnitSelect.addEventListener('change', updateConversion);
+      toUnitSelect.addEventListener('change', updateConversion);
+      precisionSelect.addEventListener('change', updateConversion);
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const tabName = tab.getAttribute('data-tab');
+          tabs.forEach(t => {
+            t.classList.remove('tab-active');
+            t.classList.add('bg-gray-200', 'text-gray-700');
+            if (isDarkMode) {
+              t.classList.add('dark:bg-gray-700', 'dark:text-gray-300');
+            }
+          });
+          tab.classList.add('tab-active');
+          tab.classList.remove('bg-gray-200', 'text-gray-700', 'dark:bg-gray-700', 'dark:text-gray-300');
+          
+          loadTab(tabName);
+        });
+      });
+      
+      // コピーボタン
+      copyButton.addEventListener('click', copyResult);
+      
+      // テーマトグル
+      themeToggle.addEventListener('click', toggleDarkMode);
+    }
+    
+    // タブの読み込み
+    function loadTab(tabName) {
+      currentTab = tabName;
+      
+      // 通貨ステータス表示の切り替え
+      const currencyStatus = document.getElementById('currency-api-status');
+      if (tabName === 'currency') {
+        currencyStatus.classList.remove('hidden');
+        updateCurrencyStatus();
+      } else {
+        currencyStatus.classList.add('hidden');
+      }
+      
+      // 単位セレクトのオプションをクリア
+      fromUnitSelect.innerHTML = '';
+      toUnitSelect.innerHTML = '';
+      
+      // 新しいオプションを追加
+      units[tabName].forEach((unit, index) => {
+        const fromOption = document.createElement('option');
+        fromOption.value = unit;
+        fromOption.textContent = unitLabels[unit];
+        fromUnitSelect.appendChild(fromOption);
+        
+        const toOption = document.createElement('option');
+        toOption.value = unit;
+        toOption.textContent = unitLabels[unit];
+        toUnitSelect.appendChild(toOption);
+        
+        // デフォルトで2つ目の単位を選択
+        if (index === 0) fromUnitSelect.value = unit;
+        if (index === 1) toUnitSelect.value = unit;
+      });
+      
+      // 変換を更新
+      updateConversion();
+    }
+    
+    // 変換の計算と表示の更新
+    function updateConversion() {
+      const value = parseFloat(inputValue.value) || 0;
+      const fromUnit = fromUnitSelect.value;
+      const toUnit = toUnitSelect.value;
+      const precision = parseInt(precisionSelect.value);
+      
+      let result;
+      
+      // 通貨変換
+      if (currentTab === 'currency') {
+        convertCurrency(value, fromUnit, toUnit, precision).then(convertedValue => {
+          if (convertedValue !== null) {
+            inputDisplay.textContent = `${value} ${unitLabels[fromUnit]}`;
+            outputDisplay.textContent = `${convertedValue.toFixed(precision)} ${unitLabels[toUnit]}`;
+          } else {
+            inputDisplay.textContent = `${value} ${unitLabels[fromUnit]}`;
+            outputDisplay.textContent = `変換できませんでした`;
+          }
+        });
+        return;
+      }
+      
+      // 温度の特別な計算
+      if (currentTab === 'temperature') {
+        if (fromUnit === 'celsius' && toUnit === 'fahrenheit') {
+          result = (value * 9/5) + 32;
+        } else if (fromUnit === 'celsius' && toUnit === 'kelvin') {
+          result = value + 273.15;
+        } else if (fromUnit === 'fahrenheit' && toUnit === 'celsius') {
+          result = (value - 32) * 5/9;
+        } else if (fromUnit === 'fahrenheit' && toUnit === 'kelvin') {
+          result = ((value - 32) * 5/9) + 273.15;
+        } else if (fromUnit === 'kelvin' && toUnit === 'celsius') {
+          result = value - 273.15;
+        } else if (fromUnit === 'kelvin' && toUnit === 'fahrenheit') {
+          result = ((value - 273.15) * 9/5) + 32;
+        } else {
+          result = value; // 同じ単位
+        }
+      } else {
+        // mathjs を使用した変換
+        try {
+          result = math.unit(value, fromUnit).to(toUnit).toNumber();
+        } catch (error) {
+          console.error('変換エラー:', error);
+          result = 0;
+        }
+      }
+      
+      // 表示の更新
+      inputDisplay.textContent = `${value} ${unitLabels[fromUnit]}`;
+      outputDisplay.textContent = `${result.toFixed(precision)} ${unitLabels[toUnit]}`;
+    }
+    
+    // 結果をクリップボードにコピー
+    function copyResult() {
+      const result = outputDisplay.textContent;
+      navigator.clipboard.writeText(result).then(() => {
+        copyButton.classList.add('hidden');
+        copySuccess.classList.remove('hidden');
+        
+        setTimeout(() => {
+          copyButton.classList.remove('hidden');
+          copySuccess.classList.add('hidden');
+        }, 2000);
+      });
+    }
+    
+    // ダークモードの切り替え
+    function toggleDarkMode() {
+      isDarkMode = !isDarkMode;
+      
+      if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        moonIcon.classList.add('hidden');
+        sunIcon.classList.remove('hidden');
+      } else {
+        document.body.classList.remove('dark-mode');
+        moonIcon.classList.remove('hidden');
+        sunIcon.classList.add('hidden');
+      }
+      
+      // CSSクラスをリセット（ダークモード時のタブ表示用）
+      if (isDarkMode) {
+        tabs.forEach(t => {
+          if (!t.classList.contains('tab-active')) {
+            t.classList.add('dark:bg-gray-700', 'dark:text-gray-300');
+          }
+        });
+      }
+      
+      localStorage.setItem('darkMode', isDarkMode);
+    }
+    
+    // ページ読み込み時に初期化
+    window.addEventListener('DOMContentLoaded', init);
+    
+    // サービスワーカーを登録（オフラインサポート用）
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(registration => {
+          console.log('ServiceWorker登録成功:', registration.scope);
+        }).catch(error => {
+          console.log('ServiceWorker登録失敗:', error);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
