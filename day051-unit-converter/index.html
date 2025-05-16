@@ -3,44 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!DOCTYPE html>
-<html lang="ja" class="dark:bg-gray-900">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>日常単位変換ツール | 単位を簡単に変換</title>
-  <!-- メタディスクリプション -->
-  <meta name="description" content="長さ、重さ、温度、体積、時間など様々な単位を簡単に変換できるツール。スマホ対応で、ダークモードにも対応しています。シンプルで使いやすいUIを採用。">
   
-  <!-- OGP (Open Graph Protocol) -->
-  <meta property="og:title" content="日常単位変換ツール | 単位を簡単に変換" />
-  <meta property="og:description" content="長さ、重さ、温度など日常で使う単位を簡単に変換。スマホ対応でダークモードも搭載した、シンプルで使いやすい単位変換ツール。" />
-  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day051-unit-converter/screenshot.png" />
-  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day051-unit-converter/index.html" />
-  <meta property="og:type" content="website" />
-  
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="日常単位変換ツール" />
-  <meta name="twitter:description" content="長さ、重さ、温度、体積、時間などの単位を簡単に変換できるツール。スマホ対応でダークモードも搭載。リアルタイム計算で結果をすぐに確認できます。" />
-  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day051-unit-converter/screenshot.png" />
-  
-  <!-- Favicon -->
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3201351704984910"
+          crossorigin="anonymous"></script>
 
-  <!-- PWA対応 -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0ea5e9">
-  
-  <!-- その他のヘッダー情報はここに続く -->
-</head>
-<body>
-  <!-- ページコンテンツ -->
-</body>
-</html>
-  <title>日常単位変換ツール | 単位を簡単に変換</title>
-  
   <!-- メタディスクリプション -->
   <meta name="description" content="長さ、重さ、温度、体積、時間など様々な単位を簡単に変換できるツール。スマホ対応で、ダークモードにも対応しています。シンプルで使いやすいUIを採用。">
   
@@ -118,61 +85,108 @@
       animation: fadeIn 0.3s ease-in;
     }
     
-    /* ダークモード */
-    .dark-mode {
-      background-color: #111827; /* より暗い背景 */
-      color: #f3f4f6; /* より明るいテキスト */
+    /* 切り替えボタンのアニメーション */
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .animate-spin {
+      animation: spin 0.5s ease-in-out;
+    }
+    
+    /* ダークモード - 完全に改良 */
+    body.dark-mode {
+      background-color: #0f172a; /* より暗い背景 */
+      color: #e2e8f0; /* より明るいテキスト */
     }
     
     .dark-mode .card {
-      background-color: #1f2937; /* カードの背景 */
-      border-color: #374151;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      background-color: #1e293b; /* カードの背景 */
+      border-color: #334155;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
     }
     
     .dark-mode .tab:not(.tab-active) {
-      background-color: #374151;
+      background-color: #334155;
       color: #e5e7eb;
     }
     
     .dark-mode .tab-active {
-      background-color: #2563eb; /* 青色をより鮮やかに */
+      background-color: #3b82f6; /* 青色をより鮮やかに */
     }
     
-    .dark-mode input, .dark-mode select {
-      background-color: #374151;
-      color: #f3f4f6;
-      border-color: #4b5563;
+    .dark-mode input, 
+    .dark-mode select {
+      background-color: #1e293b;
+      color: #e2e8f0;
+      border-color: #475569;
     }
     
-    .dark-mode input:focus, .dark-mode select:focus {
+    .dark-mode input:focus, 
+    .dark-mode select:focus {
       border-color: #60a5fa;
       outline: none;
       box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
     }
     
     .dark-mode .result-box {
-      background-color: #2d3748; /* 結果ボックスの背景 */
+      background-color: #334155; /* 結果ボックスの背景 */
+      color: #e2e8f0;
+      border: 1px solid #475569;
     }
     
     .dark-mode footer {
-      border-color: #374151;
-      color: #9ca3af;
+      border-color: #334155;
+      color: #94a3b8;
     }
     
     .dark-mode button:hover {
-      background-color: #374151;
+      background-color: #334155;
     }
     
     /* ダークモード時のコピーボタンのホバー */
     .dark-mode .copy-button:hover {
-      background-color: #4b5563;
+      background-color: #475569;
     }
     
     /* ラベルの強調 (ダークモード) */
     .dark-mode label {
-      color: #d1d5db;
+      color: #e2e8f0;
       font-weight: 500;
+    }
+    
+    /* 通貨情報表示のダークモード修正 */
+    .dark-mode #currency-api-status {
+      background-color: #1e3a8a;
+      color: #bfdbfe;
+      border: 1px solid #2563eb;
+    }
+    
+    .dark-mode #currency-rate-info {
+      background-color: #1e293b;
+      color: #e2e8f0;
+      border-color: #475569;
+    }
+    
+    /* 追加のダークモード修正 - 文字色 */
+    .dark-mode .text-gray-500,
+    .dark-mode .text-gray-700, 
+    .dark-mode .text-gray-800,
+    .dark-mode .text-gray-900 {
+      color: #e2e8f0;
+    }
+    
+    /* 結果表示欄の矢印アイコン色修正 */
+    .dark-mode .lucide-arrow-right {
+      color: #94a3b8;
+    }
+    
+    /* タブセレクタのダークモード対応 */
+    .dark-mode #precision {
+      background-color: #1e293b;
+      color: #e2e8f0;
+      border-color: #475569;
     }
   </style>
 </head>
@@ -231,13 +245,25 @@
       </div>
       
       <!-- 単位選択 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div class="md:col-span-2">
           <label for="from-unit" class="block text-sm font-medium mb-1">変換元</label>
           <select id="from-unit" class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-blue-700 dark:focus:border-blue-500"></select>
         </div>
         
-        <div>
+        <!-- 切り替えボタン -->
+        <div class="flex items-end justify-center mb-1">
+          <button id="swap-button" class="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors duration-200 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" aria-label="変換元と変換先を入れ替え">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-repeat">
+              <path d="m17 2 4 4-4 4"></path>
+              <path d="M3 11v-1a4 4 0 0 1 4-4h14"></path>
+              <path d="m7 22-4-4 4-4"></path>
+              <path d="M21 13v1a4 4 0 0 1-4 4H3"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="md:col-span-2">
           <label for="to-unit" class="block text-sm font-medium mb-1">変換先</label>
           <select id="to-unit" class="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-blue-700 dark:focus:border-blue-500"></select>
         </div>
@@ -248,7 +274,7 @@
         <div class="flex justify-between items-center mb-1">
           <label for="result" class="text-sm font-medium">結果</label>
           <div class="flex items-center">
-            <span class="text-sm mr-2">小数点以下桁数: </span>
+            <span class="text-sm mr-2 dark:text-gray-300">小数点以下桁数: </span>
             <select id="precision" class="p-1 border border-gray-300 rounded-md text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-all dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:ring-blue-700 dark:focus:border-blue-500">
               <option value="0">0</option>
               <option value="1">1</option>
@@ -264,7 +290,7 @@
         <div class="result-box flex items-center justify-between p-3 bg-gray-100 rounded-lg dark:bg-gray-700 transition-colors duration-300">
           <div class="flex items-center flex-grow">
             <span id="input-display" class="text-lg font-medium">1 メートル (m)</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right mx-2 text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right mx-2 text-gray-500 dark:text-gray-400">
               <path d="M5 12h14"></path>
               <path d="m12 5 7 7-7 7"></path>
             </svg>
@@ -284,6 +310,17 @@
               <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
               <path d="m9 12 2 2 4-4"></path>
             </svg>
+          </div>
+        </div>
+        
+        <!-- 通貨レート情報表示（通貨タブのみ） -->
+        <div id="currency-rate-info" class="mt-2 p-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hidden">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1 text-blue-500">
+              <path d="M12 2v20"></path>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            <span id="current-rate-display">現在のレート: 1 USD = 110.25 JPY</span>
           </div>
         </div>
       </div>
@@ -395,7 +432,7 @@
     let currentTab = 'length';
     let isDarkMode = localStorage.getItem('darkMode') === 'true';
     
-    // 通貨レートの取得とキャッシュ
+    // 通貨レートの取得とキャッシュ（修正版）
     async function fetchCurrencyRates(baseCurrency) {
       const cacheKey = `currency_rates_${baseCurrency}`;
       const cachedData = localStorage.getItem(cacheKey);
@@ -403,20 +440,41 @@
       
       // キャッシュチェック
       if (cachedData) {
-        const { rates, timestamp } = JSON.parse(cachedData);
-        
-        // 24時間以内ならキャッシュを使用
-        if (Date.now() - timestamp < oneDayInMs) {
-          console.log('キャッシュしたレートを使用');
-          currencyLastUpdated = new Date(timestamp);
-          return rates;
+        try {
+          const { rates, timestamp } = JSON.parse(cachedData);
+          
+          // 24時間以内ならキャッシュを使用
+          if (Date.now() - timestamp < oneDayInMs) {
+            console.log('キャッシュしたレートを使用');
+            currencyLastUpdated = new Date(timestamp);
+            updateStatusText('キャッシュした為替レートを使用しています');
+            return rates;
+          }
+        } catch (error) {
+          console.error('キャッシュデータの解析エラー:', error);
         }
       }
       
       // 新しいレート取得
       try {
         updateStatusText('為替レートを取得中...');
-        const response = await fetch(`https://api.frankfurter.app/latest?from=${baseCurrency}`);
+        
+        // タイムアウト付きのフェッチ関数
+        const fetchWithTimeout = async (url, options = {}, timeout = 5000) => {
+          const controller = new AbortController();
+          const id = setTimeout(() => controller.abort(), timeout);
+          
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+          });
+          
+          clearTimeout(id);
+          return response;
+        };
+        
+        // API呼び出し（タイムアウト5秒）
+        const response = await fetchWithTimeout(`https://api.frankfurter.app/latest?from=${baseCurrency}`, {}, 5000);
         
         if (!response.ok) throw new Error('APIエラー');
         
@@ -437,23 +495,64 @@
         return data.rates;
       } catch (error) {
         console.error('レート取得エラー:', error);
-        updateStatusText('為替レートの取得に失敗しました');
         
+        // フォールバック処理を強化
         // エラー時は古いキャッシュでも使用
         if (cachedData) {
-          const { rates, timestamp } = JSON.parse(cachedData);
-          currencyLastUpdated = new Date(timestamp);
-          updateStatusText('キャッシュした為替レートを使用しています');
-          return rates;
+          try {
+            const { rates, timestamp } = JSON.parse(cachedData);
+            currencyLastUpdated = new Date(timestamp);
+            updateStatusText('キャッシュした為替レートを使用しています');
+            return rates;
+          } catch (parseError) {
+            console.error('キャッシュ解析エラー:', parseError);
+          }
         }
         
-        return null;
+        // どうしてもデータが取得できない場合はデフォルト値を返す
+        updateStatusText('為替レートを取得できませんでした。デフォルト値を使用します');
+        
+        // 主要通貨のデフォルトレート（2023年平均レートに近い値）
+        const defaultRates = {
+          USD: {
+            EUR: 0.92, GBP: 0.79, JPY: 145.0, AUD: 1.47, CAD: 1.35, CHF: 0.89, CNY: 7.09, HKD: 7.82, KRW: 1300.0
+          },
+          EUR: {
+            USD: 1.09, GBP: 0.86, JPY: 158.0, AUD: 1.61, CAD: 1.47, CHF: 0.97, CNY: 7.71, HKD: 8.51, KRW: 1420.0
+          },
+          JPY: {
+            USD: 0.0069, EUR: 0.0063, GBP: 0.0054, AUD: 0.0102, CAD: 0.0093, CHF: 0.0061, CNY: 0.049, HKD: 0.054, KRW: 9.0
+          }
+        };
+        
+        // デフォルトレートがなければ簡易的に作成
+        if (!defaultRates[baseCurrency]) {
+          defaultRates[baseCurrency] = {};
+          Object.keys(defaultRates).forEach(currency => {
+            if (currency !== baseCurrency && defaultRates[currency][baseCurrency]) {
+              // 逆数を計算
+              const rate = 1 / defaultRates[currency][baseCurrency];
+              defaultRates[baseCurrency][currency] = rate;
+              
+              // その通貨の他の変換レートも追加
+              Object.keys(defaultRates[currency]).forEach(targetCurrency => {
+                if (targetCurrency !== baseCurrency && targetCurrency !== currency) {
+                  defaultRates[baseCurrency][targetCurrency] = rate * defaultRates[currency][targetCurrency];
+                }
+              });
+            }
+          });
+        }
+        
+        currencyLastUpdated = new Date();
+        return defaultRates[baseCurrency] || null;
       }
     }
     
     // 通貨変換処理
     async function convertCurrency(amount, fromCurrency, toCurrency, precision) {
       if (fromCurrency === toCurrency) {
+        updateRateDisplay(1, fromCurrency, toCurrency);
         return amount;
       }
       
@@ -473,10 +572,24 @@
           throw new Error(`${toCurrency}のレートが見つかりません`);
         }
         
+        // レート表示を更新
+        updateRateDisplay(rate, fromCurrency, toCurrency);
+        
         return amount * rate;
       } catch (error) {
         console.error('通貨変換エラー:', error);
+        document.getElementById('current-rate-display').textContent = 'レート情報を取得できませんでした';
         return null;
+      }
+    }
+    
+    // レート表示の更新
+    function updateRateDisplay(rate, fromCurrency, toCurrency) {
+      const rateDisplay = document.getElementById('current-rate-display');
+      if (fromCurrency === toCurrency) {
+        rateDisplay.textContent = `現在のレート: 1 ${fromCurrency} = 1 ${toCurrency}`;
+      } else {
+        rateDisplay.textContent = `現在のレート: 1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}`;
       }
     }
     
@@ -540,6 +653,10 @@
       toUnitSelect.addEventListener('change', updateConversion);
       precisionSelect.addEventListener('change', updateConversion);
       
+      // 切り替えボタン
+      const swapButton = document.getElementById('swap-button');
+      swapButton.addEventListener('click', swapUnits);
+      
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
           const tabName = tab.getAttribute('data-tab');
@@ -570,11 +687,15 @@
       
       // 通貨ステータス表示の切り替え
       const currencyStatus = document.getElementById('currency-api-status');
+      const currencyRateInfo = document.getElementById('currency-rate-info');
+      
       if (tabName === 'currency') {
         currencyStatus.classList.remove('hidden');
+        currencyRateInfo.classList.remove('hidden');
         updateCurrencyStatus();
       } else {
         currencyStatus.classList.add('hidden');
+        currencyRateInfo.classList.add('hidden');
       }
       
       // 単位セレクトのオプションをクリア
@@ -597,6 +718,27 @@
         if (index === 0) fromUnitSelect.value = unit;
         if (index === 1) toUnitSelect.value = unit;
       });
+      
+      // 変換を更新
+      updateConversion();
+    }
+
+    // 変換元と変換先の単位を入れ替える
+    function swapUnits() {
+      // 現在選択されている値を取得
+      const currentFromUnit = fromUnitSelect.value;
+      const currentToUnit = toUnitSelect.value;
+      
+      // 値を入れ替える
+      fromUnitSelect.value = currentToUnit;
+      toUnitSelect.value = currentFromUnit;
+      
+      // アニメーション効果
+      const swapButton = document.getElementById('swap-button');
+      swapButton.classList.add('animate-spin');
+      setTimeout(() => {
+        swapButton.classList.remove('animate-spin');
+      }, 500);
       
       // 変換を更新
       updateConversion();
