@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON整形・バリデータツール</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>JSON整形・バリデータツール</h1>
+        
+        <div class="theme-toggle">
+            <input type="checkbox" id="theme-switch" class="theme-switch">
+            <label for="theme-switch" class="theme-label">ダークモード</label>
+        </div>
+        
+        <div class="settings">
+            <div class="indent-size">
+                <label for="indent-size">インデントサイズ:</label>
+                <select id="indent-size">
+                    <option value="2">2スペース</option>
+                    <option value="4">4スペース</option>
+                </select>
+            </div>
+            <div class="button-help">
+                <span class="tooltip-icon" id="help-icon">?</span>
+                <div class="tooltip-content" id="help-content">
+                    <p><strong>整形・検証ボタン:</strong> JSONの構文チェックと整形を一度に行います</p>
+                    <p>エラーがある場合は自動的に修正案を表示します</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="editor-container">
+            <div class="input-area">
+                <h2>JSON入力</h2>
+                <textarea id="json-input" placeholder="ここにJSONを入力してください..."></textarea>
+                <div class="button-group">
+                    <button id="format-btn" class="primary-btn">整形・検証</button>
+                    <button id="clear-btn">クリア</button>
+                </div>
+            </div>
+            
+            <div class="output-area">
+                <h2>整形結果 <span id="validation-status"></span></h2>
+                <pre id="json-output"></pre>
+                <div class="error-container" id="error-container"></div>
+            <div class="fix-container" id="fix-container">
+                <div class="fix-message" id="fix-message"></div>
+                <div class="fix-suggestion" id="fix-suggestion"></div>
+                <button id="apply-fix-btn" class="fix-btn" style="display: none;">修正を適用</button>
+            </div>
+                <div class="button-group">
+                    <button id="copy-btn">コピー</button>
+                    <button id="download-btn">ダウンロード</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 JSON整形・バリデータツール</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --background-color: #f8f9fa;
+    --text-color: #333;
+    --border-color: #ddd;
+    --input-bg: #fff;
+    --output-bg: #f5f5f5;
+    --btn-hover: #2980b9;
+    --error-color: #e74c3c;
+    --success-color: #2ecc71;
+}
+
+[data-theme="dark"] {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --background-color: #222;
+    --text-color: #eee;
+    --border-color: #444;
+    --input-bg: #333;
+    --output-bg: #2c2c2c;
+    --btn-hover: #1c6ea4;
+    --error-color: #ff6b6b;
+    --success-color: #5cb85c;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+h2 {
+    margin-bottom: 10px;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+}
+
+.theme-toggle {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.theme-switch {
+    margin-right: 5px;
+}
+
+.settings {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.indent-size {
+    margin-left: 15px;
+}
+
+.button-help {
+    margin-left: 15px;
+    position: relative;
+}
+
+.tooltip-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: var(--secondary-color);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.tooltip-content {
+    position: absolute;
+    display: none;
+    right: 0;
+    width: 300px;
+    padding: 10px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    font-size: 14px;
+}
+
+.tooltip-content p {
+    margin: 5px 0;
+}
+
+.button-help:hover .tooltip-content {
+    display: block;
+}
+
+.indent-size select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.editor-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.input-area, .output-area {
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 15px;
+}
+
+.input-area {
+    background-color: var(--input-bg);
+}
+
+.output-area {
+    background-color: var(--output-bg);
+}
+
+textarea {
+    width: 100%;
+    height: 400px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    resize: vertical;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+pre {
+    width: 100%;
+    height: 400px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 14px;
+    overflow: auto;
+    white-space: pre-wrap;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.button-group {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    background-color: #f0f0f0;
+    color: #333;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #e0e0e0;
+}
+
+.primary-btn {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.primary-btn:hover {
+    background-color: var(--btn-hover);
+}
+
+#validation-status {
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.valid {
+    color: var(--success-color);
+}
+
+.invalid {
+    color: var(--error-color);
+}
+
+.error-container {
+    margin-top: 10px;
+    color: var(--error-color);
+    font-family: monospace;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+.fix-container {
+    margin-top: 10px;
+    font-family: monospace;
+    font-size: 14px;
+    display: none;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+    background-color: rgba(255, 248, 220, 0.1);
+}
+
+.fix-container.show {
+    display: block;
+}
+
+.fix-message {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--secondary-color);
+}
+
+.fix-suggestion {
+    background-color: var(--input-bg);
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.fix-btn {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.fix-btn:hover {
+    background-color: var(--success-color);
+    opacity: 0.9;
+}
+
+.error-highlight {
+    background-color: rgba(231, 76, 60, 0.2);
+    position: relative;
+    border-bottom: 2px dashed var(--error-color);
+}
+
+.copy-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: var(--success-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.copy-message.show {
+    opacity: 1;
+}
+
+.footer {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .editor-container {
+        grid-template-columns: 1fr;
+    }
+    
+    textarea, pre {
+        height: 300px;
+    }
+}
