@@ -303,3 +303,116 @@ button:hover {
         height: 300px;
     }
 }
+
+/* 既存のstyles.cssの末尾に以下を追加 */
+
+/* エラー状態の整形結果表示改善 */
+#json-output.error-state {
+    background-color: rgba(231, 76, 60, 0.05);
+    border: 1px dashed var(--error-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--error-color);
+    font-size: 16px;
+    font-family: sans-serif;
+}
+
+/* 修正提案コンテナの改善 */
+.fix-container {
+    margin-top: 15px;
+    font-family: sans-serif;
+    font-size: 14px;
+    display: none;
+    border: 2px solid var(--secondary-color);
+    border-radius: 6px;
+    padding: 15px;
+    background-color: rgba(52, 152, 219, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.fix-container.show {
+    display: block;
+    animation: highlight 1s ease;
+}
+
+@keyframes highlight {
+    0% { 
+        background-color: rgba(52, 152, 219, 0.2); 
+    }
+    100% { 
+        background-color: rgba(52, 152, 219, 0.05); 
+    }
+}
+
+.fix-message {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.fix-message::before {
+    content: "💡";
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.fix-suggestion {
+    background-color: var(--input-bg);
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    white-space: pre;
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.fix-btn {
+    background-color: var(--success-color);
+    color: white;
+    padding: 10px 15px;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.fix-btn:hover {
+    background-color: var(--success-color);
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* エラーコンテナの改善 */
+.error-container {
+    margin: 10px 0;
+    color: var(--error-color);
+    font-family: sans-serif;
+    font-size: 14px;
+    min-height: 20px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: rgba(231, 76, 60, 0.05);
+    border-left: 3px solid var(--error-color);
+}
+
+/* エラー時のステータス表示をより目立たせる */
+#validation-status.invalid {
+    background-color: rgba(231, 76, 60, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+#validation-status.valid {
+    background-color: rgba(46, 204, 113, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}

@@ -3,7 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="JSON整形・バリデータツール - エラー修正提案機能付き" />
+    <meta property="og:description" content="JSON文字列を整形・検証し、エラーを自動的に検出して修正案を提案。コピー・ダウンロード機能やダークモードにも対応した便利なツール。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day052-json-formatter/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day052-json-formatter/index.html" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="JSON整形・バリデータツール" />
+    <meta name="twitter:description" content="JSON文字列を整形・検証し、エラーを自動的に検出。修正案の提案、コピー・ダウンロード機能、ダークモード対応の便利なJSONツール。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day052-json-formatter/screenshot.png" />
+
+
     <title>JSON整形・バリデータツール</title>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3201351704984910"
+            crossorigin="anonymous"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1SW0RH6CK"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-H1SW0RH6CK');
+    </script>
+
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -49,7 +78,10 @@
             <div class="fix-container" id="fix-container">
                 <div class="fix-message" id="fix-message"></div>
                 <div class="fix-suggestion" id="fix-suggestion"></div>
-                <button id="apply-fix-btn" class="fix-btn" style="display: none;">修正を適用</button>
+                <!-- index.htmlの「修正を適用」ボタン部分（約71行目あたり） -->
+                <button id="apply-fix-btn" class="fix-btn" style="display: none;">
+                    <span style="margin-right: 5px;">✅</span> 修正を適用
+                </button>
             </div>
                 <div class="button-group">
                     <button id="copy-btn">コピー</button>

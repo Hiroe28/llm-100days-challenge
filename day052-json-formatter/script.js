@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 入力が空の場合
         if (!inputText) {
             jsonOutput.textContent = '';
+            jsonOutput.classList.remove('error-state');
             errorContainer.textContent = '';
             validationStatus.textContent = '';
             hideFixContainer();
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 整形されたJSONを出力
             const formattedJSON = JSON.stringify(parsedData, null, spaces);
             jsonOutput.textContent = formattedJSON;
+            jsonOutput.classList.remove('error-state'); // エラー状態クラスを削除
             
             // エラーをクリア
             errorContainer.textContent = '';
@@ -70,7 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // エラーメッセージを表示
             const lineInfo = getErrorLineInfo(inputText, error);
             errorContainer.innerHTML = `エラー: ${error.message}${lineInfo ? ` (${lineInfo})` : ''}`;
-            jsonOutput.textContent = '';
+            
+            // 整形結果エリアにエラーメッセージを表示
+            jsonOutput.textContent = '⚠️ JSONの解析エラーが発生しました。下の修正案をご確認ください。';
+            jsonOutput.classList.add('error-state');
             
             // 検証ステータスを更新
             validationStatus.textContent = '✗ 無効なJSON';
@@ -89,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!inputText) {
             errorContainer.textContent = '';
             validationStatus.textContent = '';
+            jsonOutput.classList.remove('error-state');
             hideFixContainer();
             return;
         }
@@ -101,12 +107,17 @@ document.addEventListener('DOMContentLoaded', () => {
             validationStatus.textContent = '✓ 有効なJSON';
             validationStatus.className = 'valid';
             errorContainer.textContent = '';
+            jsonOutput.classList.remove('error-state');
             hideFixContainer();
             
         } catch (error) {
             // エラーメッセージを表示
             const lineInfo = getErrorLineInfo(inputText, error);
             errorContainer.innerHTML = `エラー: ${error.message}${lineInfo ? ` (${lineInfo})` : ''}`;
+            
+            // 整形結果エリアにエラーメッセージを表示
+            jsonOutput.textContent = '⚠️ JSONの解析エラーが発生しました。下の修正案をご確認ください。';
+            jsonOutput.classList.add('error-state');
             
             // 検証ステータスを更新
             validationStatus.textContent = '✗ 無効なJSON';
@@ -151,8 +162,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const positionMatch = errorMessage.match(/position\s+(\d+)/i);
         let errorPosition = positionMatch ? parseInt(positionMatch[1]) : -1;
         
-        // エラータイプに基づいて修正提案
-        if (errorMessage.includes('Unexpected token')) {
+        // ❶ プロパティ名が引用符で始まっていない場合
+        //    例: { name: "Alice" } → { "name": "Alice" }
+        const unquotedKey = input.match(/^[\s{]*([a-zA-Z_]\w*)\s*:/m);
+        if (unquotedKey) {
+            const key = unquotedKey[1];
+            fixHint = `プロパティ名「${key}」を二重引用符で囲みます。`;
+            suggestion = input.replace(
+                new RegExp(`(^|[,{\\s])(${key})(\\s*:)`),
+                `$1"$2"$3`
+            );
+        }
+
+        // ❷ true/false/null の綴りミス
+        if (!suggestion && /(\btru\b|\bflase\b|\nnulls?\b)/i.test(input)) {
+            fixHint = 'true / false / null の綴りを確認してください。';
+            suggestion = input
+                .replace(/\btru\b/gi, 'true')
+                .replace(/\bflase\b/gi, 'false')
+                .replace(/\bnulls?\b/gi, 'null');
+        }
+
+        // ❸ 行末カンマ（最後の要素直後）を削除
+        if (!suggestion && /,\s*[}\]]/.test(input)) {
+            fixHint = '末尾のカンマを削除します。';
+            suggestion = input.replace(/,(\s*[}\]])/g, '$1');
+        }
+        
+        // 既存のエラータイプに基づく修正提案
+        if (!suggestion && errorMessage.includes('Unexpected token')) {
             const lines = input.split('\n');
             let lineNumber = 0;
             let columnNumber = 0;
@@ -231,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     suggestion = lines.join('\n');
                 }
             }
-        } else if (errorMessage.includes('Unexpected end of JSON input')) {
+        } else if (!suggestion && errorMessage.includes('Unexpected end of JSON input')) {
             // JSONの途中終了
             fixHint = 'JSONが途中で終了しています。閉じ括弧が足りないかもしれません。';
             
@@ -249,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < openBrackets - closeBrackets; i++) {
                 suggestion += ']';
             }
-        } else if (errorMessage.includes('JSON.parse')) {
+        } else if (!suggestion && errorMessage.includes('JSON.parse')) {
             // 一般的なパースエラー
             const lines = input.split('\n');
             
@@ -277,6 +315,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
+        // ❹ 末尾カンマ抜け（"Expected property name…"）を補足
+        if (!suggestion && errorMessage.includes("Expected property name") && errorPosition >= 0) {
+            const lines = input.split('\n');
+            let lineNumber = 0;
+            let charCount = 0;
+            
+            // エラー行の特定
+            for (let i = 0; i < lines.length; i++) {
+                if (charCount + lines[i].length + 1 > errorPosition) {
+                    lineNumber = i;
+                    break;
+                }
+                charCount += lines[i].length + 1;
+            }
+            
+            if (lineNumber > 0) {
+                fixHint = '行と行の間にカンマ(,)が必要です。';
+                lines[lineNumber - 1] = lines[lineNumber - 1].replace(/\s*$/, ',');
+                suggestion = lines.join('\n');
+            }
+        }
+        
         // 修正提案がある場合表示
         if (suggestion) {
             fixMessage.textContent = fixHint || 'エラーの修正案:';
@@ -284,9 +344,14 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFixBtn.style.display = 'inline-block';
             fixContainer.classList.add('show');
             currentSuggestion = suggestion;
+            
+            // 修正：スクロールして修正提案が見えるようにする
+            setTimeout(() => {
+                fixContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         } else {
             // 一般的な修正案を提供
-            if (errorMessage.includes("Expected ',' or '}'")) {
+            if (errorMessage.includes("Expected ',' or '}'") || errorMessage.includes("Expected property name or '}'")) {
                 fixHint = '行と行の間にはカンマ(,)が必要です。';
                 const lines = input.split('\n');
                 const posMatch = errorMessage.match(/position\s+(\d+)/i);
@@ -311,6 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         applyFixBtn.style.display = 'inline-block';
                         fixContainer.classList.add('show');
                         currentSuggestion = suggestion;
+                        
+                        // 修正：スクロールして修正提案が見えるようにする
+                        setTimeout(() => {
+                            fixContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                        
                         return;
                     }
                 }
@@ -332,8 +403,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyFix() {
         if (currentSuggestion) {
             jsonInput.value = currentSuggestion;
-            // 再検証
-            validateJSON();
+            // 修正: validateJSONからformatJSONに変更して再検証・整形を一度に行う
+            formatJSON();
         }
     }
 
@@ -406,6 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearInput() {
         jsonInput.value = '';
         jsonOutput.textContent = '';
+        jsonOutput.classList.remove('error-state');
         errorContainer.textContent = '';
         validationStatus.textContent = '';
         hideFixContainer();
