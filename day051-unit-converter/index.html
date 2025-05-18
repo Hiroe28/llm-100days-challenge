@@ -638,6 +638,18 @@
         });
       }
     }
+
+    // カスタム単位の定義（大さじと小さじ）
+    function defineCustomUnits() {
+      try {
+        // 既に定義されていないことを確認
+        math.createUnit('tsp', '5 ml');
+        math.createUnit('tbsp', '15 ml');
+      } catch (error) {
+        // 既に定義済みの場合はエラーになるので無視
+        console.log('既にカスタム単位が定義されています', error);
+      }
+    }
     
     // 初期化
     function init() {
@@ -654,6 +666,9 @@
           }
         });
       }
+
+      // カスタム単位を定義
+      defineCustomUnits();
       
       // タブの初期設定
       loadTab(currentTab);
