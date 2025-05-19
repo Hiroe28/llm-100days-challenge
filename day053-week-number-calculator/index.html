@@ -180,8 +180,12 @@
             border-radius: 5px;
         }
 
-        /* レスポンシブデザイン */
-        @media (max-width: 480px) {
+        .form-note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 4px;
+            display: block;
+        }
             .container {
                 padding: 15px;
             }
@@ -256,7 +260,8 @@
                 </div>
                 <div class="form-group">
                     <label for="inputWeekDay">週内の日番号（オプション）:</label>
-                    <input type="number" id="inputWeekDay" min="1" max="7" placeholder="例: 1, 2, ...">
+                    <input type="number" id="inputWeekDay" min="1" max="7" placeholder="未入力の場合は1（週の初日）">
+                    <small class="form-note">※未入力の場合は自動的に1日目（週の初日）として計算されます</small>
                 </div>
                 <div class="form-group">
                     <label for="inputYear">年を入力:</label>
@@ -382,7 +387,7 @@
             e.preventDefault();
             
             const weekNumber = parseInt(document.getElementById('inputWeek').value);
-            const weekDay = parseInt(document.getElementById('inputWeekDay').value) || null;
+            let weekDay = parseInt(document.getElementById('inputWeekDay').value) || 1; // 未入力の場合は1をデフォルト値とする
             const year = parseInt(document.getElementById('inputYear').value);
             const weekSystem = document.querySelector('input[name="weekSystemWeek"]:checked').value;
             
@@ -391,7 +396,7 @@
                 return;
             }
             
-            if (weekDay && (weekDay < 1 || weekDay > 7)) {
+            if (weekDay < 1 || weekDay > 7) {
                 alert('週内の日番号は1～7の間で入力してください');
                 return;
             }
@@ -409,10 +414,8 @@
                     );
                     weekEnd = weekStart.plus({ days: 6 }); // 週の最終日（日曜日）
                     
-                    // 特定の曜日を計算（週内の日番号が指定された場合）
-                    if (weekDay) {
-                        specificDate = weekStart.plus({ days: weekDay - 1 });
-                    }
+                    // 特定の曜日を計算
+                    specificDate = weekStart.plus({ days: weekDay - 1 });
                     
                     weekSystemName = 'ヨーロッパ/ISO方式（月曜始まり）';
                 } catch (error) {
@@ -429,10 +432,8 @@
                 weekStart = result.weekStart;
                 weekEnd = result.weekEnd;
                 
-                // 特定の曜日を計算（週内の日番号が指定された場合）
-                if (weekDay) {
-                    specificDate = weekStart.plus({ days: weekDay - 1 });
-                }
+                // 特定の曜日を計算
+                specificDate = weekStart.plus({ days: weekDay - 1 });
                 
                 weekSystemName = 'アメリカ式（日曜始まり）';
             } else if (weekSystem === 'islamic') {
@@ -445,10 +446,8 @@
                 weekStart = result.weekStart;
                 weekEnd = result.weekEnd;
                 
-                // 特定の曜日を計算（週内の日番号が指定された場合）
-                if (weekDay) {
-                    specificDate = weekStart.plus({ days: weekDay - 1 });
-                }
+                // 特定の曜日を計算
+                specificDate = weekStart.plus({ days: weekDay - 1 });
                 
                 weekSystemName = 'イスラム式（土曜始まり）';
             }
@@ -458,7 +457,7 @@
                 weekNumber,
                 weekDay,
                 year,
-                specificDate: specificDate ? specificDate.toFormat('yyyy年MM月dd日 (ccc)') : null,
+                specificDate: specificDate.toFormat('yyyy年MM月dd日 (ccc)'),
                 weekStart: weekStart.toFormat('yyyy年MM月dd日 (ccc)'),
                 weekEnd: weekEnd.toFormat('yyyy年MM月dd日 (ccc)'),
                 weekSystem: weekSystemName
@@ -652,18 +651,16 @@
             // タイトル
             htmlContent += `<div class="week-day-detail">${data.year}年の第${data.weekNumber}週</div>`;
             
-            // 特定の日付が指定された場合
-            if (data.specificDate) {
-                let daySystem = 'iso';
-                if (data.weekSystem.includes('アメリカ')) {
-                    daySystem = 'us';
-                } else if (data.weekSystem.includes('イスラム')) {
-                    daySystem = 'islamic';
-                }
-                
-                htmlContent += `<div class="week-number-highlight">${data.specificDate}</div>`;
-                htmlContent += `<div class="week-day-detail">週内${data.weekDay}日目 (${getDayName(data.weekDay, daySystem)})</div>`;
+            // 指定の日付を大きく表示
+            let daySystem = 'iso';
+            if (data.weekSystem.includes('アメリカ')) {
+                daySystem = 'us';
+            } else if (data.weekSystem.includes('イスラム')) {
+                daySystem = 'islamic';
             }
+            
+            htmlContent += `<div class="week-number-highlight">${data.specificDate}</div>`;
+            htmlContent += `<div class="week-day-detail">週内${data.weekDay}日目 (${getDayName(data.weekDay, daySystem)})</div>`;
             
             // 週の範囲を表示
             htmlContent += `<div class="week-range">
