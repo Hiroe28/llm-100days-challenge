@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="日付から週番号（カレンダーウィーク）を計算したり、週番号から日付範囲を逆算できるツール。ISO/ヨーロッパ式、アメリカ式、イスラム式の3つの方式に対応。">
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="週番号計算ツール - カレンダーウィーク変換" />
+    <meta property="og:description" content="日付から週番号（カレンダーウィーク）を計算したり、週番号から日付範囲を逆算できるツール。ISO/ヨーロッパ式、アメリカ式、イスラム式の3つの方式に対応。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day053-week-number-calculator/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day053-week-number-calculator/index.html" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="週番号計算ツール" />
+    <meta name="twitter:description" content="日付から週番号（カレンダーウィーク）を計算したり、週番号から日付範囲を逆算できるツール。ISO/ヨーロッパ式、アメリカ式、イスラム式の3つの方式に対応。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day053-week-number-calculator/screenshot.png" />
+
+    <title>週番号計算ツール</title>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            color: #3498db;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .form-container {
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input[type="date"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .radio-group {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .radio-group input[type="radio"] {
+            margin-right: 5px;
+        }
+        
+        .radio-group label {
+            display: inline;
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .result-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .result-container h2 {
+            margin-top: 0;
+        }
+
+        #resultContent {
+            line-height: 1.8;
+        }
+
+        .week-number-highlight {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f1f9ff;
+            border-radius: 5px;
+            border: 2px solid #3498db;
+        }
+
+        .week-day-detail {
+            font-size: 1rem;
+            color: #777;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .week-range {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f5f7fa;
+            border-radius: 5px;
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            .tab-button {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+            
+            .week-number-highlight {
+                font-size: 1.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 入力フォーム -->
+    <div class="container">
+        <h1>週番号計算ツール</h1>
+        
+        <div class="tabs">
+            <button id="tabDate" class="tab-button active">日付から週番号</button>
+            <button id="tabWeek" class="tab-button">週番号から日付範囲</button>
+        </div>
+        
+        <!-- 日付から週番号を計算するフォーム -->
+        <div id="dateToWeekForm" class="form-container">
+            <h2>日付から週番号を計算</h2>
+            <form id="dateForm">
+                <div class="form-group">
+                    <label for="inputDate">日付を入力:</label>
+                    <input type="date" id="inputDate" required>
+                </div>
+                <div class="form-group">
+                    <label>地域を選択:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="isoSystem" name="weekSystem" value="iso" checked>
+                        <label for="isoSystem">ヨーロッパ/ISO式（月曜始まり）</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="usSystem" name="weekSystem" value="us">
+                        <label for="usSystem">アメリカ式（日曜始まり）</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="islamicSystem" name="weekSystem" value="islamic">
+                        <label for="islamicSystem">イスラム式（土曜始まり）</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="showDayNumber">週内の日番号を表示:</label>
+                    <input type="checkbox" id="showDayNumber" checked>
+                </div>
+                <button type="submit" class="submit-btn">計算</button>
+            </form>
+        </div>
+        
+
+        <div id="weekToDateForm" class="form-container hidden">
+            <h2>週番号から日付範囲を計算</h2>
+            <form id="weekForm">
+                <div class="form-group">
+                    <label for="inputWeek">週番号を入力:</label>
+                    <input type="number" id="inputWeek" min="1" max="53" required>
+                </div>
+                <div class="form-group">
+                    <label for="inputWeekDay">週内の日番号（オプション）:</label>
+                    <input type="number" id="inputWeekDay" min="1" max="7" placeholder="例: 1, 2, ...">
+                </div>
+                <div class="form-group">
+                    <label for="inputYear">年を入力:</label>
+                    <input type="number" id="inputYear" min="1900" max="2100" required>
+                </div>
+                <div class="form-group">
+                    <label>地域を選択:</label>
+                    <div class="radio-group">
+                        <input type="radio" id="isoSystemWeek" name="weekSystemWeek" value="iso" checked>
+                        <label for="isoSystemWeek">ヨーロッパ/ISO式（月曜始まり）</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="usSystemWeek" name="weekSystemWeek" value="us">
+                        <label for="usSystemWeek">アメリカ式（日曜始まり）</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="islamicSystemWeek" name="weekSystemWeek" value="islamic">
+                        <label for="islamicSystemWeek">イスラム式（土曜始まり）</label>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">計算</button>
+            </form>
+        </div>
+        
+        <!-- 結果表示エリア -->
+        <div id="result" class="result-container hidden">
+            <h2>計算結果</h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Luxonのインスタンスを取得
+        const { DateTime } = luxon;
+
+        // DOM要素の取得
+        const tabDate = document.getElementById('tabDate');
+        const tabWeek = document.getElementById('tabWeek');
+        const dateToWeekForm = document.getElementById('dateToWeekForm');
+        const weekToDateForm = document.getElementById('weekToDateForm');
+        const dateForm = document.getElementById('dateForm');
+        const weekForm = document.getElementById('weekForm');
+        const result = document.getElementById('result');
+        const resultContent = document.getElementById('resultContent');
+
+        // 今日の日付をデフォルト値として設定
+        document.getElementById('inputDate').valueAsDate = new Date();
+        document.getElementById('inputYear').value = new Date().getFullYear();
+        document.getElementById('inputWeek').value = 1;
+
+        // タブ切り替え処理
+        tabDate.addEventListener('click', () => {
+            tabDate.classList.add('active');
+            tabWeek.classList.remove('active');
+            dateToWeekForm.classList.remove('hidden');
+            weekToDateForm.classList.add('hidden');
+            result.classList.add('hidden');
+        });
+
+        tabWeek.addEventListener('click', () => {
+            tabWeek.classList.add('active');
+            tabDate.classList.remove('active');
+            weekToDateForm.classList.remove('hidden');
+            dateToWeekForm.classList.add('hidden');
+            result.classList.add('hidden');
+        });
+
+        // 日付から週番号を計算
+        dateForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const dateValue = document.getElementById('inputDate').value;
+            const weekSystem = document.querySelector('input[name="weekSystem"]:checked').value;
+            const showDayNumber = document.getElementById('showDayNumber').checked;
+            
+            if (!dateValue) {
+                alert('日付を入力してください');
+                return;
+            }
+            
+            const date = DateTime.fromISO(dateValue);
+            let weekNumber, weekStart, weekEnd, weekDay;
+            let weekSystemName = '';
+            
+            if (weekSystem === 'iso') {
+                // ISO方式（月曜始まり、年の最初の木曜日を含む週が第1週）
+                weekNumber = date.weekNumber;
+                weekStart = date.startOf('week');
+                weekEnd = date.endOf('week');
+                weekDay = date.weekday; // 1: 月曜日, 2: 火曜日, ...
+                weekSystemName = 'ヨーロッパ/ISO方式（月曜始まり）';
+            } else if (weekSystem === 'us') {
+                // 米国式（日曜始まり、1月1日を含む週が第1週）
+                const result = calculateUSWeekNumber(date);
+                weekNumber = result.weekNumber;
+                weekStart = result.weekStart;
+                weekEnd = result.weekEnd;
+                weekDay = (date.weekday % 7) + 1; // 1: 日曜日, 2: 月曜日, ...
+                weekSystemName = 'アメリカ式（日曜始まり）';
+            } else if (weekSystem === 'islamic') {
+                // イスラム式（土曜始まり、年の最初の金曜日を含む週が第1週）
+                const result = calculateIslamicWeekNumber(date);
+                weekNumber = result.weekNumber;
+                weekStart = result.weekStart;
+                weekEnd = result.weekEnd;
+                weekDay = ((date.weekday + 1) % 7) + 1; // 1: 土曜日, 2: 日曜日, ...
+                weekSystemName = 'イスラム式（土曜始まり）';
+            }
+            
+            // 結果を表示（日付から週番号の場合）
+            showDateToWeekResult({
+                weekNumber,
+                year: date.year,
+                weekDay: showDayNumber ? weekDay : null,
+                weekStart: weekStart.toFormat('yyyy年MM月dd日 (ccc)'),
+                weekEnd: weekEnd.toFormat('yyyy年MM月dd日 (ccc)'),
+                weekSystem: weekSystemName
+            });
+        });
+
+        // 週番号から日付範囲を計算
+        weekForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const weekNumber = parseInt(document.getElementById('inputWeek').value);
+            const weekDay = parseInt(document.getElementById('inputWeekDay').value) || null;
+            const year = parseInt(document.getElementById('inputYear').value);
+            const weekSystem = document.querySelector('input[name="weekSystemWeek"]:checked').value;
+            
+            if (isNaN(weekNumber) || isNaN(year) || weekNumber < 1 || weekNumber > 53) {
+                alert('有効な週番号（1～53）と年を入力してください');
+                return;
+            }
+            
+            if (weekDay && (weekDay < 1 || weekDay > 7)) {
+                alert('週内の日番号は1～7の間で入力してください');
+                return;
+            }
+            
+            let weekStart, weekEnd, specificDate;
+            let weekSystemName = '';
+            
+            if (weekSystem === 'iso') {
+                // ISO方式（月曜始まり、年の最初の木曜日を含む週が第1週）
+                try {
+                    // ISO週の第1日目（月曜日）を計算
+                    weekStart = DateTime.fromObject(
+                        { weekYear: year, weekNumber: weekNumber, weekday: 1 },
+                        { zone: 'utc' }
+                    );
+                    weekEnd = weekStart.plus({ days: 6 }); // 週の最終日（日曜日）
+                    
+                    // 特定の曜日を計算（週内の日番号が指定された場合）
+                    if (weekDay) {
+                        specificDate = weekStart.plus({ days: weekDay - 1 });
+                    }
+                    
+                    weekSystemName = 'ヨーロッパ/ISO方式（月曜始まり）';
+                } catch (error) {
+                    alert(`エラー：${year}年の第${weekNumber}週は存在しません。`);
+                    return;
+                }
+            } else if (weekSystem === 'us') {
+                // 米国式（日曜始まり、1月1日を含む週が第1週）
+                const result = calculateUSWeekRange(year, weekNumber);
+                if (!result) {
+                    alert(`エラー：${year}年の第${weekNumber}週は存在しません。`);
+                    return;
+                }
+                weekStart = result.weekStart;
+                weekEnd = result.weekEnd;
+                
+                // 特定の曜日を計算（週内の日番号が指定された場合）
+                if (weekDay) {
+                    specificDate = weekStart.plus({ days: weekDay - 1 });
+                }
+                
+                weekSystemName = 'アメリカ式（日曜始まり）';
+            } else if (weekSystem === 'islamic') {
+                // イスラム式（土曜始まり、年の最初の金曜日を含む週が第1週）
+                const result = calculateIslamicWeekRange(year, weekNumber);
+                if (!result) {
+                    alert(`エラー：${year}年の第${weekNumber}週は存在しません。`);
+                    return;
+                }
+                weekStart = result.weekStart;
+                weekEnd = result.weekEnd;
+                
+                // 特定の曜日を計算（週内の日番号が指定された場合）
+                if (weekDay) {
+                    specificDate = weekStart.plus({ days: weekDay - 1 });
+                }
+                
+                weekSystemName = 'イスラム式（土曜始まり）';
+            }
+            
+            // 結果を表示（週から日付範囲の場合）
+            showWeekToDateResult({
+                weekNumber,
+                weekDay,
+                year,
+                specificDate: specificDate ? specificDate.toFormat('yyyy年MM月dd日 (ccc)') : null,
+                weekStart: weekStart.toFormat('yyyy年MM月dd日 (ccc)'),
+                weekEnd: weekEnd.toFormat('yyyy年MM月dd日 (ccc)'),
+                weekSystem: weekSystemName
+            });
+        });
+
+        // 米国式の週番号を計算する関数
+        function calculateUSWeekNumber(date) {
+            // 米国式：日曜日始まり、1月1日を含む週が第1週
+            const janFirst = DateTime.local(date.year, 1, 1);
+            
+            // 年の初日が含まれる週を第1週とする
+            // まず日曜日始まりの週の開始日を取得
+            const dayOfWeek = janFirst.weekday % 7; // 0: 日曜日, 1: 月曜日, ...
+            let firstWeekStart = janFirst.minus({ days: dayOfWeek });
+            
+            // 日付が1月1日より前で、かつ、同じ週に含まれる場合は前年の最終週
+            if (date < janFirst && date >= firstWeekStart) {
+                const prevYearDec31 = DateTime.local(date.year - 1, 12, 31);
+                return calculateUSWeekNumber(prevYearDec31);
+            }
+            
+            // 日付の週の開始日（日曜日）を取得
+            const weekStart = date.minus({ days: date.weekday % 7 });
+            const weekEnd = weekStart.plus({ days: 6 });
+            
+            // 第1週の開始日からの週数を計算
+            const weeksDiff = Math.floor(weekStart.diff(firstWeekStart, 'weeks').weeks);
+            const weekNumber = weeksDiff + 1;
+            
+            return { weekNumber, weekStart, weekEnd };
+        }
+
+        // 米国式の週範囲を計算する関数
+        function calculateUSWeekRange(year, weekNumber) {
+            // 米国式：日曜始まりで1月1日を含む週が第1週
+            const janFirst = DateTime.local(year, 1, 1);
+            
+            // 1月1日が含まれる週の開始日（日曜日）を計算
+            const dayOfWeek = janFirst.weekday % 7; // 0: 日曜日, 1: 月曜日, ...
+            const firstWeekStart = janFirst.minus({ days: dayOfWeek });
+            
+            // 指定された週の開始日を計算
+            const weekStart = firstWeekStart.plus({ weeks: weekNumber - 1 });
+            
+            // 年をまたぐ場合のチェック
+            if (weekNumber === 1 && weekStart.year < year) {
+                // 第1週が前年にはみ出している場合
+                return { weekStart, weekEnd: weekStart.plus({ days: 6 }) };
+            } else if (weekStart.year > year) {
+                // 指定された週が存在しない
+                return null;
+            }
+            
+            const weekEnd = weekStart.plus({ days: 6 });
+            return { weekStart, weekEnd };
+        }
+
+        // イスラム式の週番号を計算する関数
+        function calculateIslamicWeekNumber(date) {
+            // イスラム式：土曜始まり、年の最初の金曜日を含む週が第1週
+            const year = date.year;
+            
+            // その年の1月1日
+            const janFirst = DateTime.local(year, 1, 1);
+            
+            // 1月の最初の金曜日を見つける
+            // まず1月1日の曜日を取得（1: 月曜日, ..., 7: 日曜日）
+            let dayOfWeek = janFirst.weekday;
+            
+            // 金曜日までの日数を計算（金曜日は5）
+            const daysToFirstFriday = (5 - dayOfWeek + 7) % 7;
+            
+            // 1月の最初の金曜日
+            const firstFriday = janFirst.plus({ days: daysToFirstFriday });
+            
+            // 最初の金曜日を含む週の開始日（土曜日）を計算
+            // 金曜日から1日前に戻る
+            let firstWeekStart = firstFriday.minus({ days: 6 });
+            
+            // 日付が最初の週より前の場合は前年の最終週
+            if (date < firstWeekStart) {
+                const prevYearDec31 = DateTime.local(date.year - 1, 12, 31);
+                return calculateIslamicWeekNumber(prevYearDec31);
+            }
+            
+            // 日付の週の開始日（土曜日）を取得
+            // Luxonでは1: 月曜日, ..., 7: 日曜日なので、土曜日は6
+            // date.weekday = 6（土曜日）の場合は0日引く
+            // date.weekday = 7（日曜日）の場合は1日引く
+            // date.weekday = 1（月曜日）の場合は2日引く...
+            const daysToSubtract = (date.weekday - 6 + 7) % 7;
+            const weekStart = date.minus({ days: daysToSubtract });
+            const weekEnd = weekStart.plus({ days: 6 });
+            
+            // 第1週の開始日からの週数を計算
+            const weeksDiff = Math.floor(weekStart.diff(firstWeekStart, 'weeks').weeks);
+            const weekNumber = weeksDiff + 1;
+            
+            return { weekNumber, weekStart, weekEnd };
+        }
+
+        // イスラム式の週範囲を計算する関数
+        function calculateIslamicWeekRange(year, weekNumber) {
+            // イスラム式：土曜始まり、年の最初の金曜日を含む週が第1週
+            // その年の1月1日
+            const janFirst = DateTime.local(year, 1, 1);
+            
+            // 1月の最初の金曜日を見つける
+            // まず1月1日の曜日を取得（1: 月曜日, ..., 7: 日曜日）
+            let dayOfWeek = janFirst.weekday;
+            
+            // 金曜日までの日数を計算（金曜日は5）
+            const daysToFirstFriday = (5 - dayOfWeek + 7) % 7;
+            
+            // 1月の最初の金曜日
+            const firstFriday = janFirst.plus({ days: daysToFirstFriday });
+            
+            // 最初の金曜日を含む週の開始日（土曜日）を計算
+            // 金曜日から6日前に戻る
+            let firstWeekStart = firstFriday.minus({ days: 6 });
+            
+            // 指定された週の開始日を計算
+            const weekStart = firstWeekStart.plus({ weeks: weekNumber - 1 });
+            
+            // 年をまたぐ場合のチェック
+            if (weekStart.year > year) {
+                // 指定された週が存在しない
+                return null;
+            }
+            
+            const weekEnd = weekStart.plus({ days: 6 });
+            return { weekStart, weekEnd };
+        }
+
+        // 曜日の名前を取得する関数（1〜7に対応）
+        function getDayName(dayNumber, weekSystem) {
+            const dayNames = {
+                'iso': ['月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日', '日曜日'],
+                'us': ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
+                'islamic': ['土曜日', '日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日']
+            };
+            
+            return dayNames[weekSystem][dayNumber - 1];
+        }
+
+        // 日付から週番号の結果を表示する関数
+        function showDateToWeekResult(data) {
+            let htmlContent = '';
+            
+            // 週番号を目立つように表示
+            htmlContent += `<div class="week-number-highlight">CW${data.weekNumber}`;
+            
+            // 週内の日番号を表示する場合
+            if (data.weekDay) {
+                htmlContent += `.${data.weekDay}`;
+            }
+            
+            htmlContent += `</div>`;
+            
+            htmlContent += `<div class="week-day-detail">${data.year}年の第${data.weekNumber}週`;
+            
+            if (data.weekDay) {
+                let daySystem = 'iso';
+                if (data.weekSystem.includes('アメリカ')) {
+                    daySystem = 'us';
+                } else if (data.weekSystem.includes('イスラム')) {
+                    daySystem = 'islamic';
+                }
+                htmlContent += ` (${getDayName(data.weekDay, daySystem)})`;
+            }
+            
+            htmlContent += `</div>`;
+            
+            // 週の範囲を表示
+            htmlContent += `<div class="week-range">
+                <p><strong>週の範囲:</strong></p>
+                <p>開始日: ${data.weekStart}</p>
+                <p>終了日: ${data.weekEnd}</p>
+                <p><strong>使用した週定義:</strong> ${data.weekSystem}</p>
+            </div>`;
+            
+            resultContent.innerHTML = htmlContent;
+            result.classList.remove('hidden');
+        }
+
+        // 週番号から日付範囲の結果を表示する関数
+        function showWeekToDateResult(data) {
+            let htmlContent = '';
+            
+            // タイトル
+            htmlContent += `<div class="week-day-detail">${data.year}年の第${data.weekNumber}週</div>`;
+            
+            // 特定の日付が指定された場合
+            if (data.specificDate) {
+                let daySystem = 'iso';
+                if (data.weekSystem.includes('アメリカ')) {
+                    daySystem = 'us';
+                } else if (data.weekSystem.includes('イスラム')) {
+                    daySystem = 'islamic';
+                }
+                
+                htmlContent += `<div class="week-number-highlight">${data.specificDate}</div>`;
+                htmlContent += `<div class="week-day-detail">週内${data.weekDay}日目 (${getDayName(data.weekDay, daySystem)})</div>`;
+            }
+            
+            // 週の範囲を表示
+            htmlContent += `<div class="week-range">
+                <p><strong>週の範囲:</strong></p>
+                <p>開始日: ${data.weekStart}</p>
+                <p>終了日: ${data.weekEnd}</p>
+                <p><strong>使用した週定義:</strong> ${data.weekSystem}</p>
+            </div>`;
+            
+            resultContent.innerHTML = htmlContent;
+            result.classList.remove('hidden');
+        }
+
+        // ページロード時に日付タブをアクティブにする
+        window.addEventListener('DOMContentLoaded', () => {
+            tabDate.click();
+            
+            // 今日の日付をデフォルト値として設定
+            document.getElementById('inputDate').valueAsDate = new Date();
+            document.getElementById('inputYear').value = new Date().getFullYear();
+            document.getElementById('inputWeek').value = 1;
+        });
+    </script>
+</body>
+</html>
