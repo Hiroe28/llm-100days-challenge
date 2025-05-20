@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="QRコードジェネレーター - カスタマイズ可能なデザインツール" />
+    <meta property="og:description" content="テキスト/URLとイベント情報から、背景色・ドットの形・絵文字アイコンをカスタマイズできるQRコードを生成。スマホにも最適化された使いやすいデザインツール。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day054-cute-qr-generator/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day054-cute-qr-generator/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="QRコードジェネレーター" />
+    <meta name="twitter:description" content="テキスト/URLとイベント情報からQRコードを生成。背景色、ドットの形、絵文字アイコンをカスタマイズでき、スマホにも最適化された使いやすいQRコード作成ツール。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day054-cute-qr-generator/screenshot.png" />
+
+    <title>QRコードジェネレーター</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3201351704984910"
+            crossorigin="anonymous"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1SW0RH6CK"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-H1SW0RH6CK');
+    </script>
+
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <style>
+        :root {
+            --primary-color: #4A6FFF;
+            --secondary-color: #6C8EFF;
+            --accent-color: #FF9F43;
+            --dark-color: #2D3748;
+            --light-color: #F7FAFC;
+            --border-radius: 8px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 95%;
+            margin: 15px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        /* タブ */
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background-color: #EDF2F7;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab-button:first-child {
+            border-top-left-radius: var(--border-radius);
+            border-bottom-left-radius: var(--border-radius);
+        }
+        
+        .tab-button:last-child {
+            border-top-right-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+        }
+        
+        .tab-button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* フォーム要素 */
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #CBD5E0;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(74, 111, 255, 0.2);
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            background-color: #3A5CE5;
+        }
+        
+        .download-btn {
+            background-color: var(--accent-color);
+            margin-top: 15px;
+        }
+        
+        .download-btn:hover {
+            background-color: #F18121;
+        }
+        
+        /* カスタマイズオプション */
+        .options-container {
+            background-color: #F8FAFC;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-top: 12px;
+            border: 1px solid #E2E8F0;
+        }
+        
+        .option-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+        }
+        
+        /* 色選択 */
+        .color-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        
+        .color-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .color-option input[type="radio"] {
+            width: auto;
+        }
+        
+        .color-preview {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 1px solid #ccc;
+        }
+        
+        /* ドット形状選択 */
+        .shape-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        
+        .shape-option {
+            border: 1px solid #E2E8F0;
+            border-radius: var(--border-radius);
+            padding: 6px;
+            text-align: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .shape-option:hover, .shape-option.selected {
+            border-color: var(--primary-color);
+            background-color: #EBF4FF;
+        }
+        
+        /* アイコン選択 */
+        .icon-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        
+        .icon-option {
+            border: 1px solid #E2E8F0;
+            border-radius: var(--border-radius);
+            padding: 6px;
+            text-align: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .icon-option:hover, .icon-option.selected {
+            border-color: var(--primary-color);
+            background-color: #EBF4FF;
+        }
+        
+        /* もっと見るパネル */
+        .more-emojis-panel {
+            display: none;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .more-emoji {
+            border: 1px solid #E2E8F0;
+            border-radius: var(--border-radius);
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .more-emoji:hover, .more-emoji.selected {
+            border-color: var(--primary-color);
+            background-color: #EBF4FF;
+        }
+        
+        /* カスタム絵文字入力 */
+        .custom-emoji-input {
+            display: none;
+            margin-top: 8px;
+        }
+        
+        .custom-emoji-input input {
+            width: 70%;
+            margin-right: 5px;
+        }
+        
+        .custom-emoji-input button {
+            width: 28%;
+        }
+        
+        /* QRコード出力エリア */
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            margin: 15px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            border: 1px dashed #CBD5E0;
+        }
+        
+        .qr-output {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #718096;
+        }
+        
+        /* レスポンシブデザイン */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+                width: 98%;
+                margin: 10px auto;
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+                margin-bottom: 15px;
+            }
+            
+            .color-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .icon-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .more-emojis-panel {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .qr-container {
+                min-height: 200px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ QRコードジェネレーター</h1>
+        
+        <div class="tabs">
+            <button class="tab-button active" data-tab="normal">テキスト/URL</button>
+            <button class="tab-button" data-tab="event">イベント情報</button>
+        </div>
+        
+        <!-- 通常のQRコードタブ -->
+        <div id="normal-tab" class="tab-content active">
+            <div class="form-group">
+                <label for="qr-text">テキストまたはURL</label>
+                <textarea id="qr-text" rows="2" placeholder="ここにテキストやURLを入力してください"></textarea>
+            </div>
+            
+            <button id="generate-normal-qr">QRコードを作成</button>
+            
+            <div class="options-container">
+                <div class="option-title">カスタマイズ</div>
+                
+                <div class="form-group">
+                    <label>背景色</label>
+                    <div class="color-options">
+                        <div class="color-option">
+                            <input type="radio" name="bg-color" id="bg-white" value="#FFFFFF" checked>
+                            <label for="bg-white">白</label>
+                            <div class="color-preview" style="background-color: #FFFFFF;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="bg-color" id="bg-pink" value="#FFF5F7">
+                            <label for="bg-pink">ピンク</label>
+                            <div class="color-preview" style="background-color: #FFF5F7;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="bg-color" id="bg-blue" value="#EBF8FF">
+                            <label for="bg-blue">水色</label>
+                            <div class="color-preview" style="background-color: #EBF8FF;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="bg-color" id="bg-yellow" value="#FFFFF0">
+                            <label for="bg-yellow">黄色</label>
+                            <div class="color-preview" style="background-color: #FFFFF0;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>ドットの色</label>
+                    <div class="color-options">
+                        <div class="color-option">
+                            <input type="radio" name="dot-color" id="dot-black" value="#000000" checked>
+                            <label for="dot-black">黒</label>
+                            <div class="color-preview" style="background-color: #000000;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="dot-color" id="dot-pink" value="#F687B3">
+                            <label for="dot-pink">ピンク</label>
+                            <div class="color-preview" style="background-color: #F687B3;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="dot-color" id="dot-blue" value="#4299E1">
+                            <label for="dot-blue">青</label>
+                            <div class="color-preview" style="background-color: #4299E1;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="dot-color" id="dot-purple" value="#805AD5">
+                            <label for="dot-purple">紫</label>
+                            <div class="color-preview" style="background-color: #805AD5;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>ドットの形</label>
+                    <div class="shape-options">
+                        <div class="shape-option selected" data-shape="square">
+                            四角 ■
+                        </div>
+                        <div class="shape-option" data-shape="dots">
+                            丸 ●
+                        </div>
+                        <div class="shape-option" data-shape="rounded">
+                            丸角 ▢
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>アイコン</label>
+                    <div class="icon-options" id="normal-icon-options">
+                        <div class="icon-option selected" data-icon="none">
+                            なし
+                        </div>
+                        <div class="icon-option" data-icon="❤️">
+                            ❤️
+                        </div>
+                        <div class="icon-option" data-icon="⭐">
+                            ⭐
+                        </div>
+                        <div class="icon-option" data-icon="🐱">
+                            🐱
+                        </div>
+                        <div class="icon-option" data-icon="🌸">
+                            🌸
+                        </div>
+                        <div class="icon-option" data-icon="🌈">
+                            🌈
+                        </div>
+                        <div class="icon-option" data-icon="more" id="more-emojis-btn">
+                            もっと見る
+                        </div>
+                        <div class="icon-option" data-icon="custom" id="custom-emoji-btn">
+                            カスタム
+                        </div>
+                    </div>
+                    
+                    <div class="more-emojis-panel" id="more-emojis-panel">
+                        <div class="more-emoji" data-icon="🌟">🌟</div>
+                        <div class="more-emoji" data-icon="🎵">🎵</div>
+                        <div class="more-emoji" data-icon="🎀">🎀</div>
+                        <div class="more-emoji" data-icon="🐰">🐰</div>
+                        <div class="more-emoji" data-icon="🦊">🦊</div>
+                        <div class="more-emoji" data-icon="🌻">🌻</div>
+                        <div class="more-emoji" data-icon="🍎">🍎</div>
+                        <div class="more-emoji" data-icon="🍓">🍓</div>
+                        <div class="more-emoji" data-icon="🧸">🧸</div>
+                        <div class="more-emoji" data-icon="🎮">🎮</div>
+                    </div>
+                    
+                    <div class="custom-emoji-input" id="custom-emoji-input">
+                        <input type="text" id="custom-emoji-text" placeholder="絵文字を入力" maxlength="2">
+                        <button type="button" id="apply-custom-emoji">適用</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- イベントQRコードタブ -->
+        <div id="event-tab" class="tab-content">
+            <div class="form-group">
+                <label for="event-title">イベントタイトル</label>
+                <input type="text" id="event-title" placeholder="例：誕生日パーティー">
+            </div>
+            
+            <div class="form-group">
+                <label for="event-date">日付</label>
+                <input type="date" id="event-date">
+            </div>
+            
+            <div class="form-group">
+                <label for="event-time">時間</label>
+                <input type="time" id="event-time">
+            </div>
+            
+            <div class="form-group">
+                <label for="event-location">場所</label>
+                <input type="text" id="event-location" placeholder="例：東京都渋谷区">
+            </div>
+            
+            <div class="form-group">
+                <label for="event-description">説明</label>
+                <textarea id="event-description" rows="2" placeholder="イベントの詳細..."></textarea>
+            </div>
+            
+            <button id="generate-event-qr">イベントQRコードを作成</button>
+            
+            <div class="options-container">
+                <div class="option-title">カスタマイズ</div>
+                
+                <div class="form-group">
+                    <label>背景色</label>
+                    <div class="color-options">
+                        <div class="color-option">
+                            <input type="radio" name="event-bg-color" id="event-bg-white" value="#FFFFFF" checked>
+                            <label for="event-bg-white">白</label>
+                            <div class="color-preview" style="background-color: #FFFFFF;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="event-bg-color" id="event-bg-pink" value="#FFF5F7">
+                            <label for="event-bg-pink">ピンク</label>
+                            <div class="color-preview" style="background-color: #FFF5F7;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="event-bg-color" id="event-bg-blue" value="#EBF8FF">
+                            <label for="event-bg-blue">水色</label>
+                            <div class="color-preview" style="background-color: #EBF8FF;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="event-bg-color" id="event-bg-yellow" value="#FFFFF0">
+                            <label for="event-bg-yellow">黄色</label>
+                            <div class="color-preview" style="background-color: #FFFFF0;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>ドットの色</label>
+                    <div class="color-options">
+                        <div class="color-option">
+                            <input type="radio" name="event-dot-color" id="event-dot-black" value="#000000" checked>
+                            <label for="event-dot-black">黒</label>
+                            <div class="color-preview" style="background-color: #000000;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="event-dot-color" id="event-dot-pink" value="#F687B3">
+                            <label for="event-dot-pink">ピンク</label>
+                            <div class="color-preview" style="background-color: #F687B3;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="event-dot-color" id="event-dot-blue" value="#4299E1">
+                            <label for="event-dot-blue">青</label>
+                            <div class="color-preview" style="background-color: #4299E1;"></div>
+                        </div>
+                        <div class="color-option">
+                            <input type="radio" name="event-dot-color" id="event-dot-purple" value="#805AD5">
+                            <label for="event-dot-purple">紫</label>
+                            <div class="color-preview" style="background-color: #805AD5;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>ドットの形</label>
+                    <div class="shape-options" id="event-shape-options">
+                        <div class="shape-option selected" data-shape="square">
+                            四角 ■
+                        </div>
+                        <div class="shape-option" data-shape="dots">
+                            丸 ●
+                        </div>
+                        <div class="shape-option" data-shape="rounded">
+                            丸角 ▢
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>アイコン</label>
+                    <div class="icon-options" id="event-icon-options">
+                        <div class="icon-option selected" data-icon="none">
+                            なし
+                        </div>
+                        <div class="icon-option" data-icon="❤️">
+                            ❤️
+                        </div>
+                        <div class="icon-option" data-icon="⭐">
+                            ⭐
+                        </div>
+                        <div class="icon-option" data-icon="🐱">
+                            🐱
+                        </div>
+                        <div class="icon-option" data-icon="🌸">
+                            🌸
+                        </div>
+                        <div class="icon-option" data-icon="🌈">
+                            🌈
+                        </div>
+                        <div class="icon-option" data-icon="more" id="event-more-emojis-btn">
+                            もっと見る
+                        </div>
+                        <div class="icon-option" data-icon="custom" id="event-custom-emoji-btn">
+                            カスタム
+                        </div>
+                    </div>
+                    
+                    <div class="more-emojis-panel" id="event-more-emojis-panel">
+                        <div class="more-emoji" data-icon="🌟">🌟</div>
+                        <div class="more-emoji" data-icon="🎵">🎵</div>
+                        <div class="more-emoji" data-icon="🎀">🎀</div>
+                        <div class="more-emoji" data-icon="🐰">🐰</div>
+                        <div class="more-emoji" data-icon="🦊">🦊</div>
+                        <div class="more-emoji" data-icon="🌻">🌻</div>
+                        <div class="more-emoji" data-icon="🍎">🍎</div>
+                        <div class="more-emoji" data-icon="🍓">🍓</div>
+                        <div class="more-emoji" data-icon="🧸">🧸</div>
+                        <div class="more-emoji" data-icon="🎮">🎮</div>
+                    </div>
+                    
+                    <div class="custom-emoji-input" id="event-custom-emoji-input">
+                        <input type="text" id="event-custom-emoji-text" placeholder="絵文字を入力" maxlength="2">
+                        <button type="button" id="event-apply-custom-emoji">適用</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- QRコード出力エリア -->
+        <div class="qr-container">
+            <div class="qr-output" id="qr-output">
+                <div style="text-align: center; color: #718096;">
+                    上のボタンを押してQRコードを生成してください
+                </div>
+            </div>
+            <button class="download-btn" id="download-btn" style="display: none;">ダウンロード</button>
+        </div>
+        
+        <div class="footer">
+            <p>QRコードジェネレーター © 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        // QRコードを格納する変数
+        let qrCode = null;
+        
+        // 選択された設定を格納する変数
+        let selectedDotShape = 'square';
+        let selectedIcon = 'none';
+        let selectedEventDotShape = 'square';
+        let selectedEventIcon = 'none';
+        
+        // タブ切り替え機能
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // アクティブなタブを非アクティブに
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // クリックしたタブをアクティブに
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // 通常タブのドットの形状選択
+        document.querySelectorAll('#normal-tab .shape-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('#normal-tab .shape-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                option.classList.add('selected');
+                selectedDotShape = option.getAttribute('data-shape');
+            });
+        });
+        
+        // イベントタブのドットの形状選択
+        document.querySelectorAll('#event-tab .shape-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('#event-tab .shape-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                option.classList.add('selected');
+                selectedEventDotShape = option.getAttribute('data-shape');
+            });
+        });
+        
+        // 通常タブのアイコン選択（基本アイコン）
+        document.querySelectorAll('#normal-icon-options .icon-option').forEach(option => {
+            if (!['more', 'custom'].includes(option.getAttribute('data-icon'))) {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('#normal-icon-options .icon-option, #more-emojis-panel .more-emoji')
+                        .forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedIcon = option.getAttribute('data-icon');
+                });
+            }
+        });
+        
+        // イベントタブのアイコン選択（基本アイコン）
+        document.querySelectorAll('#event-icon-options .icon-option').forEach(option => {
+            if (!['more', 'custom'].includes(option.getAttribute('data-icon'))) {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('#event-icon-options .icon-option, #event-more-emojis-panel .more-emoji')
+                        .forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedEventIcon = option.getAttribute('data-icon');
+                });
+            }
+        });
+        
+        // 「もっと見る」ボタンの処理（通常タブ）
+        document.getElementById('more-emojis-btn').addEventListener('click', () => {
+            const panel = document.getElementById('more-emojis-panel');
+            panel.style.display = panel.style.display === 'grid' ? 'none' : 'grid';
+        });
+        
+        // 「もっと見る」ボタンの処理（イベントタブ）
+        document.getElementById('event-more-emojis-btn').addEventListener('click', () => {
+            const panel = document.getElementById('event-more-emojis-panel');
+            panel.style.display = panel.style.display === 'grid' ? 'none' : 'grid';
+        });
+        
+        // 追加の絵文字選択（通常タブ）
+        document.querySelectorAll('#more-emojis-panel .more-emoji').forEach(emoji => {
+            emoji.addEventListener('click', () => {
+                document.querySelectorAll('#normal-icon-options .icon-option, #more-emojis-panel .more-emoji')
+                    .forEach(opt => opt.classList.remove('selected'));
+                emoji.classList.add('selected');
+                selectedIcon = emoji.getAttribute('data-icon');
+            });
+        });
+        
+        // 追加の絵文字選択（イベントタブ）
+        document.querySelectorAll('#event-more-emojis-panel .more-emoji').forEach(emoji => {
+            emoji.addEventListener('click', () => {
+                document.querySelectorAll('#event-icon-options .icon-option, #event-more-emojis-panel .more-emoji')
+                    .forEach(opt => opt.classList.remove('selected'));
+                emoji.classList.add('selected');
+                selectedEventIcon = emoji.getAttribute('data-icon');
+            });
+        });
+        
+        // カスタム絵文字ボタンの処理（通常タブ）
+        document.getElementById('custom-emoji-btn').addEventListener('click', () => {
+            document.getElementById('custom-emoji-input').style.display = 'flex';
+        });
+        
+        // カスタム絵文字ボタンの処理（イベントタブ）
+        document.getElementById('event-custom-emoji-btn').addEventListener('click', () => {
+            document.getElementById('event-custom-emoji-input').style.display = 'flex';
+        });
+        
+        // カスタム絵文字適用ボタンの処理（通常タブ）
+        document.getElementById('apply-custom-emoji').addEventListener('click', () => {
+            const customEmoji = document.getElementById('custom-emoji-text').value.trim();
+            if (customEmoji) {
+                document.querySelectorAll('#normal-icon-options .icon-option, #more-emojis-panel .more-emoji')
+                    .forEach(opt => opt.classList.remove('selected'));
+                document.getElementById('custom-emoji-btn').classList.add('selected');
+                document.getElementById('custom-emoji-btn').textContent = customEmoji;
+                selectedIcon = customEmoji;
+            }
+        });
+        
+        // カスタム絵文字適用ボタンの処理（イベントタブ）
+        document.getElementById('event-apply-custom-emoji').addEventListener('click', () => {
+            const customEmoji = document.getElementById('event-custom-emoji-text').value.trim();
+            if (customEmoji) {
+                document.querySelectorAll('#event-icon-options .icon-option, #event-more-emojis-panel .more-emoji')
+                    .forEach(opt => opt.classList.remove('selected'));
+                document.getElementById('event-custom-emoji-btn').classList.add('selected');
+                document.getElementById('event-custom-emoji-btn').textContent = customEmoji;
+                selectedEventIcon = customEmoji;
+            }
+        });
+        
+        // 通常のQRコード生成
+        document.getElementById('generate-normal-qr').addEventListener('click', () => {
+            const text = document.getElementById('qr-text').value.trim();
+            if (!text) {
+                alert('テキストまたはURLを入力してください');
+                return;
+            }
+            
+            generateQRCode(text, false);
+        });
+        
+        // イベントQRコード生成
+        document.getElementById('generate-event-qr').addEventListener('click', () => {
+            const title = document.getElementById('event-title').value.trim();
+            const date = document.getElementById('event-date').value;
+            const time = document.getElementById('event-time').value;
+            const location = document.getElementById('event-location').value.trim();
+            const description = document.getElementById('event-description').value.trim();
+            
+            if (!title || !date) {
+                alert('タイトルと日付は必須です');
+                return;
+            }
+            
+            // vCalendarフォーマットの作成
+            const formattedDateTime = formatDateTimeForVCalendar(date, time);
+            const endDateTime = addHoursToDateTime(formattedDateTime, 1); // デフォルトで1時間のイベント
+            
+            const vCalendar = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${title}
+DTSTART:${formattedDateTime}
+DTEND:${endDateTime}
+LOCATION:${location}
+DESCRIPTION:${description}
+END:VEVENT
+END:VCALENDAR`;
+            
+            generateQRCode(vCalendar, true);
+        });
+        
+        // QRコード生成関数
+        function generateQRCode(data, isEvent) {
+            // 背景色とドットの色を取得
+            const bgColor = isEvent
+                ? document.querySelector('input[name="event-bg-color"]:checked').value
+                : document.querySelector('input[name="bg-color"]:checked').value;
+                
+            const dotColor = isEvent
+                ? document.querySelector('input[name="event-dot-color"]:checked').value
+                : document.querySelector('input[name="dot-color"]:checked').value;
+            
+            // 選択されたドットの形とアイコン
+            const dotShape = isEvent ? selectedEventDotShape : selectedDotShape;
+            const icon = isEvent ? selectedEventIcon : selectedIcon;
+            
+            // アイコンのセットアップ
+            let imageOptions = {};
+            if (icon !== 'none') {
+                // Canvasを使って絵文字をイメージに変換
+                const canvas = document.createElement('canvas');
+                canvas.width = 50;
+                canvas.height = 50;
+                const ctx = canvas.getContext('2d');
+                ctx.font = '40px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(icon, 25, 25);
+                
+                imageOptions = {
+                    image: canvas.toDataURL(),
+                    imageOptions: {
+                        crossOrigin: "anonymous",
+                        margin: 10
+                    }
+                };
+            }
+            
+            // ドットの形状に基づくオプション
+            const dotsOptions = {
+                square: { type: 'square' },
+                dots: { type: 'dots' },
+                rounded: { type: 'rounded' }
+            };
+            
+            // QRコードの設定
+            const options = {
+                width: 250,
+                height: 250,
+                type: "svg",
+                data: data,
+                dotsOptions: {
+                    ...dotsOptions[dotShape],
+                    color: dotColor
+                },
+                backgroundOptions: {
+                    color: bgColor
+                },
+                cornersSquareOptions: {
+                    type: dotShape === 'dots' ? 'dot' : 'square',
+                    color: dotColor
+                },
+                cornersDotOptions: {
+                    type: dotShape === 'dots' ? 'dot' : 'square',
+                    color: dotColor
+                },
+                ...imageOptions
+            };
+            
+            // QRコードインスタンスの生成
+            qrCode = new QRCodeStyling(options);
+            
+            // QRコードを表示
+            const qrOutput = document.getElementById('qr-output');
+            qrOutput.innerHTML = '';
+            qrCode.append(qrOutput);
+            
+            // ダウンロードボタンを表示
+            document.getElementById('download-btn').style.display = 'block';
+        }
+        
+        // ダウンロードボタン
+        document.getElementById('download-btn').addEventListener('click', () => {
+            if (!qrCode) return;
+            
+            // ファイル名を生成
+            let filename = 'qr-code';
+            if (document.getElementById('event-tab').classList.contains('active')) {
+                const title = document.getElementById('event-title').value.trim();
+                if (title) {
+                    filename = `event-${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+                } else {
+                    filename = 'event-qr-code';
+                }
+            }
+            
+            // PNGとしてダウンロード
+            qrCode.download({
+                name: filename,
+                extension: 'png'
+            });
+        });
+        
+        // vCalendar用に日時を整形する関数
+        function formatDateTimeForVCalendar(date, time) {
+            // 日付と時間が指定されている場合
+            if (date && time) {
+                const [year, month, day] = date.split('-');
+                const [hour, minute] = time.split(':');
+                return `${year}${month}${day}T${hour}${minute}00`;
+            }
+            // 日付のみが指定されている場合
+            else if (date) {
+                const [year, month, day] = date.split('-');
+                return `${year}${month}${day}T000000`;
+            }
+            // どちらも指定されていない場合（今日の日付）
+            else {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                return `${year}${month}${day}T000000`;
+            }
+        }
+        
+        // 日時に時間を追加する関数
+        function addHoursToDateTime(dateTimeStr, hours) {
+            // 日付部分とT部分を分離
+            const datePart = dateTimeStr.substring(0, 8);
+            const timePart = dateTimeStr.substring(9, 15);
+            
+            // 時間を数値に変換
+            let hour = parseInt(timePart.substring(0, 2));
+            const minute = timePart.substring(2, 4);
+            const second = timePart.substring(4, 6);
+            
+            // 時間を加算
+            hour = (hour + hours) % 24;
+            
+            // 結果を整形
+            return `${datePart}T${String(hour).padStart(2, '0')}${minute}${second}`;
+        }
+        
+        // ランダムに色をセット
+        function setRandomColors() {
+            const bgColors = ['bg-white', 'bg-pink', 'bg-blue', 'bg-yellow'];
+            const dotColors = ['dot-black', 'dot-pink', 'dot-blue', 'dot-purple'];
+            
+            // 通常タブのランダム設定
+            const randomBgColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+            const randomDotColor = dotColors[Math.floor(Math.random() * dotColors.length)];
+            
+            document.getElementById(randomBgColor).checked = true;
+            document.getElementById(randomDotColor).checked = true;
+            
+            // イベントタブのランダム設定
+            const randomEventBgColor = `event-${bgColors[Math.floor(Math.random() * bgColors.length)]}`;
+            const randomEventDotColor = `event-${dotColors[Math.floor(Math.random() * dotColors.length)]}`;
+            
+            document.getElementById(randomEventBgColor).checked = true;
+            document.getElementById(randomEventDotColor).checked = true;
+        }
+        
+        // ページ読み込み時の初期化
+        window.addEventListener('DOMContentLoaded', setRandomColors);
+    </script>
+</body>
+</html>
