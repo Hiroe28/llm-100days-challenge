@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="シンプルタイマー＆ストップウォッチ - Simple Timer & Stopwatch" />
+    <meta property="og:description" content="シンプルで使いやすいタイマーとストップウォッチアプリ。時間追加ボタンで簡単に設定でき、アラーム機能付き。学習、運動、料理など様々なシーンで活躍します。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day056-simple-timer-stopwatch/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day056-simple-timer-stopwatch/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="シンプルタイマー＆ストップウォッチ" />
+    <meta name="twitter:description" content="直感的なインターフェースのタイマーとストップウォッチ。時間の追加ボタンで簡単に設定でき、アラーム機能付き。日常生活の様々なシーンで活用できます。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day056-simple-timer-stopwatch/screenshot.png" />
+
+    <title>シンプルタイマー＆ストップウォッチ</title>
+
+
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1SW0RH6CK"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-H1SW0RH6CK');
+    </script>
+
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #FF9494;
+            --secondary-color: #FFD1D1;
+            --accent-color: #6CD4FF;
+            --timer-color: #FF7D54;
+            --dark-color: #555555;
+            --light-color: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            background-color: var(--light-color);
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title {
+            color: var(--dark-color);
+            font-size: 28px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background-color: #f1f1f1;
+            border-radius: 30px;
+            padding: 5px;
+            width: 80%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .mode-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--dark-color);
+            width: 50%;
+        }
+
+        .mode-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .timer-display {
+            font-size: 64px;
+            color: var(--dark-color);
+            margin: 20px 0;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .button {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--light-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .start {
+            background-color: #6CD4FF;
+        }
+
+        .stop {
+            background-color: #FF9494;
+        }
+
+        .reset {
+            background-color: #FFD17F;
+        }
+
+        .button i {
+            font-size: 28px;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -50px;
+            background-color: rgba(108, 212, 255, 0.2);
+            border-radius: 50%;
+            animation: float 4s infinite ease-in-out;
+            z-index: -1;
+        }
+
+        /* タイマー設定用スタイル */
+        .timer-settings {
+            margin: 15px 0;
+        }
+
+        .time-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .time-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-input label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: var(--dark-color);
+        }
+
+        .time-input input {
+            width: 65px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid #DDD;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        .time-input input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .quick-times {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .time-category {
+            text-align: center;
+        }
+
+        .time-category h3 {
+            margin: 5px 0;
+            font-size: 16px;
+            color: var(--dark-color);
+        }
+
+        .time-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .quick-time {
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 15px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-time:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .stop-alarm-btn {
+            background-color: #FF5252;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: none;
+            margin: 10px auto;
+        }
+        
+        .stop-alarm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(10deg);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+
+        .ending {
+            color: var(--primary-color);
+        }
+
+        /* レスポンシブデザイン */
+        @media (max-width: 600px) {
+            .timer-display {
+                font-size: 48px;
+            }
+            
+            .button {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+
+            .time-inputs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="mode-switch">
+            <button class="mode-btn active" id="timerMode">タイマー</button>
+            <button class="mode-btn" id="stopwatchMode">ストップ<br>ウォッチ</button>
+        </div>
+
+        <h1 class="title" id="appTitle">タイマー</h1>
+        
+        <!-- タイマー設定パネル -->
+        <div class="timer-settings" id="timerSettings">
+            <div class="time-inputs">
+                <div class="time-input">
+                    <label>時間</label>
+                    <input type="number" id="hoursInput" min="0" max="23" value="0">
+                </div>
+                <div class="time-input">
+                    <label>分</label>
+                    <input type="number" id="minutesInput" min="0" max="59" value="0">
+                </div>
+                <div class="time-input">
+                    <label>秒</label>
+                    <input type="number" id="secondsInput" min="0" max="59" value="0">
+                </div>
+            </div>
+            <div class="quick-times">
+                <div class="time-category">
+                    <div class="time-buttons">
+                        <button class="quick-time add-time" data-seconds="5">+5秒</button>
+                        <button class="quick-time add-time" data-seconds="10">+10秒</button>
+                        <button class="quick-time add-time" data-seconds="30">+30秒</button>
+                    </div>
+                </div>
+                <div class="time-category">
+                    <div class="time-buttons">
+                        <button class="quick-time add-time" data-seconds="60">+1分</button>
+                        <button class="quick-time add-time" data-seconds="180">+3分</button>
+                        <button class="quick-time add-time" data-seconds="300">+5分</button>
+                        <button class="quick-time add-time" data-seconds="600">+10分</button>
+                    </div>
+                </div>
+                <div class="time-category">
+                    <div class="time-buttons">
+                        <button class="quick-time add-time" data-seconds="1800">+30分</button>
+                        <button class="quick-time add-time" data-seconds="3600">+1時間</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="stop-alarm-btn" id="stopAlarmBtn">アラーム停止</button>
+
+        <div class="timer-display" id="timer">00:00:00</div>
+
+        <div class="controls">
+            <button class="button start" id="startBtn">
+                <i class="fas fa-play"></i>
+            </button>
+            <button class="button stop" id="stopBtn">
+                <i class="fas fa-pause"></i>
+            </button>
+            <button class="button reset" id="resetBtn">
+                <i class="fas fa-undo"></i>
+            </button>
+        </div>
+        
+        <button class="stop-alarm-btn" id="stopAlarmBtn">アラーム停止</button>
+    </div>
+
+    <!-- アラーム音のためのオーディオ要素 -->
+    <audio id="alarmSound" src="alarm.mp3" preload="auto"></audio>
+
+    <script>
+        // DOM要素の取得
+        const timerElement = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const appTitle = document.getElementById('appTitle');
+        const stopwatchMode = document.getElementById('stopwatchMode');
+        const timerMode = document.getElementById('timerMode');
+        const timerSettings = document.getElementById('timerSettings');
+        const hoursInput = document.getElementById('hoursInput');
+        const minutesInput = document.getElementById('minutesInput');
+        const secondsInput = document.getElementById('secondsInput');
+        const stopAlarmBtn = document.getElementById('stopAlarmBtn');
+        
+        // タイマー変数
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval;
+        let isRunning = false;
+        let isAlarmPlaying = false;
+        let mode = 'timer'; // デフォルトをタイマーに変更
+        let timerDuration = 0;
+        let remainingTime = 0;
+        let lastTimerSettings = {
+            hours: 0,
+            minutes: 0,
+            seconds: 0
+        };
+        
+        // アラーム音の設定
+        const alarmSound = document.getElementById('alarmSound');
+        
+        // 泡の作成
+        function createBubbles() {
+            // 削除 - 不要な泡作成処理
+        }
+        
+        // ストップウォッチの更新
+        function updateStopwatch() {
+            const currentTime = Date.now();
+            elapsedTime = currentTime - startTime;
+            
+            // 分、秒、ミリ秒の計算
+            const minutes = Math.floor(elapsedTime / (1000 * 60));
+            const seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+            const milliseconds = Math.floor((elapsedTime % 1000) / 10);
+            
+            // 表示形式のフォーマット
+            const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+            timerElement.textContent = formattedTime;
+            
+            // 実行時間に応じたアニメーション
+            if (elapsedTime > 30000 && elapsedTime < 30100) {  // 30秒経過時
+                character.classList.add('show');
+                setTimeout(() => {
+                    character.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // タイマーの更新
+        function updateTimer() {
+            const currentTime = Date.now();
+            const timeElapsed = currentTime - startTime;
+            remainingTime = timerDuration - timeElapsed;
+            
+            if (remainingTime <= 0) {
+                // タイマー終了
+                clearInterval(timerInterval);
+                isRunning = false;
+                remainingTime = 0;
+                timerElement.textContent = "00:00:00";
+                timerElement.classList.add('ending');
+                
+                // アラーム音を再生
+                alarmSound.play();
+                isAlarmPlaying = true;
+                
+                // アラーム停止ボタンを表示
+                stopAlarmBtn.style.display = 'block';
+                
+                return;
+            }
+            
+            // 時、分、秒の計算
+            const hours = Math.floor(remainingTime / (1000 * 60 * 60));
+            const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+            
+            // 表示形式のフォーマット
+            const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            timerElement.textContent = formattedTime;
+        }
+        
+        // スタートボタンの処理
+        function startTimer() {
+            if (!isRunning) {
+                if (mode === 'timer') {
+                    // タイマーの値をチェック
+                    let hours = parseInt(hoursInput.value) || 0;
+                    let minutes = parseInt(minutesInput.value) || 0;
+                    let seconds = parseInt(secondsInput.value) || 0;
+                    
+                    // すべての値が0の場合、何もせずに終了
+                    if (hours === 0 && minutes === 0 && seconds === 0) {
+                        showCharacter('<i class="fas fa-exclamation"></i>');
+                        return;
+                    }
+                    
+                    // 現在の設定を保存
+                    lastTimerSettings = {
+                        hours: hours,
+                        minutes: minutes,
+                        seconds: seconds
+                    };
+                    
+                    // タイマー時間が設定されていない、または新しく設定された場合
+                    if (remainingTime <= 0 || timerDuration === 0) {
+                        // 合計時間（ミリ秒）
+                        timerDuration = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
+                        remainingTime = timerDuration;
+                        originalDuration = timerDuration;
+                    }
+                }
+                
+                isRunning = true;
+                
+                if (mode === 'stopwatch') {
+                    startTime = Date.now() - elapsedTime;
+                    timerInterval = setInterval(updateStopwatch, 10);
+                    timerElement.classList.add('pulse');
+                } else {
+                    // タイマーモード
+                    startTime = Date.now() - (timerDuration - remainingTime);
+                    timerInterval = setInterval(updateTimer, 100);
+                }
+                
+                showCharacter('<i class="fas fa-running"></i>');
+            }
+        }
+        
+        // ストップボタンの処理
+        function stopTimer() {
+            if (isRunning) {
+                isRunning = false;
+                clearInterval(timerInterval);
+                timerElement.classList.remove('pulse');
+                
+                if (mode === 'timer') {
+                    // タイマーの残り時間を保存
+                    remainingTime = timerDuration - (Date.now() - startTime);
+                } else {
+                    // ストップウォッチの経過時間を保存
+                    elapsedTime = Date.now() - startTime;
+                }
+                
+                showCharacter('<i class="fas fa-hand-paper"></i>');
+            }
+        }
+        
+        // リセットボタンの処理
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timerElement.classList.remove('pulse');
+            
+            if (mode === 'stopwatch') {
+                elapsedTime = 0;
+                timerElement.textContent = "00:00.00";
+            } else {
+                // タイマーモードの場合、時間を0にリセット
+                if (isAlarmPlaying) {
+                    // アラームが鳴っている場合は停止
+                    alarmSound.pause();
+                    alarmSound.currentTime = 0;
+                    isAlarmPlaying = false;
+                    stopAlarmBtn.style.display = 'none';
+                    timerElement.classList.remove('ending');
+                }
+                
+                // 時間を0にリセット
+                hoursInput.value = 0;
+                minutesInput.value = 0;
+                secondsInput.value = 0;
+                
+                remainingTime = 0;
+                timerDuration = 0;
+                
+                timerElement.textContent = "00:00:00";
+            }
+        }
+        
+        // アラーム停止ボタンの処理
+        function stopAlarm() {
+            if (isAlarmPlaying) {
+                alarmSound.pause();
+                alarmSound.currentTime = 0;
+                isAlarmPlaying = false;
+                stopAlarmBtn.style.display = 'none';
+                timerElement.classList.remove('ending');
+                
+                // 最後に設定した時間を復元
+                hoursInput.value = lastTimerSettings.hours;
+                minutesInput.value = lastTimerSettings.minutes;
+                secondsInput.value = lastTimerSettings.seconds;
+                
+                // タイマー表示を更新
+                updateTimerDisplay();
+            }
+        }
+        
+        // キャラクターの表示 - 不要なので空の関数に
+        function showCharacter(iconHtml) {
+            // 削除 - キャラクター表示は不要
+        }
+        
+        // モード切替
+        function switchToStopwatch() {
+            mode = 'stopwatch';
+            stopwatchMode.classList.add('active');
+            timerMode.classList.remove('active');
+            appTitle.textContent = 'ストップウォッチ';
+            
+            resetTimer();
+            timerSettings.style.display = 'none';
+            timerElement.textContent = "00:00.00";
+        }
+        
+        function switchToTimer() {
+            mode = 'timer';
+            timerMode.classList.add('active');
+            stopwatchMode.classList.remove('active');
+            appTitle.textContent = 'タイマー';
+            
+            resetTimer();
+            timerSettings.style.display = 'block';
+            timerElement.textContent = "00:00:00";
+        }
+        
+        // 時間追加関数
+        function addTime(seconds) {
+            // 現在の値を取得
+            let hours = parseInt(hoursInput.value) || 0;
+            let minutes = parseInt(minutesInput.value) || 0;
+            let secs = parseInt(secondsInput.value) || 0;
+            
+            // 時間を秒に変換して追加
+            let totalSeconds = hours * 3600 + minutes * 60 + secs + seconds;
+            
+            // 新しい時間に変換
+            hours = Math.floor(totalSeconds / 3600);
+            totalSeconds %= 3600;
+            minutes = Math.floor(totalSeconds / 60);
+            secs = totalSeconds % 60;
+            
+            // 入力フィールドを更新
+            hoursInput.value = hours;
+            minutesInput.value = minutes;
+            secondsInput.value = secs;
+            
+            // 現在の設定を保存
+            lastTimerSettings = {
+                hours: hours,
+                minutes: minutes,
+                seconds: secs
+            };
+            
+            // タイマー時間を設定
+            timerDuration = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (secs * 1000);
+            remainingTime = timerDuration;
+            
+            // 表示を更新
+            const formattedHours = hours.toString().padStart(2, '0');
+            const formattedMinutes = minutes.toString().padStart(2, '0');
+            const formattedSeconds = secs.toString().padStart(2, '0');
+            timerElement.textContent = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+            
+            // アラームが鳴っている場合は停止
+            if (isAlarmPlaying) {
+                stopAlarm();
+            }
+        }
+        
+        // タイマー入力値変更時の処理
+        function updateTimerDisplay() {
+            const hours = parseInt(hoursInput.value) || 0;
+            const minutes = parseInt(minutesInput.value) || 0;
+            const seconds = parseInt(secondsInput.value) || 0;
+            
+            // 現在の設定を保存
+            lastTimerSettings = {
+                hours: hours,
+                minutes: minutes,
+                seconds: seconds
+            };
+            
+            // 表示を更新
+            const formattedHours = hours.toString().padStart(2, '0');
+            const formattedMinutes = minutes.toString().padStart(2, '0');
+            const formattedSeconds = seconds.toString().padStart(2, '0');
+            timerElement.textContent = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+            
+            // タイマー時間と残り時間を更新
+            timerDuration = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
+            remainingTime = timerDuration;
+            
+            // アラームが鳴っている場合は停止
+            if (isAlarmPlaying) {
+                stopAlarm();
+            }
+        }
+        
+        // イベントリスナーの設定
+        startBtn.addEventListener('click', startTimer);
+        stopBtn.addEventListener('click', stopTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        stopwatchMode.addEventListener('click', switchToStopwatch);
+        timerMode.addEventListener('click', switchToTimer);
+        stopAlarmBtn.addEventListener('click', stopAlarm);
+        
+        // 入力値変更時のイベント
+        hoursInput.addEventListener('change', updateTimerDisplay);
+        minutesInput.addEventListener('change', updateTimerDisplay);
+        secondsInput.addEventListener('change', updateTimerDisplay);
+        
+        // 時間追加ボタンのイベントリスナー
+        const addTimeButtons = document.querySelectorAll('.add-time');
+        addTimeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const seconds = parseInt(this.getAttribute('data-seconds'));
+                addTime(seconds);
+            });
+        });
+        
+        // クイックタイム設定
+        quickTimeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const seconds = parseInt(this.getAttribute('data-time'));
+                setQuickTimer(seconds);
+            });
+        });
+        
+        // タッチデバイス対応
+        function addTouchEvents(element, callback) {
+            element.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                callback();
+            });
+        }
+        
+        addTouchEvents(startBtn, startTimer);
+        addTouchEvents(stopBtn, stopTimer);
+        addTouchEvents(resetBtn, resetTimer);
+        addTouchEvents(stopwatchMode, switchToStopwatch);
+        addTouchEvents(timerMode, switchToTimer);
+        addTouchEvents(stopAlarmBtn, stopAlarm);
+        
+        // 時間追加ボタンのタッチイベント
+        addTimeButtons.forEach(button => {
+            addTouchEvents(button, function() {
+                const seconds = parseInt(button.getAttribute('data-seconds'));
+                addTime(seconds);
+            });
+        });
+    </script>
+</body>
+</html>
