@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西暦和暦変換ツール - 高精度な日付変換と年齢計算</title>
+    <meta name="description" content="西暦⇄和暦の相互変換、年齢計算、生年計算ができる高精度ツール。明治から令和まで対応、元年表記や親切なエラーメッセージでユーザーフレンドリー。">
+    
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="西暦和暦変換ツール - 高精度な日付変換と年齢計算" />
+    <meta property="og:description" content="西暦⇄和暦の相互変換、年齢計算、生年計算ができる高精度ツール。明治から令和まで対応、元年表記や親切なエラーメッセージでユーザーフレンドリー。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day057-era-date-converter/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day057-era-date-converter/index.html" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="西暦和暦変換ツール" />
+    <meta name="twitter:description" content="西暦⇄和暦の相互変換、年齢計算、生年計算ができる高精度ツール。明治から令和まで対応、元年表記や親切なエラーメッセージでユーザーフレンドリー。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day057-era-date-converter/screenshot.png" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            border: none;
+            background: none;
+            font-size: 1rem;
+        }
+
+        .tab.active {
+            background: white;
+            color: #0891b2;
+            border-bottom: 3px solid #0891b2;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f1f5f9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0891b2;
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+
+        .date-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .era-inputs {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr 1fr;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #0891b2, #0e7490);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(8, 145, 178, 0.3);
+        }
+
+        .result {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #0c4a6e;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #0891b2;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            color: #dc2626;
+            border-color: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 25px;
+            }
+
+            .date-inputs, .era-inputs {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .era-inputs {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                padding: 15px;
+            }
+        }
+
+        .info-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 西暦和暦変換ツール</h1>
+            <p>高精度な日付変換と年齢計算</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">西暦→和暦</button>
+            <button class="tab" onclick="switchTab(1)">和暦→西暦</button>
+            <button class="tab" onclick="switchTab(2)">年齢計算</button>
+            <button class="tab" onclick="switchTab(3)">生年計算</button>
+        </div>
+
+        <div class="content">
+            <!-- 西暦→和暦変換 -->
+            <div class="section active" id="section0">
+                <div class="form-group">
+                    <label>西暦年月日を入力してください</label>
+                    <div class="date-inputs">
+                        <input type="number" id="seireki-year" placeholder="年" min="1868" max="2100">
+                        <input type="number" id="seireki-month" placeholder="月" min="1" max="12">
+                        <input type="number" id="seireki-day" placeholder="日" min="1" max="31">
+                    </div>
+                    <div class="info-text" style="margin-top: 10px; text-align: left;">
+                        ⚠️ 明治元年（1868年10月23日）以降の日付のみ対応<br>
+                        💡 半角数字でご入力ください
+                    </div>
+                </div>
+                <button class="btn" onclick="convertToWareki()">和暦に変換</button>
+                <div class="result" id="wareki-result">変換結果がここに表示されます</div>
+            </div>
+
+            <!-- 和暦→西暦変換 -->
+            <div class="section" id="section1">
+                <div class="form-group">
+                    <label>和暦年月日を入力してください</label>
+                    <div class="era-inputs">
+                        <select id="era-select">
+                            <option value="令和">令和</option>
+                            <option value="平成">平成</option>
+                            <option value="昭和">昭和</option>
+                            <option value="大正">大正</option>
+                            <option value="明治">明治</option>
+                        </select>
+                        <input type="number" id="era-year" placeholder="年" min="1">
+                        <input type="number" id="era-month" placeholder="月" min="1" max="12">
+                        <input type="number" id="era-day" placeholder="日" min="1" max="31">
+                    </div>
+                    <div class="info-text" style="margin-top: 10px; text-align: left;">
+                        ⚠️ 元年は「1」と入力してください<br>
+                        💡 半角数字でご入力ください
+                    </div>
+                </div>
+                <button class="btn" onclick="convertToSeireki()">西暦に変換</button>
+                <div class="result" id="seireki-result">変換結果がここに表示されます</div>
+            </div>
+
+            <!-- 年齢計算 -->
+            <div class="section" id="section2">
+                <div class="form-group">
+                    <label>生年月日を入力してください</label>
+                    <div class="era-inputs">
+                        <select id="age-era-select">
+                            <option value="西暦">西暦</option>
+                            <option value="令和">令和</option>
+                            <option value="平成">平成</option>
+                            <option value="昭和">昭和</option>
+                            <option value="大正">大正</option>
+                            <option value="明治">明治</option>
+                        </select>
+                        <input type="number" id="age-birth-year" placeholder="年" min="1">
+                        <input type="number" id="age-birth-month" placeholder="月" min="1" max="12">
+                        <input type="number" id="age-birth-day" placeholder="日" min="1" max="31">
+                    </div>
+                    <div class="info-text" style="margin-top: 10px; text-align: left;">
+                        ⚠️ 和暦入力時、元年は「1」と入力してください
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>いつ時点の年齢か（省略可、今日の日付を使用）</label>
+                    <div class="era-inputs">
+                        <select id="age-ref-era-select">
+                            <option value="西暦">西暦</option>
+                            <option value="令和">令和</option>
+                            <option value="平成">平成</option>
+                            <option value="昭和">昭和</option>
+                            <option value="大正">大正</option>
+                            <option value="明治">明治</option>
+                        </select>
+                        <input type="number" id="age-ref-year" placeholder="年">
+                        <input type="number" id="age-ref-month" placeholder="月">
+                        <input type="number" id="age-ref-day" placeholder="日">
+                    </div>
+                    <div class="info-text" style="margin-top: 10px; text-align: left;">
+                        ⚠️ 和暦入力時、元年は「1」と入力してください<br>
+                        💡 半角数字でご入力ください
+                    </div>
+                </div>
+                <button class="btn" onclick="calculateAge()">年齢を計算</button>
+                <div class="result" id="age-result">年齢がここに表示されます</div>
+            </div>
+
+            <!-- 生年計算 -->
+            <div class="section" id="section3">
+                <div class="form-group">
+                    <label>現在の年齢を入力してください</label>
+                    <input type="number" id="current-age" placeholder="歳" min="0" max="150">
+                    <div class="info-text" style="margin-top: 10px; text-align: left;">
+                        💡 半角数字でご入力ください
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>いつ時点の年齢か（省略可、今日の日付を使用）</label>
+                    <div class="era-inputs">
+                        <select id="birth-era-select">
+                            <option value="西暦">西暦</option>
+                            <option value="令和">令和</option>
+                            <option value="平成">平成</option>
+                            <option value="昭和">昭和</option>
+                            <option value="大正">大正</option>
+                            <option value="明治">明治</option>
+                        </select>
+                        <input type="number" id="birth-ref-year" placeholder="年">
+                        <input type="number" id="birth-ref-month" placeholder="月">
+                        <input type="number" id="birth-ref-day" placeholder="日">
+                    </div>
+                    <div class="info-text" style="margin-top: 10px; text-align: left;">
+                        ⚠️ 和暦入力時、元年は「1」と入力してください
+                    </div>
+                </div>
+                <button class="btn" onclick="calculateBirthYear()">生年を計算</button>
+                <div class="result" id="birth-year-result">生年がここに表示されます</div>
+            </div>
+        </div>
+
+        <div class="info-text">
+            💡 月日も考慮した高精度な計算を行います。閏年・閏日にも対応しています。<br>
+            📅 西暦→和暦変換は明治元年（1868年10月23日）以降の日付のみ対応
+        </div>
+    </div>
+
+    <script>
+        // 元号の定義
+        const eras = {
+            '令和': { start: new Date(2019, 4, 1), startYear: 2019 },
+            '平成': { start: new Date(1989, 0, 8), end: new Date(2019, 3, 30), startYear: 1989 },
+            '昭和': { start: new Date(1926, 11, 25), end: new Date(1989, 0, 7), startYear: 1926 },
+            '大正': { start: new Date(1912, 6, 30), end: new Date(1926, 11, 24), startYear: 1912 },
+            '明治': { start: new Date(1868, 9, 23), end: new Date(1912, 6, 29), startYear: 1868 }
+        };
+
+        function switchTab(index) {
+            // タブの切り替え
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            
+            document.querySelectorAll('.tab')[index].classList.add('active');
+            document.getElementById(`section${index}`).classList.add('active');
+        }
+
+        function isValidDate(year, month, day) {
+            const date = new Date(year, month - 1, day);
+            return date.getFullYear() === year && 
+                   date.getMonth() === month - 1 && 
+                   date.getDate() === day;
+        }
+
+        function convertToWareki() {
+            const year = parseInt(document.getElementById('seireki-year').value);
+            const month = parseInt(document.getElementById('seireki-month').value);
+            const day = parseInt(document.getElementById('seireki-day').value);
+            const resultDiv = document.getElementById('wareki-result');
+
+            if (!year || !month || !day) {
+                resultDiv.innerHTML = '年月日をすべて入力してください';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            if (!isValidDate(year, month, day)) {
+                resultDiv.innerHTML = '有効な日付を入力してください';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            const inputDate = new Date(year, month - 1, day);
+            let eraName = '';
+            let eraYear = 0;
+
+            // 元号の判定
+            if (inputDate >= eras['令和'].start) {
+                eraName = '令和';
+                eraYear = year - eras['令和'].startYear + 1;
+            } else if (inputDate >= eras['平成'].start && inputDate <= eras['平成'].end) {
+                eraName = '平成';
+                eraYear = year - eras['平成'].startYear + 1;
+            } else if (inputDate >= eras['昭和'].start && inputDate <= eras['昭和'].end) {
+                eraName = '昭和';
+                eraYear = year - eras['昭和'].startYear + 1;
+            } else if (inputDate >= eras['大正'].start && inputDate <= eras['大正'].end) {
+                eraName = '大正';
+                eraYear = year - eras['大正'].startYear + 1;
+            } else if (inputDate >= eras['明治'].start && inputDate <= eras['明治'].end) {
+                eraName = '明治';
+                eraYear = year - eras['明治'].startYear + 1;
+            } else {
+                resultDiv.innerHTML = '明治以降の日付を入力してください（1868年10月23日以降）';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            const displayYear = eraYear === 1 ? '元年' : `${eraYear}年`;
+            resultDiv.innerHTML = `<strong>${eraName}${displayYear}${month}月${day}日</strong><br>（西暦${year}年${month}月${day}日）`;
+            resultDiv.className = 'result';
+        }
+
+        function convertToSeireki() {
+            const era = document.getElementById('era-select').value;
+            const eraYear = parseInt(document.getElementById('era-year').value);
+            const month = parseInt(document.getElementById('era-month').value);
+            const day = parseInt(document.getElementById('era-day').value);
+            const resultDiv = document.getElementById('seireki-result');
+
+            if (!eraYear || !month || !day) {
+                resultDiv.innerHTML = '年月日をすべて入力してください';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            const seirekiYear = eras[era].startYear + eraYear - 1;
+
+            if (!isValidDate(seirekiYear, month, day)) {
+                resultDiv.innerHTML = '有効な日付を入力してください';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            const inputDate = new Date(seirekiYear, month - 1, day);
+            
+            // 元号の有効期間チェック
+            if (eras[era].end && inputDate > eras[era].end) {
+                const endDate = eras[era].end;
+                const endEraYear = endDate.getFullYear() - eras[era].startYear + 1;
+                const endDisplayYear = endEraYear === 1 ? '元年' : `${endEraYear}年`;
+                resultDiv.innerHTML = `${era}は${endDate.getFullYear()}年（${era}${endDisplayYear}）${endDate.getMonth() + 1}月${endDate.getDate()}日まで<br>入力された日付は${era}の範囲外です`;
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            if (inputDate < eras[era].start) {
+                const startDate = eras[era].start;
+                resultDiv.innerHTML = `${era}は${startDate.getFullYear()}年（${era}元年）${startDate.getMonth() + 1}月${startDate.getDate()}日から開始<br>入力された日付は${era}の範囲外です`;
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            const displayYear = eraYear === 1 ? '元年' : `${eraYear}年`;
+            resultDiv.innerHTML = `<strong>西暦${seirekiYear}年${month}月${day}日</strong><br>（${era}${displayYear}${month}月${day}日）`;
+            resultDiv.className = 'result';
+        }
+
+        function calculateAge() {
+            const eraType = document.getElementById('age-era-select').value;
+            const inputYear = parseInt(document.getElementById('age-birth-year').value);
+            const birthMonth = parseInt(document.getElementById('age-birth-month').value);
+            const birthDay = parseInt(document.getElementById('age-birth-day').value);
+            
+            const refEraType = document.getElementById('age-ref-era-select').value;
+            const refInputYear = parseInt(document.getElementById('age-ref-year').value);
+            const refMonth = parseInt(document.getElementById('age-ref-month').value);
+            const refDay = parseInt(document.getElementById('age-ref-day').value);
+            
+            const resultDiv = document.getElementById('age-result');
+
+            if (!inputYear || !birthMonth || !birthDay) {
+                resultDiv.innerHTML = '生年月日をすべて入力してください';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            let birthYear;
+            if (eraType === '西暦') {
+                birthYear = inputYear;
+            } else {
+                // 和暦から西暦に変換
+                birthYear = eras[eraType].startYear + inputYear - 1;
+                
+                // 元号の有効期間チェック
+                const inputDate = new Date(birthYear, birthMonth - 1, birthDay);
+                if (eras[eraType].end && inputDate > eras[eraType].end) {
+                    const endDate = eras[eraType].end;
+                    const endEraYear = endDate.getFullYear() - eras[eraType].startYear + 1;
+                    const endDisplayYear = endEraYear === 1 ? '元年' : `${endEraYear}年`;
+                    resultDiv.innerHTML = `${eraType}は${endDate.getFullYear()}年（${eraType}${endDisplayYear}）${endDate.getMonth() + 1}月${endDate.getDate()}日まで<br>入力された生年月日は${eraType}の範囲外です`;
+                    resultDiv.className = 'result error';
+                    return;
+                }
+                if (inputDate < eras[eraType].start) {
+                    const startDate = eras[eraType].start;
+                    resultDiv.innerHTML = `${eraType}は${startDate.getFullYear()}年（${eraType}元年）${startDate.getMonth() + 1}月${startDate.getDate()}日から開始<br>入力された生年月日は${eraType}の範囲外です`;
+                    resultDiv.className = 'result error';
+                    return;
+                }
+            }
+
+            if (!isValidDate(birthYear, birthMonth, birthDay)) {
+                resultDiv.innerHTML = '有効な日付を入力してください';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            // 基準日の設定
+            let refDate;
+            if (refInputYear && refMonth && refDay) {
+                let actualRefYear;
+                if (refEraType === '西暦') {
+                    actualRefYear = refInputYear;
+                } else {
+                    // 和暦から西暦に変換
+                    actualRefYear = eras[refEraType].startYear + refInputYear - 1;
+                    
+                    // 元号の有効期間チェック
+                    const inputDate = new Date(actualRefYear, refMonth - 1, refDay);
+                    if (eras[refEraType].end && inputDate > eras[refEraType].end) {
+                        const endDate = eras[refEraType].end;
+                        const endEraYear = endDate.getFullYear() - eras[refEraType].startYear + 1;
+                        const endDisplayYear = endEraYear === 1 ? '元年' : `${endEraYear}年`;
+                        resultDiv.innerHTML = `${refEraType}は${endDate.getFullYear()}年（${refEraType}${endDisplayYear}）${endDate.getMonth() + 1}月${endDate.getDate()}日まで<br>入力された基準日は${refEraType}の範囲外です`;
+                        resultDiv.className = 'result error';
+                        return;
+                    }
+                    if (inputDate < eras[refEraType].start) {
+                        const startDate = eras[refEraType].start;
+                        resultDiv.innerHTML = `${refEraType}は${startDate.getFullYear()}年（${refEraType}元年）${startDate.getMonth() + 1}月${startDate.getDate()}日から開始<br>入力された基準日は${refEraType}の範囲外です`;
+                        resultDiv.className = 'result error';
+                        return;
+                    }
+                }
+                
+                if (!isValidDate(actualRefYear, refMonth, refDay)) {
+                    resultDiv.innerHTML = '有効な基準日を入力してください';
+                    resultDiv.className = 'result error';
+                    return;
+                }
+                refDate = new Date(actualRefYear, refMonth - 1, refDay);
+            } else {
+                refDate = new Date();
+            }
+
+            const birthDate = new Date(birthYear, birthMonth - 1, birthDay);
+
+            if (birthDate > refDate) {
+                resultDiv.innerHTML = '生年月日が基準日より未来です';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            let age = refDate.getFullYear() - birthDate.getFullYear();
+            const monthDiff = refDate.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && refDate.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            const refDateStr = refInputYear && refMonth && refDay ? 
+                (refEraType === '西暦' ? 
+                    `西暦${refInputYear}年${refMonth}月${refDay}日時点` : 
+                    `${refEraType}${refInputYear}年${refMonth}月${refDay}日時点`) : '今日時点';
+
+            resultDiv.innerHTML = `<strong>${age}歳</strong><br><small>（${refDateStr}）</small>`;
+            resultDiv.className = 'result';
+        }
+
+        function calculateBirthYear() {
+            const currentAge = parseInt(document.getElementById('current-age').value);
+            const eraType = document.getElementById('birth-era-select').value;
+            const refYear = parseInt(document.getElementById('birth-ref-year').value);
+            const refMonth = parseInt(document.getElementById('birth-ref-month').value);
+            const refDay = parseInt(document.getElementById('birth-ref-day').value);
+            const resultDiv = document.getElementById('birth-year-result');
+
+            if (!currentAge && currentAge !== 0) {
+                resultDiv.innerHTML = '年齢を入力してください';
+                resultDiv.className = 'result error';
+                return;
+            }
+
+            // 基準日の設定（省略時は今日）
+            let refDate;
+            if (refYear && refMonth && refDay) {
+                let actualRefYear;
+                if (eraType === '西暦') {
+                    actualRefYear = refYear;
+                } else {
+                    // 和暦から西暦に変換
+                    actualRefYear = eras[eraType].startYear + refYear - 1;
+                    
+                    // 元号の有効期間チェック
+                    const inputDate = new Date(actualRefYear, refMonth - 1, refDay);
+                    if (eras[eraType].end && inputDate > eras[eraType].end) {
+                        const endDate = eras[eraType].end;
+                        const endEraYear = endDate.getFullYear() - eras[eraType].startYear + 1;
+                        const endDisplayYear = endEraYear === 1 ? '元年' : `${endEraYear}年`;
+                        resultDiv.innerHTML = `${eraType}は${endDate.getFullYear()}年（${eraType}${endDisplayYear}）${endDate.getMonth() + 1}月${endDate.getDate()}日まで<br>入力された基準日は${eraType}の範囲外です`;
+                        resultDiv.className = 'result error';
+                        return;
+                    }
+                    if (inputDate < eras[eraType].start) {
+                        const startDate = eras[eraType].start;
+                        resultDiv.innerHTML = `${eraType}は${startDate.getFullYear()}年（${eraType}元年）${startDate.getMonth() + 1}月${startDate.getDate()}日から開始<br>入力された基準日は${eraType}の範囲外です`;
+                        resultDiv.className = 'result error';
+                        return;
+                    }
+                }
+                
+                if (!isValidDate(actualRefYear, refMonth, refDay)) {
+                    resultDiv.innerHTML = '有効な基準日を入力してください';
+                    resultDiv.className = 'result error';
+                    return;
+                }
+                refDate = new Date(actualRefYear, refMonth - 1, refDay);
+            } else {
+                refDate = new Date();
+            }
+
+            // 早生まれ・遅生まれで生年を計算
+            const refYear_actual = refDate.getFullYear();
+            
+            // 早生まれ（1月1日～4月1日生まれ）の生年
+            const earlyBirthYear = refYear_actual - currentAge;
+            
+            // 遅生まれ（4月2日～12月31日生まれ）の生年
+            const lateBirthYear = refYear_actual - currentAge - 1;
+
+            // 和暦変換
+            const earlyWareki = getWarekiFromSeireki(earlyBirthYear, 1, 1);
+            const lateWareki = getWarekiFromSeireki(lateBirthYear, 4, 2);
+
+            const refDateStr = refYear && refMonth && refDay ? 
+                (eraType === '西暦' ? 
+                    `西暦${refYear}年${refMonth}月${refDay}日時点` : 
+                    `${eraType}${refYear}年${refMonth}月${refDay}日時点`) : '今日時点';
+
+            // 早生まれ・遅生まれの和暦年だけ抽出
+            const earlyWarekiYear = earlyWareki.split('年')[0];
+            const lateWarekiYear = lateWareki.split('年')[0];
+
+            resultDiv.innerHTML = `<div style="text-align: left;">
+                <div style="font-size: 1.4rem; margin-bottom: 20px; text-align: center; color: #0891b2;">
+                    <strong>${currentAge}歳の方の生年</strong>
+                </div>
+                
+                <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #0891b2;">
+                    <div style="font-weight: bold; color: #0c4a6e; margin-bottom: 8px;">早生まれ（1月1日～4月1日）</div>
+                    <div style="font-size: 1.1rem;">西暦<strong>${earlyBirthYear}年</strong>　${earlyWarekiYear}年</div>
+                </div>
+                
+                <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #06b6d4;">
+                    <div style="font-weight: bold; color: #0c4a6e; margin-bottom: 8px;">遅生まれ（4月2日～12月31日）</div>
+                    <div style="font-size: 1.1rem;">西暦<strong>${lateBirthYear}年</strong>　${lateWarekiYear}年</div>
+                </div>
+                
+                <div style="text-align: center; font-size: 0.9rem; color: #64748b;">
+                    ${refDateStr}
+                </div>
+            </div>`;
+            resultDiv.className = 'result';
+        }
+
+        function getWarekiFromSeireki(year, month, day) {
+            const inputDate = new Date(year, month - 1, day);
+            
+            if (inputDate >= eras['令和'].start) {
+                const eraYear = year - eras['令和'].startYear + 1;
+                const displayYear = eraYear === 1 ? '元年' : `${eraYear}年`;
+                return `令和${displayYear}${month}月${day}日`;
+            } else if (inputDate >= eras['平成'].start && inputDate <= eras['平成'].end) {
+                const eraYear = year - eras['平成'].startYear + 1;
+                const displayYear = eraYear === 1 ? '元年' : `${eraYear}年`;
+                return `平成${displayYear}${month}月${day}日`;
+            } else if (inputDate >= eras['昭和'].start && inputDate <= eras['昭和'].end) {
+                const eraYear = year - eras['昭和'].startYear + 1;
+                const displayYear = eraYear === 1 ? '元年' : `${eraYear}年`;
+                return `昭和${displayYear}${month}月${day}日`;
+            } else if (inputDate >= eras['大正'].start && inputDate <= eras['大正'].end) {
+                const eraYear = year - eras['大正'].startYear + 1;
+                const displayYear = eraYear === 1 ? '元年' : `${eraYear}年`;
+                return `大正${displayYear}${month}月${day}日`;
+            } else if (inputDate >= eras['明治'].start && inputDate <= eras['明治'].end) {
+                const eraYear = year - eras['明治'].startYear + 1;
+                const displayYear = eraYear === 1 ? '元年' : `${eraYear}年`;
+                return `明治${displayYear}${month}月${day}日`;
+            } else {
+                return `西暦${year}年${month}月${day}日`;
+            }
+        }
+
+        // 今日の日付をデフォルトで設定
+        window.onload = function() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth() + 1;
+            const day = today.getDate();
+
+            // 年齢計算用の基準日プレースホルダー
+            document.getElementById('age-ref-year').placeholder = `年（今日: ${year}）`;
+            document.getElementById('age-ref-month').placeholder = `月（今日: ${month}）`;
+            document.getElementById('age-ref-day').placeholder = `日（今日: ${day}）`;
+
+            // 生年計算用の基準日プレースホルダー
+            document.getElementById('birth-ref-year').placeholder = `年（今日: ${year}）`;
+            document.getElementById('birth-ref-month').placeholder = `月（今日: ${month}）`;
+            document.getElementById('birth-ref-day').placeholder = `日（今日: ${day}）`;
+        };
+    </script>
+</body>
+</html>
