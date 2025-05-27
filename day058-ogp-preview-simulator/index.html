@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="SNS OGPプレビューシミュレーター - 画像編集機能付き" />
+    <meta property="og:description" content="X、Facebook、LINE、Discord、SlackでのOGP表示をリアルタイムプレビュー。切り抜き・アスペクト比調整機能でSNS最適化画像を作成し、メタタグも自動生成。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day058-ogp-preview-simulator/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day058-ogp-preview-simulator/index.html" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SNS OGPプレビューシミュレーター" />
+    <meta name="twitter:description" content="5つのSNSでのOGP表示をリアルタイムプレビュー。画像編集機能でSNS最適化画像を作成し、メタタグも自動生成できるオールインワンツール。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day058-ogp-preview-simulator/screenshot.png" />
+
+    <title>SNS OGPプレビューシミュレーター（画像編集機能付き）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 2rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .input-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .input-section h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"]:hover {
+            border-color: #3498db;
+        }
+
+        .form-note {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* 画像編集エリア */
+        .image-editor {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            display: none;
+        }
+
+        .image-editor.active {
+            display: block;
+        }
+
+        .editor-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .aspect-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .aspect-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .aspect-btn:hover {
+            background: #e8f4fd;
+            border-color: #3498db;
+        }
+
+        .aspect-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .editor-canvas-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .editor-canvas {
+            border: 1px solid #ccc;
+            cursor: crosshair;
+            max-width: 100%;
+            display: block;
+        }
+
+        .crop-overlay {
+            position: absolute;
+            border: 2px dashed #3498db;
+            background: rgba(52, 152, 219, 0.1);
+            pointer-events: none;
+            display: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .upload-preview {
+            margin-top: 10px;
+        }
+
+        .upload-preview img {
+            max-width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .preview-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .preview-section h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.3rem;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: #3498db;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        .preview-content {
+            min-height: 300px;
+        }
+
+        .preview-card {
+            display: none;
+        }
+
+        .preview-card.active {
+            display: block;
+        }
+
+        /* X (Twitter) Card */
+        .twitter-card {
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 500px;
+            background: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .twitter-image {
+            width: 100%;
+            height: 260px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .twitter-content {
+            padding: 12px;
+        }
+
+        .twitter-domain {
+            color: #536471;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+
+        .twitter-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f1419;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .twitter-desc {
+            color: #536471;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* Facebook Card */
+        .facebook-card {
+            border: 1px solid #dddfe2;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 500px;
+            background: white;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .facebook-image {
+            width: 100%;
+            height: 261px;
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #65676b;
+            font-size: 14px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .facebook-content {
+            padding: 12px;
+            background: #f2f3f5;
+        }
+
+        .facebook-domain {
+            color: #606770;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .facebook-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d2129;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        .facebook-desc {
+            color: #606770;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* LINE Card */
+        .line-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 350px;
+            background: white;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .line-image {
+            width: 100%;
+            height: 180px;
+            background: #f8f8f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .line-content {
+            padding: 12px;
+        }
+
+        .line-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .line-desc {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        /* Discord Card */
+        .discord-card {
+            border-left: 4px solid #5865f2;
+            background: #2f3136;
+            padding: 12px 16px;
+            max-width: 500px;
+            font-family: Whitney, sans-serif;
+        }
+
+        .discord-content {
+            display: flex;
+            gap: 16px;
+        }
+
+        .discord-image {
+            width: 80px;
+            height: 80px;
+            background: #36393f;
+            border-radius: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #72767d;
+            font-size: 12px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .discord-text {
+            flex: 1;
+        }
+
+        .discord-domain {
+            color: #00b0f4;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .discord-title {
+            color: #00b0f4;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .discord-desc {
+            color: #dcddde;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        /* Slack Card */
+        .slack-card {
+            border: 1px solid #e8e8e8;
+            border-left: 4px solid #1264a3;
+            padding: 12px;
+            background: white;
+            max-width: 500px;
+            font-family: Slack-Lato, sans-serif;
+        }
+
+        .slack-content {
+            display: flex;
+            gap: 12px;
+        }
+
+        .slack-image {
+            width: 75px;
+            height: 75px;
+            background: #f8f8f8;
+            border-radius: 3px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #717274;
+            font-size: 12px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .slack-text {
+            flex: 1;
+        }
+
+        .slack-title {
+            color: #1264a3;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .slack-desc {
+            color: #717274;
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .slack-domain {
+            color: #717274;
+            font-size: 12px;
+        }
+
+        /* Meta Tags */
+        .metatags-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            color: #f8f8f2;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .metatags-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+
+        .metatags-title {
+            color: #50fa7b;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .copy-button {
+            background: #6272a4;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
+        }
+
+        .copy-button:hover {
+            background: #44475a;
+        }
+
+        .copy-button.copied {
+            background: #50fa7b;
+            color: #282a36;
+        }
+
+        .metatags-code {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 13px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .metatags-code .tag {
+            color: #ff79c6;
+        }
+
+        .metatags-code .attr {
+            color: #50fa7b;
+        }
+
+        .metatags-code .value {
+            color: #f1fa8c;
+        }
+
+        .metatags-code .comment {
+            color: #6272a4;
+            font-style: italic;
+        }
+
+        /* Guide Styles */
+        .guide-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .guide-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .guide-section h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .guide-highlight {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #3498db;
+            text-align: center;
+        }
+
+        .guide-highlight strong {
+            color: #2980b9;
+            font-size: 1.1rem;
+        }
+
+        /* Size Table */
+        .size-table {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1px;
+            background: #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .size-row {
+            display: contents;
+        }
+
+        .size-row > div {
+            padding: 12px;
+            background: white;
+            font-size: 14px;
+        }
+
+        .size-row.header > div {
+            background: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Safe Zone Demo */
+        .safezone-demo {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .safezone-outer {
+            position: relative;
+            width: 200px;
+            height: 105px;
+            background: #ecf0f1;
+            border: 2px solid #34495e;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .safezone-inner {
+            width: 160px;
+            height: 84px;
+            background: #27ae60;
+            border: 2px dashed #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .safezone-text {
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .safezone-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .safezone-info {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Tips Grid */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .tip-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .tip-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .tip-card h5 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .tip-card p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* File Format */
+        .file-format {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .format-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px solid #e0e0e0;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .format-item.recommended {
+            border-color: #27ae60;
+            background: #f0fff4;
+        }
+
+        .format-specs {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            font-size: 13px;
+        }
+
+        /* Workflow */
+        .workflow {
+            margin-top: 15px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .step-content strong {
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .guide-footer {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                font-size: 12px;
+                padding: 10px 15px;
+            }
+
+            .editor-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .aspect-buttons {
+                justify-content: center;
+            }
+
+            .safezone-demo {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .tips-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .file-format {
+                grid-template-columns: 1fr;
+            }
+
+            .size-table {
+                font-size: 12px;
+            }
+
+            .size-row > div {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 SNS OGPプレビューシミュレーター（画像編集機能付き）</h1>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2>⚙️ 設定</h2>
+                
+                <div class="form-group">
+                    <label for="title">タイトル</label>
+                    <input type="text" id="title" placeholder="ページタイトルを入力してください">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">説明文</label>
+                    <textarea id="description" placeholder="ページの説明文を入力してください"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="domain">ドメイン名</label>
+                    <input type="text" id="domain" placeholder="example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="imageUrl">画像URL（本番用）</label>
+                    <input type="text" id="imageUrl" placeholder="https://example.com/screenshot.png">
+                    <div class="form-note">※ メタタグとプレビューに使用される実際の画像URL</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="image">OGP画像（プレビュー用）</label>
+                    <input type="file" id="image" accept="image/*">
+                    <div class="form-note">※ 画像URLが未設定の場合にプレビューで使用</div>
+                    
+                    <!-- 画像編集エリア -->
+                    <div class="image-editor" id="imageEditor">
+                        <div class="editor-controls">
+                            <div>
+                                <label>アスペクト比を選択:</label>
+                                <div class="aspect-buttons">
+                                    <button class="aspect-btn" data-aspect="free">自由</button>
+                                    <button class="aspect-btn active" data-aspect="2:1">Twitter (2:1)※推奨</button>
+                                    <button class="aspect-btn" data-aspect="1.91:1">Facebook (1.91:1)</button>
+                                    <button class="aspect-btn" data-aspect="1:1">正方形 (1:1)</button>
+                                    <button class="aspect-btn" data-aspect="16:9">16:9</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="editor-canvas-container">
+                            <canvas id="editorCanvas" class="editor-canvas"></canvas>
+                            <div class="crop-overlay" id="cropOverlay"></div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" id="cropBtn">切り抜き実行</button>
+                            <button class="btn btn-secondary" id="resetBtn">リセット</button>
+                            <button class="btn btn-primary" id="downloadBtn" style="display: none;">📥 ダウンロード</button>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-preview" id="uploadPreview"></div>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <h2>👀 プレビュー</h2>
+                
+                <div class="tabs">
+                    <button class="tab active" data-tab="twitter">X</button>
+                    <button class="tab" data-tab="facebook">Facebook</button>
+                    <button class="tab" data-tab="line">LINE</button>
+                    <button class="tab" data-tab="discord">Discord</button>
+                    <button class="tab" data-tab="slack">Slack</button>
+                    <button class="tab" data-tab="metatags">📋 メタタグ</button>
+                    <button class="tab" data-tab="guide">📖 ガイド</button>
+                </div>
+                
+                <div class="preview-content">
+                    <!-- Twitter Card -->
+                    <div class="preview-card active" id="twitter">
+                        <div class="twitter-card">
+                            <div class="twitter-image" id="twitterImage">画像を設定してください</div>
+                            <div class="twitter-content">
+                                <div class="twitter-domain" id="twitterDomain">example.com</div>
+                                <div class="twitter-title" id="twitterTitle">タイトルを入力してください</div>
+                                <div class="twitter-desc" id="twitterDesc">説明文を入力してください</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Facebook Card -->
+                    <div class="preview-card" id="facebook">
+                        <div class="facebook-card">
+                            <div class="facebook-image" id="facebookImage">画像を設定してください</div>
+                            <div class="facebook-content">
+                                <div class="facebook-domain" id="facebookDomain">EXAMPLE.COM</div>
+                                <div class="facebook-title" id="facebookTitle">タイトルを入力してください</div>
+                                <div class="facebook-desc" id="facebookDesc">説明文を入力してください</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- LINE Card -->
+                    <div class="preview-card" id="line">
+                        <div class="line-card">
+                            <div class="line-image" id="lineImage">画像を設定してください</div>
+                            <div class="line-content">
+                                <div class="line-title" id="lineTitle">タイトルを入力してください</div>
+                                <div class="line-desc" id="lineDesc">説明文を入力してください</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Discord Card -->
+                    <div class="preview-card" id="discord">
+                        <div class="discord-card">
+                            <div class="discord-content">
+                                <div class="discord-image" id="discordImage">画像</div>
+                                <div class="discord-text">
+                                    <div class="discord-domain" id="discordDomain">example.com</div>
+                                    <div class="discord-title" id="discordTitle">タイトルを入力してください</div>
+                                    <div class="discord-desc" id="discordDesc">説明文を入力してください</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Slack Card -->
+                    <div class="preview-card" id="slack">
+                        <div class="slack-card">
+                            <div class="slack-content">
+                                <div class="slack-image" id="slackImage">画像</div>
+                                <div class="slack-text">
+                                    <div class="slack-title" id="slackTitle">タイトルを入力してください</div>
+                                    <div class="slack-desc" id="slackDesc">説明文を入力してください</div>
+                                    <div class="slack-domain" id="slackDomain">example.com</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Guide -->
+                    <div class="preview-card" id="guide">
+                        <div class="guide-container">
+                            <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 1.4rem;">📖 OGP画像作成ガイド</h3>
+                            
+                            <!-- 推奨サイズ -->
+                            <div class="guide-section">
+                                <h4>🎯 推奨サイズ：1200×630px が最強！</h4>
+                                <div class="guide-highlight">
+                                    <strong>全SNS対応の黄金比率</strong><br>
+                                    アスペクト比 2:1 で、すべてのSNSできれいに表示されます
+                                </div>
+                                
+                                <div class="size-table">
+                                    <div class="size-row header">
+                                        <div>SNS</div>
+                                        <div>表示サイズ</div>
+                                        <div>特徴</div>
+                                    </div>
+                                    <div class="size-row">
+                                        <div>🐦 X (Twitter)</div>
+                                        <div>1200×630px</div>
+                                        <div>大きく表示</div>
+                                    </div>
+                                    <div class="size-row">
+                                        <div>📘 Facebook</div>
+                                        <div>1200×630px</div>
+                                        <div>横長で美しい</div>
+                                    </div>
+                                    <div class="size-row">
+                                        <div>💬 LINE</div>
+                                        <div>正方形トリミング</div>
+                                        <div>中央部分重要</div>
+                                    </div>
+                                    <div class="size-row">
+                                        <div>🎮 Discord</div>
+                                        <div>小さめ表示</div>
+                                        <div>視認性重視</div>
+                                    </div>
+                                    <div class="size-row">
+                                        <div>💼 Slack</div>
+                                        <div>コンパクト</div>
+                                        <div>シンプルが◎</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- セーフゾーン -->
+                            <div class="guide-section">
+                                <h4>🛡️ セーフゾーン（重要！）</h4>
+                                <div class="safezone-demo">
+                                    <div class="safezone-outer">
+                                        <div class="safezone-inner">
+                                            <div class="safezone-text">重要な要素はここに配置</div>
+                                        </div>
+                                        <div class="safezone-label">1200×630px</div>
+                                    </div>
+                                    <div class="safezone-info">
+                                        <strong>セーフゾーン：960×504px</strong><br>
+                                        中央部分に文字や重要な画像を配置することで、<br>
+                                        どのSNSでも確実に表示されます
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- デザインのコツ -->
+                            <div class="guide-section">
+                                <h4>🎨 デザインのコツ</h4>
+                                <div class="tips-grid">
+                                    <div class="tip-card">
+                                        <div class="tip-icon">👀</div>
+                                        <h5>見やすさ重視</h5>
+                                        <p>タイムラインは流し見されるため、一目でわかりやすいデザインにしましょう</p>
+                                    </div>
+                                    <div class="tip-card">
+                                        <div class="tip-icon">📝</div>
+                                        <h5>文字は大きく</h5>
+                                        <p>スマホでも読みやすいよう、文字サイズは24px以上を推奨</p>
+                                    </div>
+                                    <div class="tip-card">
+                                        <div class="tip-icon">🌈</div>
+                                        <h5>コントラスト</h5>
+                                        <p>背景と文字の色の差をはっきりさせて、視認性を高めましょう</p>
+                                    </div>
+                                    <div class="tip-card">
+                                        <div class="tip-icon">📱</div>
+                                        <h5>中央配置</h5>
+                                        <p>重要な要素は画像の中央に配置して、トリミングされても安全</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ファイル形式 -->
+                            <div class="guide-section">
+                                <h4>📁 ファイル形式の推奨</h4>
+                                <div class="file-format">
+                                    <div class="format-item recommended">
+                                        <strong>✅ PNG推奨</strong><br>
+                                        可逆圧縮で画質が変わらない<br>
+                                        透明度も対応
+                                    </div>
+                                    <div class="format-item">
+                                        <strong>⭕ JPEG</strong><br>
+                                        ファイルサイズが小さい<br>
+                                        写真に最適
+                                    </div>
+                                    <div class="format-specs">
+                                        <strong>💡 スペック目安</strong><br>
+                                        • ファイルサイズ：1MB以下<br>
+                                        • 解像度：72-150dpi（Web用）<br>
+                                        • 色空間：sRGB
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- このツールの使い方 -->
+                            <div class="guide-section">
+                                <h4>🛠️ このツールの使い方</h4>
+                                <div class="workflow">
+                                    <div class="step">
+                                        <div class="step-number">1</div>
+                                        <div class="step-content">
+                                            <strong>画像をアップロード</strong><br>
+                                            お気に入りの写真を選択
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <div class="step-number">2</div>
+                                        <div class="step-content">
+                                            <strong>アスペクト比選択</strong><br>
+                                            「Twitter (2:1)」を選択（推奨）
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <div class="step-number">3</div>
+                                        <div class="step-content">
+                                            <strong>範囲を選択</strong><br>
+                                            マウスでドラッグして切り抜き範囲を指定
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <div class="step-number">4</div>
+                                        <div class="step-content">
+                                            <strong>切り抜き実行</strong><br>
+                                            ボタンをクリックして画像を生成
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <div class="step-number">5</div>
+                                        <div class="step-content">
+                                            <strong>プレビュー確認</strong><br>
+                                            各SNSでの表示を確認
+                                        </div>
+                                    </div>
+                                    <div class="step">
+                                        <div class="step-number">6</div>
+                                        <div class="step-content">
+                                            <strong>ダウンロード</strong><br>
+                                            完成した画像を保存
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="guide-footer">
+                                <p>💡 <strong>プロのヒント：</strong>最初は1200×630pxのTwitter比率で切り抜いて、各SNSプレビューで確認してみましょう。慣れてきたら、SNSごとに最適化した画像を作成することもできます！</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Meta Tags -->
+                    <div class="preview-card" id="metatags">
+                        <div class="metatags-container">
+                            <div class="metatags-header">
+                                <div class="metatags-title">📋 生成されたメタタグ</div>
+                                <button class="copy-button" id="copyButton">コピー</button>
+                            </div>
+                            <div class="metatags-code" id="metatagsCode">
+                                <!-- メタタグがここに生成されます -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM要素の取得
+        const titleInput = document.getElementById('title');
+        const descriptionInput = document.getElementById('description');
+        const domainInput = document.getElementById('domain');
+        const imageUrlInput = document.getElementById('imageUrl');
+        const imageInput = document.getElementById('image');
+        const copyButton = document.getElementById('copyButton');
+        const imageEditor = document.getElementById('imageEditor');
+        const editorCanvas = document.getElementById('editorCanvas');
+        const cropOverlay = document.getElementById('cropOverlay');
+        const aspectButtons = document.querySelectorAll('.aspect-btn');
+        const cropBtn = document.getElementById('cropBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // 画像編集関連の変数
+        let originalImage = null;
+        let editedImage = '';
+        let ctx = editorCanvas.getContext('2d');
+        let isDrawing = false;
+        let startX, startY, endX, endY;
+        let currentAspectRatio = '2:1';
+
+        // アスペクト比定義
+        const aspectRatios = {
+            'free': null,
+            '2:1': 2,
+            '1.91:1': 1.91,
+            '1:1': 1,
+            '16:9': 16/9
+        };
+
+        // タブ切り替え機能
+        const tabs = document.querySelectorAll('.tab');
+        const previewCards = document.querySelectorAll('.preview-card');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                previewCards.forEach(card => {
+                    card.classList.remove('active');
+                    if (card.id === targetTab) {
+                        card.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // アスペクト比ボタンイベント
+        aspectButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                aspectButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentAspectRatio = btn.dataset.aspect;
+            });
+        });
+
+        // キャンバスイベント処理
+        function getMousePos(canvas, e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        // マウスイベント
+        editorCanvas.addEventListener('mousedown', (e) => {
+            if (!originalImage) return;
+            
+            isDrawing = true;
+            const pos = getMousePos(editorCanvas, e);
+            startX = pos.x;
+            startY = pos.y;
+            cropOverlay.style.display = 'block';
+        });
+
+        editorCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing || !originalImage) return;
+            
+            const pos = getMousePos(editorCanvas, e);
+            endX = pos.x;
+            endY = pos.y;
+            
+            updateCropOverlay();
+        });
+
+        editorCanvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+
+        // 切り抜きオーバーレイ更新
+        function updateCropOverlay() {
+            const canvasRect = editorCanvas.getBoundingClientRect();
+            const scaleX = canvasRect.width / editorCanvas.width;
+            const scaleY = canvasRect.height / editorCanvas.height;
+            
+            let width = Math.abs(endX - startX);
+            let height = Math.abs(endY - startY);
+            let left = Math.min(startX, endX);
+            let top = Math.min(startY, endY);
+
+            // アスペクト比制約
+            const ratio = aspectRatios[currentAspectRatio];
+            if (ratio) {
+                const currentRatio = width / height;
+                if (currentRatio > ratio) {
+                    width = height * ratio;
+                } else {
+                    height = width / ratio;
+                }
+                
+                // 中央揃えで調整
+                if (endX < startX) left = startX - width;
+                if (endY < startY) top = startY - height;
+            }
+
+            // 境界チェック
+            left = Math.max(0, Math.min(left, editorCanvas.width - width));
+            top = Math.max(0, Math.min(top, editorCanvas.height - height));
+            width = Math.min(width, editorCanvas.width - left);
+            height = Math.min(height, editorCanvas.height - top);
+
+            cropOverlay.style.left = (left * scaleX) + 'px';
+            cropOverlay.style.top = (top * scaleY) + 'px';
+            cropOverlay.style.width = (width * scaleX) + 'px';
+            cropOverlay.style.height = (height * scaleY) + 'px';
+        }
+
+        // 切り抜き実行
+        cropBtn.addEventListener('click', () => {
+            if (!originalImage || cropOverlay.style.display === 'none') return;
+
+            const canvasRect = editorCanvas.getBoundingClientRect();
+            const scaleX = editorCanvas.width / canvasRect.width;
+            const scaleY = editorCanvas.height / canvasRect.height;
+
+            const cropX = parseFloat(cropOverlay.style.left) * scaleX;
+            const cropY = parseFloat(cropOverlay.style.top) * scaleY;
+            const cropWidth = parseFloat(cropOverlay.style.width) * scaleX;
+            const cropHeight = parseFloat(cropOverlay.style.height) * scaleY;
+
+            // 切り抜き範囲のチェック
+            if (cropWidth === 0 || cropHeight === 0 || isNaN(cropWidth) || isNaN(cropHeight)) {
+                alert('切り抜き範囲をドラッグして選択してください');
+                return;
+            }
+
+            // 新しいキャンバスで切り抜き画像を作成
+            const cropCanvas = document.createElement('canvas');
+            const cropCtx = cropCanvas.getContext('2d');
+            
+            // 高解像度での切り抜きサイズを設定
+            const finalWidth = Math.max(cropWidth, 800);  // 最小800px幅
+            const finalHeight = cropHeight * (finalWidth / cropWidth);
+            
+            cropCanvas.width = finalWidth;
+            cropCanvas.height = finalHeight;
+            
+            // 高品質な描画設定
+            cropCtx.imageSmoothingEnabled = true;
+            cropCtx.imageSmoothingQuality = 'high';
+            
+            try {
+                // 元画像から切り抜き部分を高解像度で描画
+                cropCtx.drawImage(
+                    originalImage,
+                    (cropX / editorCanvas.width) * originalImage.width,
+                    (cropY / editorCanvas.height) * originalImage.height,
+                    (cropWidth / editorCanvas.width) * originalImage.width,
+                    (cropHeight / editorCanvas.height) * originalImage.height,
+                    0, 0, finalWidth, finalHeight
+                );
+
+                editedImage = cropCanvas.toDataURL('image/png', 0.9);
+                
+                // 画像URLを一時的にクリア（編集済み画像を優先表示するため）
+                const originalImageUrl = imageUrlInput.value;
+                imageUrlInput.value = '';
+                
+                updateImages();
+                updateUploadPreview();
+                
+                // 画像URLを復元
+                imageUrlInput.value = originalImageUrl;
+                
+                // ダウンロードボタンを表示
+                downloadBtn.style.display = 'inline-block';
+                
+                cropOverlay.style.display = 'none';
+                
+                console.log('切り抜き完了:', { finalWidth, finalHeight });
+            } catch (error) {
+                console.error('切り抜き処理でエラーが発生しました:', error);
+                alert('画像の切り抜きに失敗しました。CORS制限の可能性があります。');
+            }
+        });
+
+        // ダウンロード機能
+        downloadBtn.addEventListener('click', () => {
+            if (!editedImage) return;
+            
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            link.download = `ogp-image-${timestamp}.png`;
+            link.href = editedImage;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // リセット
+        resetBtn.addEventListener('click', () => {
+            if (originalImage) {
+                drawImageOnCanvas(originalImage);
+                
+                // 元のアップロード画像をeditedImageに設定
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = originalImage.width;
+                canvas.height = originalImage.height;
+                ctx.drawImage(originalImage, 0, 0);
+                editedImage = canvas.toDataURL('image/png', 0.9);
+                
+                updateImages();
+                updateUploadPreview();
+                cropOverlay.style.display = 'none';
+                downloadBtn.style.display = 'inline-block';
+                
+                console.log('画像をリセットしました');
+            }
+        });
+
+        // キャンバスに画像を描画
+        function drawImageOnCanvas(img) {
+            const maxWidth = 600;
+            const maxHeight = 400;
+            
+            let { width, height } = img;
+            
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            
+            if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+            }
+            
+            editorCanvas.width = width;
+            editorCanvas.height = height;
+            
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+        }
+
+        // 画像アップロード処理
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        originalImage = img;
+                        drawImageOnCanvas(img);
+                        imageEditor.classList.add('active');
+                        
+                        // 編集画像を初期設定
+                        editedImage = e.target.result;
+                        updateImages();
+                        updateUploadPreview();
+                        
+                        // ダウンロードボタンを表示
+                        downloadBtn.style.display = 'inline-block';
+                        
+                        console.log('画像アップロード完了');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // アップロードプレビュー更新
+        function updateUploadPreview() {
+            const uploadPreview = document.getElementById('uploadPreview');
+            if (editedImage) {
+                const isEdited = originalImage && editedImage !== originalImage.src;
+                const statusText = isEdited ? '✅ 編集済み画像（プレビューに反映中）' : '📷 アップロード画像';
+                const statusColor = isEdited ? '#27ae60' : '#3498db';
+                
+                uploadPreview.innerHTML = `
+                    <div style="margin-top: 15px; padding: 10px; border: 2px solid ${statusColor}; border-radius: 8px; background: white;">
+                        <div style="font-weight: 600; margin-bottom: 8px; color: ${statusColor};">${statusText}</div>
+                        <img src="${editedImage}" alt="編集済み画像" style="max-width: 100%; height: auto; border-radius: 4px; display: block;">
+                        ${isEdited ? '<div style="font-size: 12px; color: #666; margin-top: 8px;">※ この画像がSNSプレビューに表示されます</div>' : ''}
+                    </div>
+                `;
+            } else {
+                uploadPreview.innerHTML = '';
+            }
+        }
+
+        // プレビュー更新関数
+        function updatePreviews() {
+            const title = titleInput.value || 'タイトルを入力してください';
+            const description = descriptionInput.value || '説明文を入力してください';
+            const domain = domainInput.value || 'example.com';
+
+            // タイトル更新
+            document.getElementById('twitterTitle').textContent = title;
+            document.getElementById('facebookTitle').textContent = title;
+            document.getElementById('lineTitle').textContent = title;
+            document.getElementById('discordTitle').textContent = title;
+            document.getElementById('slackTitle').textContent = title;
+
+            // 説明文更新
+            document.getElementById('twitterDesc').textContent = description;
+            document.getElementById('facebookDesc').textContent = description;
+            document.getElementById('lineDesc').textContent = description;
+            document.getElementById('discordDesc').textContent = description;
+            document.getElementById('slackDesc').textContent = description;
+
+            // ドメイン更新
+            document.getElementById('twitterDomain').textContent = domain;
+            document.getElementById('facebookDomain').textContent = domain.toUpperCase();
+            document.getElementById('discordDomain').textContent = domain;
+            document.getElementById('slackDomain').textContent = domain;
+
+            // 画像更新
+            updateImages();
+            
+            // メタタグ更新
+            updateMetaTags();
+        }
+
+        // 画像更新関数
+        function updateImages() {
+            const imageUrl = imageUrlInput.value.trim();
+            const imageElements = [
+                document.getElementById('twitterImage'),
+                document.getElementById('facebookImage'),
+                document.getElementById('lineImage'),
+                document.getElementById('discordImage'),
+                document.getElementById('slackImage')
+            ];
+
+            let displayImage = '';
+            let displayText = '画像を設定してください';
+
+            // 優先順位: 1. 編集済み画像（最優先）, 2. 画像URL
+            if (editedImage) {
+                displayImage = editedImage;
+                displayText = '';
+            } else if (imageUrl) {
+                displayImage = imageUrl;
+                displayText = '';
+            }
+
+            // 各SNSプレビューに画像を設定
+            imageElements.forEach(element => {
+                if (displayImage) {
+                    element.style.backgroundImage = `url(${displayImage})`;
+                    element.textContent = '';
+                } else {
+                    element.style.backgroundImage = '';
+                    element.textContent = displayText;
+                }
+            });
+        }
+
+        // メタタグ生成関数
+        function updateMetaTags() {
+            const title = titleInput.value || 'ページタイトル';
+            const description = descriptionInput.value || 'ページの説明文';
+            const domain = domainInput.value || 'example.com';
+            const imageUrl = imageUrlInput.value || 'https://example.com/screenshot.png';
+            
+            const cleanDomain = domain.replace(/^https?:\/\//, '');
+            const pageUrl = `https://${cleanDomain}`;
+
+            const metaTags = `<span class="comment">&lt;!-- 基本的なOGPタグ --&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">property</span>=<span class="value">"og:type"</span> <span class="attr">content</span>=<span class="value">"website"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">property</span>=<span class="value">"og:url"</span> <span class="attr">content</span>=<span class="value">"${pageUrl}"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">property</span>=<span class="value">"og:title"</span> <span class="attr">content</span>=<span class="value">"${title}"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">property</span>=<span class="value">"og:description"</span> <span class="attr">content</span>=<span class="value">"${description}"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">property</span>=<span class="value">"og:image"</span> <span class="attr">content</span>=<span class="value">"${imageUrl}"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">property</span>=<span class="value">"og:image:alt"</span> <span class="attr">content</span>=<span class="value">"${title}"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- Twitter Card --&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">name</span>=<span class="value">"twitter:card"</span> <span class="attr">content</span>=<span class="value">"summary_large_image"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">name</span>=<span class="value">"twitter:url"</span> <span class="attr">content</span>=<span class="value">"${pageUrl}"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">name</span>=<span class="value">"twitter:title"</span> <span class="attr">content</span>=<span class="value">"${title}"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">name</span>=<span class="value">"twitter:description"</span> <span class="attr">content</span>=<span class="value">"${description}"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">name</span>=<span class="value">"twitter:image"</span> <span class="attr">content</span>=<span class="value">"${imageUrl}"</span><span class="tag">&gt;</span>
+
+<span class="comment">&lt;!-- 一般的なメタタグ --&gt;</span>
+<span class="tag">&lt;title&gt;</span>${title}<span class="tag">&lt;/title&gt;</span>
+<span class="tag">&lt;meta</span> <span class="attr">name</span>=<span class="value">"description"</span> <span class="attr">content</span>=<span class="value">"${description}"</span><span class="tag">&gt;</span>`;
+
+            document.getElementById('metatagsCode').innerHTML = metaTags;
+        }
+
+        // コピー機能
+        function copyMetaTags() {
+            const metatagsElement = document.getElementById('metatagsCode');
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = metatagsElement.innerHTML;
+            const textToCopy = tempDiv.textContent || tempDiv.innerText || '';
+            
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                copyButton.textContent = 'コピー完了！';
+                copyButton.classList.add('copied');
+                
+                setTimeout(function() {
+                    copyButton.textContent = 'コピー';
+                    copyButton.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('コピーに失敗しました: ', err);
+                copyButton.textContent = 'コピー失敗';
+                setTimeout(function() {
+                    copyButton.textContent = 'コピー';
+                }, 2000);
+            });
+        }
+
+        // イベントリスナーを追加
+        titleInput.addEventListener('input', updatePreviews);
+        descriptionInput.addEventListener('input', updatePreviews);
+        domainInput.addEventListener('input', updatePreviews);
+        imageUrlInput.addEventListener('input', updateImages);
+        imageInput.addEventListener('change', handleImageUpload);
+        copyButton.addEventListener('click', copyMetaTags);
+
+        // 初期プレビューを設定
+        updatePreviews();
+    </script>
+</body>
+</html>
