@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="変更点チェッカー - テキスト差分比較ツール" />
+    <meta property="og:description" content="2つのテキストを並べて比較し、追加・削除・変更された部分を視覚的にハイライト表示。文書の変更点を素早く確認できるWebツール。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day060-change-checker/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day060-change-checker/index.html" />
+    <meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="変更点チェッカー" />
+    <meta name="twitter:description" content="2つのテキストを並べて比較し、追加・削除・変更された部分を視覚的にハイライト表示。文書の変更点を素早く確認できるWebツール。" />
+    <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day060-change-checker/screenshot.png" />
+
+
+    <title>変更点チェッカー</title>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3201351704984910"
+            crossorigin="anonymous"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-H1SW0RH6CK"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-H1SW0RH6CK');
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>変更点チェッカー</h1>
+        
+        <div class="input-section-wrapper">
+            <button id="toggleInput" class="toggle-button">▼ 入力エリアを表示/非表示</button>
+            <div class="input-section" id="inputSection">
+                <div class="text-input-wrapper">
+                    <h2>元のテキスト</h2>
+                    <textarea id="leftText" placeholder="元のテキストを入力してください"></textarea>
+                </div>
+                
+                <div class="text-input-wrapper">
+                    <h2>変更後のテキスト</h2>
+                    <textarea id="rightText" placeholder="変更後のテキストを入力してください"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <button id="compareBtn" class="compare-button">比較</button>
+        
+        <div class="result-section">
+            <h2>差分結果</h2>
+            <div class="diff-container">
+                <div class="diff-panel">
+                    <h3>元のテキスト</h3>
+                    <div id="leftDiff" class="diff-result"></div>
+                </div>
+                <div class="diff-panel">
+                    <h3>変更後のテキスト</h3>
+                    <div id="rightDiff" class="diff-result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="diff.js"></script>
+</body>
+</html>
