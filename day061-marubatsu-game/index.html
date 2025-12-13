@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮 マルバツゲーム 🎮</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+```
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+h1 {
+  color: white;
+  font-size: 2.5rem;
+  text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+  margin-bottom: 10px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.status {
+  background: white;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  color: #333;
+}
+
+.status.maru { color: #ff6b6b; }
+.status.batsu { color: #4ecdc4; }
+.status.draw { color: #9b59b6; }
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  background: white;
+  padding: 15px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(145deg, #f0f0f0, #e6e6e6);
+  border: none;
+  border-radius: 15px;
+  font-size: 4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff;
+}
+
+.cell:hover:not(.taken) {
+  transform: scale(1.05);
+  background: linear-gradient(145deg, #fff5f5, #f0f0f0);
+}
+
+.cell:active:not(.taken) {
+  transform: scale(0.95);
+}
+
+.cell.taken {
+  cursor: not-allowed;
+}
+
+.cell.maru {
+  color: #ff6b6b;
+  animation: pop 0.3s ease;
+}
+
+.cell.batsu {
+  color: #4ecdc4;
+  animation: pop 0.3s ease;
+}
+
+.cell.winner {
+  animation: winner-glow 0.5s ease infinite alternate;
+  background: linear-gradient(145deg, #fffacd, #ffeaa7);
+}
+
+@keyframes pop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes winner-glow {
+  from { box-shadow: 0 0 20px #ffd700; }
+  to { box-shadow: 0 0 40px #ffd700, 0 0 60px #ffec8b; }
+}
+
+.reset-btn {
+  margin-top: 25px;
+  padding: 15px 50px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
+  transition: all 0.3s ease;
+}
+
+.reset-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(240, 147, 251, 0.5);
+}
+
+.reset-btn:active {
+  transform: translateY(0);
+}
+
+.score-board {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.score {
+  background: white;
+  padding: 10px 25px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.score-label {
+  font-size: 1rem;
+  color: #666;
+}
+
+.score-value {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.score.maru .score-value { color: #ff6b6b; }
+.score.batsu .score-value { color: #4ecdc4; }
+
+.confetti {
+  position: fixed;
+  top: -10px;
+  font-size: 2rem;
+  animation: fall 3s linear forwards;
+  pointer-events: none;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  h1 { font-size: 1.8rem; }
+  .cell { width: 80px; height: 80px; font-size: 3rem; }
+  .status { font-size: 1.2rem; padding: 10px 20px; }
+}
+```
+
+  </style>
+</head>
+<body>
+  <h1>🎮 マルバツゲーム 🎮</h1>
+
+  <div class="score-board">
+    <div class="score maru">
+      <div class="score-label">⭕ マル</div>
+      <div class="score-value" id="score-maru">0</div>
+    </div>
+    <div class="score batsu">
+      <div class="score-label">❌ バツ</div>
+      <div class="score-value" id="score-batsu">0</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">⭕ マルのばん！</div>
+
+  <div class="board" id="board"></div>
+
+<button class="reset-btn" onclick="resetGame()">🔄 もういっかい！</button>
+
+  <script>
+    let board = ['', '', '', '', '', '', '', '', ''];
+    let currentPlayer = 'maru';
+    let gameOver = false;
+    let scores = { maru: 0, batsu: 0 };
+
+    const winPatterns = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
+    ];
+
+    const symbols = { maru: '⭕', batsu: '❌' };
+    const names = { maru: 'マル', batsu: 'バツ' };
+
+    function createBoard() {
+      const boardEl = document.getElementById('board');
+      boardEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('button');
+        cell.className = 'cell';
+        cell.dataset.index = i;
+        cell.onclick = () => makeMove(i);
+        boardEl.appendChild(cell);
+      }
+    }
+
+    function makeMove(index) {
+      if (board[index] || gameOver) return;
+
+      board[index] = currentPlayer;
+      const cell = document.querySelector(`[data-index="${index}"]`);
+      cell.textContent = symbols[currentPlayer];
+      cell.classList.add('taken', currentPlayer);
+
+      const winner = checkWinner();
+      if (winner) {
+        gameOver = true;
+        scores[winner]++;
+        updateScores();
+        highlightWinner(winner);
+        showStatus(`🎉 ${symbols[winner]} ${names[winner]}のかち！🎉`, winner);
+        celebrate();
+      } else if (board.every(cell => cell)) {
+        gameOver = true;
+        showStatus('🤝 ひきわけ！ 🤝', 'draw');
+      } else {
+        currentPlayer = currentPlayer === 'maru' ? 'batsu' : 'maru';
+        showStatus(`${symbols[currentPlayer]} ${names[currentPlayer]}のばん！`, currentPlayer);
+      }
+    }
+
+    function checkWinner() {
+      for (const pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+          return board[a];
+        }
+      }
+      return null;
+    }
+
+    function highlightWinner(winner) {
+      for (const pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (board[a] === winner && board[b] === winner && board[c] === winner) {
+          [a, b, c].forEach(i => {
+            document.querySelector(`[data-index="${i}"]`).classList.add('winner');
+          });
+          break;
+        }
+      }
+    }
+
+    function showStatus(text, type) {
+      const status = document.getElementById('status');
+      status.textContent = text;
+      status.className = 'status ' + type;
+    }
+
+    function updateScores() {
+      document.getElementById('score-maru').textContent = scores.maru;
+      document.getElementById('score-batsu').textContent = scores.batsu;
+    }
+
+    function celebrate() {
+      const emojis = ['🎉', '⭐', '🌟', '✨', '🎊', '💫', '🌈', '🎈'];
+      for (let i = 0; i < 30; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+          confetti.style.left = Math.random() * 100 + 'vw';
+          confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+          document.body.appendChild(confetti);
+          setTimeout(() => confetti.remove(), 4000);
+        }, i * 100);
+      }
+    }
+
+    function resetGame() {
+      board = ['', '', '', '', '', '', '', '', ''];
+      currentPlayer = 'maru';
+      gameOver = false;
+      createBoard();
+      showStatus(`${symbols.maru} マルのばん！`, 'maru');
+    }
+
+    createBoard();
+  </script>
+
+</body>
+</html>
