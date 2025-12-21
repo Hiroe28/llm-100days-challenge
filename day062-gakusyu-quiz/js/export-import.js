@@ -301,6 +301,10 @@ async function importAttempts(attempts) {
  * サンプルデータをインポート
  */
 async function importSampleData() {
+    // 確認ダイアログ
+    const confirmed = await QuizUI.showConfirm('サンプル問題（3問）を追加しますか？');
+    if (!confirmed) return;
+
     try {
         QuizUI.showLoading('サンプルデータを読み込み中...');
 
@@ -310,10 +314,10 @@ async function importSampleData() {
         }
 
         const data = await response.json();
-        await importQuestions(data.questions || data, false);
+        const count = await importQuestions(data.questions || data, false);
 
         QuizUI.hideLoading();
-        QuizUI.showToast('サンプルデータをインポートしました', 'success');
+        QuizUI.showToast(`${count}件のサンプル問題を追加しました`, 'success');
 
         // 画面を更新
         if (typeof refreshManageScreen === 'function') {

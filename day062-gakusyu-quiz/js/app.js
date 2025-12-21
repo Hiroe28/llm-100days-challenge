@@ -48,18 +48,6 @@ async function initApp() {
             QuizUI.closeImageModal();
         });
 
-        // 初回起動チェック
-        const questions = await QuizDB.getAllQuestions();
-        if (questions.length === 0) {
-            // サンプルデータのインポートを提案
-            const shouldImport = await QuizUI.showConfirm(
-                '問題データがありません。サンプルデータをインポートしますか？'
-            );
-            if (shouldImport) {
-                await QuizExport.importSampleData();
-            }
-        }
-
         // 管理画面を初期表示
         await refreshManageScreen();
         QuizUI.showScreen('manage-screen');
@@ -219,6 +207,16 @@ function setupManageEventListeners() {
     document.getElementById('cancel-json-btn')?.addEventListener('click', () => {
         hideQuestionEditor();
     });
+
+    // プレビューボタン(フォーム)
+    document.getElementById('preview-form-btn')?.addEventListener('click', () => {
+        updatePreview('form');
+    });
+
+    // プレビューボタン(JSON)
+    document.getElementById('preview-json-btn')?.addEventListener('click', () => {
+        updatePreview('json');
+    });
 }
 
 /**
@@ -233,11 +231,6 @@ function setupExportImportEventListeners() {
     // JSONエクスポート
     document.getElementById('export-json-btn')?.addEventListener('click', () => {
         QuizExport.exportQuestionsJson();
-    });
-
-    // 進捗エクスポート
-    document.getElementById('export-progress-btn')?.addEventListener('click', () => {
-        QuizExport.exportProgressJson();
     });
 
     // インポート
@@ -409,7 +402,7 @@ async function showCurrentQuestion() {
 }
 
 /**
- * 選択肢を選択（クリック）
+ * 選択肢を選択(クリック)
  */
 async function selectChoice(choice) {
     if (AppState.quiz.answered) return;
@@ -537,15 +530,23 @@ async function refreshReviewScreen() {
                 listContainer.innerHTML = '<p class="empty-message">復習が必要な問題はありません</p>';
                 document.getElementById('start-review-btn').style.display = 'none';
             } else {
-                listContainer.innerHTML = reviewQuestions.map(q => `
+                listContainer.innerHTML = reviewQuestions.map(q => {
+                    // 問題文の抜粋(最初の50文字)
+                    const bodyPreview = (q.body_md || '').replace(/[#*`$\\[\]]/g, '').slice(0, 50);
+                    return `
                     <div class="review-item" data-id="${q.id}">
-                        <div class="review-item-title">${QuizUI.escapeHtml(q.title || '無題')}</div>
-                        <div class="review-item-stats">
-                            誤答: ${q.stats?.wrong_count || 0}回
-                            ${q.stats?.last_wrong_at ? `/ 最終: ${QuizUI.formatDate(q.stats.last_wrong_at)}` : ''}
+                        <div class="review-item-content">
+                            <div class="review-item-title">${QuizUI.escapeHtml(q.title || '無題')}</div>
+                            <div class="review-item-preview">${QuizUI.escapeHtml(bodyPreview)}${bodyPreview.length >= 50 ? '...' : ''}</div>
+                            <div class="review-item-stats">
+                                誤答: ${q.stats?.wrong_count || 0}回
+                            </div>
                         </div>
+                        <button class="btn btn-small btn-complete-review" onclick="completeReview('${q.id}')">
+                            復習完了
+                        </button>
                     </div>
-                `).join('');
+                `}).join('');
                 document.getElementById('start-review-btn').style.display = 'inline-block';
             }
         }
@@ -576,6 +577,20 @@ function startReview() {
     document.getElementById('quiz-content').style.display = 'block';
 
     showCurrentQuestion();
+}
+
+/**
+ * 復習を完了(リストから削除)
+ */
+async function completeReview(questionId) {
+    try {
+        await QuizDB.resetStats(questionId);
+        QuizUI.showToast('復習完了しました', 'success');
+        await refreshReviewScreen();
+    } catch (error) {
+        console.error('復習完了エラー:', error);
+        QuizUI.showToast('エラーが発生しました', 'error');
+    }
 }
 
 // ==================== 管理画面 ====================
@@ -634,7 +649,7 @@ function filterQuestionList() {
         );
     }
 
-    // ソート（更新日時の降順）
+    // ソート(更新日時の降順)
     questions.sort((a, b) => (b.updated_at || 0) - (a.updated_at || 0));
 
     // 表示
@@ -669,11 +684,17 @@ async function showQuestionEditor(questionId) {
 
     const editorTitle = document.getElementById('editor-title');
     const form = document.getElementById('question-form');
+    const jsonInput = document.getElementById('json-input');
 
     // フォームをリセット
     form.reset();
     document.getElementById('uploaded-images').innerHTML = '';
     AppState.tagInput?.clear();
+    if (jsonInput) jsonInput.value = '';
+    
+    // プレビューを非表示
+    document.getElementById('form-preview-area').style.display = 'none';
+    document.getElementById('json-preview-area').style.display = 'none';
 
     if (questionId) {
         // 編集モード
@@ -681,6 +702,7 @@ async function showQuestionEditor(questionId) {
         const question = await QuizDB.getQuestion(questionId);
 
         if (question) {
+            // フォーム入力タブにデータを設定
             document.getElementById('q-title').value = question.title || '';
             document.getElementById('q-body').value = question.body_md || '';
             document.getElementById('q-choice-a').value = question.choices?.A || '';
@@ -710,6 +732,19 @@ async function showQuestionEditor(questionId) {
                     }
                 }
             }
+
+            // JSON入力タブにもデータを設定
+            if (jsonInput) {
+                const jsonData = {
+                    title: question.title || '',
+                    body_md: question.body_md || '',
+                    choices: question.choices || { A: '', B: '', C: '', D: '' },
+                    answer: question.answer || 'A',
+                    explanation_md: question.explanation_md || '',
+                    tags: question.tags || []
+                };
+                jsonInput.value = JSON.stringify(jsonData, null, 2);
+            }
         }
     } else {
         // 新規作成モード
@@ -718,6 +753,16 @@ async function showQuestionEditor(questionId) {
 
     document.getElementById('question-editor').style.display = 'block';
     document.getElementById('question-list-container').style.display = 'none';
+    
+    // JSONボタンのラベルを更新
+    const saveJsonBtn = document.getElementById('save-json-btn');
+    if (saveJsonBtn) {
+        if (questionId) {
+            saveJsonBtn.textContent = '更新';
+        } else {
+            saveJsonBtn.textContent = 'JSONから追加';
+        }
+    }
 }
 
 /**
@@ -729,10 +774,14 @@ function hideQuestionEditor() {
     AppState.manage.editingId = null;
     // タブをリセット
     switchEditorTab('form');
-    // JSON入力をクリア
+    // JSONインput をクリア
     const jsonInput = document.getElementById('json-input');
     if (jsonInput) jsonInput.value = '';
+    // プレビューを非表示
+    document.getElementById('form-preview-area').style.display = 'none';
+    document.getElementById('json-preview-area').style.display = 'none';
 }
+
 
 /**
  * エディタのタブを切り替え
@@ -747,10 +796,21 @@ function switchEditorTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.toggle('active', content.dataset.tab === tabName);
     });
+
+    // JSONInputモードのボタンテキストを更新
+    const saveJsonBtn = document.getElementById('save-json-btn');
+    if (saveJsonBtn) {
+        if (AppState.manage.editingId) {
+            saveJsonBtn.textContent = '更新';
+        } else {
+            saveJsonBtn.textContent = 'JSONから追加';
+        }
+    }
 }
 
+
 /**
- * JSONから問題を追加
+ * JSONから問題を追加/更新
  */
 async function saveFromJson() {
     try {
@@ -770,29 +830,55 @@ async function saveFromJson() {
             return;
         }
 
-        // 配列でない場合は配列に変換
-        const questions = Array.isArray(data) ? data : [data];
-
-        // バリデーション
-        for (const q of questions) {
-            if (!q.body_md && !q.title) {
+        // 編集モードかどうかをチェック
+        if (AppState.manage.editingId) {
+            // ========== 更新モード(単一の問題のみ) ==========
+            
+            // 配列が渡された場合はエラー
+            if (Array.isArray(data)) {
+                QuizUI.showToast('編集モードでは単一の問題のみ更新できます', 'error');
+                return;
+            }
+            
+            // バリデーション
+            if (!data.body_md && !data.title) {
                 QuizUI.showToast('問題文またはタイトルが必要です', 'error');
                 return;
             }
-        }
+            
+            // 既存の問題を更新
+            await QuizDB.updateQuestion(AppState.manage.editingId, data);
+            QuizUI.showToast('問題を更新しました', 'success');
+            
+        } else {
+            // ========== 新規追加モード ==========
+            
+            // 配列でない場合は配列に変換
+            const questions = Array.isArray(data) ? data : [data];
 
-        // 問題を追加
-        let addedCount = 0;
-        for (const q of questions) {
-            try {
-                await QuizDB.addQuestionWithId(q);
-                addedCount++;
-            } catch (error) {
-                console.error('問題の追加エラー:', error);
+            // バリデーション
+            for (const q of questions) {
+                if (!q.body_md && !q.title) {
+                    QuizUI.showToast('問題文またはタイトルが必要です', 'error');
+                    return;
+                }
             }
-        }
 
-        QuizUI.showToast(`${addedCount}件の問題を追加しました`, 'success');
+            // 問題を追加
+            let addedCount = 0;
+            for (const q of questions) {
+                try {
+                    await QuizDB.addQuestionWithId(q);
+                    addedCount++;
+                } catch (error) {
+                    console.error('問題の追加エラー:', error);
+                }
+            }
+
+            QuizUI.showToast(`${addedCount}件の問題を追加しました`, 'success');
+        }
+        
+        // エディタを閉じて画面を更新
         hideQuestionEditor();
         await refreshManageScreen();
 
@@ -817,7 +903,7 @@ async function handleImageUpload(event) {
             continue;
         }
 
-        // サイズチェック（10MB上限）
+        // サイズチェック(10MB上限)
         if (file.size > 10 * 1024 * 1024) {
             QuizUI.showToast('画像サイズは10MB以下にしてください', 'error');
             continue;
@@ -924,7 +1010,7 @@ function editQuestion(id) {
  * 問題削除の確認
  */
 async function deleteQuestionConfirm(id) {
-    const confirmed = await QuizUI.showConfirm('この問題を削除しますか？');
+    const confirmed = await QuizUI.showConfirm('この問題を削除しますか?');
     if (confirmed) {
         try {
             await QuizDB.deleteQuestion(id);
@@ -937,12 +1023,165 @@ async function deleteQuestionConfirm(id) {
     }
 }
 
+/**
+ * プレビューを更新
+ * @param {string} mode - 'form' または 'json'
+ */
+async function updatePreview(mode) {
+    try {
+        let questionData = null;
+        let previewPrefix = '';
+
+        if (mode === 'form') {
+            questionData = getQuestionDataFromForm();
+            previewPrefix = 'form-preview';
+            const previewArea = document.getElementById('form-preview-area');
+            if (previewArea) {
+                previewArea.style.display = 'block';
+            }
+        } else if (mode === 'json') {
+            questionData = getQuestionDataFromJson();
+            previewPrefix = 'json-preview';
+            const previewArea = document.getElementById('json-preview-area');
+            if (previewArea) {
+                previewArea.style.display = 'block';
+            }
+        }
+
+        if (!questionData) {
+            QuizUI.showToast('プレビューデータを取得できませんでした', 'warning');
+            return;
+        }
+
+        // プレビューをレンダリング
+        await renderPreview(questionData, previewPrefix);
+
+    } catch (error) {
+        console.error('プレビュー更新エラー:', error);
+        QuizUI.showToast('プレビューの更新に失敗しました: ' + error.message, 'error');
+    }
+}
+
+/**
+ * フォーム入力から問題データを取得
+ */
+function getQuestionDataFromForm() {
+    return {
+        title: document.getElementById('q-title')?.value || '',
+        body_md: document.getElementById('q-body')?.value || '',
+        choices: {
+            A: document.getElementById('q-choice-a')?.value || '',
+            B: document.getElementById('q-choice-b')?.value || '',
+            C: document.getElementById('q-choice-c')?.value || '',
+            D: document.getElementById('q-choice-d')?.value || ''
+        },
+        answer: document.getElementById('q-answer')?.value || 'A',
+        explanation_md: document.getElementById('q-explanation')?.value || '',
+        tags: AppState.tagInput?.getTags() || [],
+        asset_ids: Array.from(document.querySelectorAll('.uploaded-image-item')).map(item => item.dataset.assetId)
+    };
+}
+
+/**
+ * JSON入力から問題データを取得
+ */
+function getQuestionDataFromJson() {
+    const jsonInput = document.getElementById('json-input');
+    const jsonText = jsonInput?.value.trim();
+
+    if (!jsonText) {
+        return null;
+    }
+
+    try {
+        const data = JSON.parse(jsonText);
+        
+        // 配列の場合は最初の要素を使用
+        if (Array.isArray(data)) {
+            if (data.length === 0) return null;
+            return data[0];
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('JSON解析エラー:', error);
+        return null;
+    }
+}
+
+/**
+ * プレビューをレンダリング
+ * @param {Object} questionData - 問題データ
+ * @param {string} prefix - IDのプレフィックス ('form-preview' または 'json-preview')
+ */
+async function renderPreview(questionData, prefix) {
+    // タイトル
+    const titleEl = document.getElementById(`${prefix}-title`);
+    if (titleEl) {
+        titleEl.textContent = questionData.title || '問題タイトル';
+    }
+
+    // 問題文
+    const bodyEl = document.getElementById(`${prefix}-body`);
+    if (bodyEl) {
+        QuizUI.renderContent(questionData.body_md || '', bodyEl);
+    }
+
+    // 画像
+    const imagesContainer = document.getElementById(`${prefix}-images`);
+    if (imagesContainer) {
+        imagesContainer.innerHTML = '';
+        if (questionData.asset_ids && questionData.asset_ids.length > 0) {
+            for (const assetId of questionData.asset_ids) {
+                const img = await QuizUI.createImageElement(assetId, 'preview-image');
+                if (img) {
+                    imagesContainer.appendChild(img);
+                }
+            }
+        }
+    }
+
+    // 選択肢
+    const choices = ['A', 'B', 'C', 'D'];
+    choices.forEach(choice => {
+        const choiceEl = document.getElementById(`${prefix}-choice-${choice.toLowerCase()}`);
+        if (choiceEl) {
+            QuizUI.renderContent(questionData.choices?.[choice] || '', choiceEl);
+        }
+    });
+
+    // 正解
+    const answerEl = document.getElementById(`${prefix}-answer`);
+    if (answerEl) {
+        answerEl.textContent = questionData.answer || 'A';
+    }
+
+    // 解説
+    const explanationEl = document.getElementById(`${prefix}-explanation`);
+    if (explanationEl) {
+        QuizUI.renderContent(questionData.explanation_md || '解説はありません', explanationEl);
+    }
+
+    // タグ
+    const tagsEl = document.getElementById(`${prefix}-tags-list`);
+    if (tagsEl) {
+        if (questionData.tags && questionData.tags.length > 0) {
+            tagsEl.innerHTML = questionData.tags.map(tag => 
+                `<span class="tag-small">${QuizUI.escapeHtml(tag)}</span>`
+            ).join(' ');
+        } else {
+            tagsEl.textContent = 'なし';
+        }
+    }
+}
+
 // ==================== グローバル関数をエクスポート ====================
 
 window.refreshManageScreen = refreshManageScreen;
 window.editQuestion = editQuestion;
 window.deleteQuestionConfirm = deleteQuestionConfirm;
 window.removeUploadedImage = removeUploadedImage;
+window.completeReview = completeReview;
 
 // ==================== 初期化実行 ====================
 

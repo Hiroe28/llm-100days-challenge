@@ -439,6 +439,15 @@ body {
     font-weight: 500;
 }
 
+.review-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+}
+
 .review-list {
     margin-bottom: var(--spacing-lg);
 }
@@ -449,6 +458,15 @@ body {
     border-radius: var(--border-radius);
     margin-bottom: var(--spacing-sm);
     border-left: 4px solid var(--danger-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.review-item-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .review-item-title {
@@ -456,9 +474,29 @@ body {
     margin-bottom: var(--spacing-xs);
 }
 
-.review-item-stats {
+.review-item-preview {
     font-size: 0.85rem;
     color: var(--text-muted);
+    margin-bottom: var(--spacing-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.review-item-stats {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.btn-complete-review {
+    background: var(--success-color);
+    color: white;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.btn-complete-review:hover {
+    background: #218838;
 }
 
 /* ==================== 管理画面 ==================== */
@@ -706,6 +744,134 @@ body {
 
 .file-label {
     cursor: pointer;
+}
+
+/* ==================== プレビュー ==================== */
+
+.preview-area {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 2px solid var(--border-color);
+}
+
+.preview-heading {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+.preview-container {
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+.preview-question {
+    margin-bottom: var(--spacing-lg);
+}
+
+.preview-question-title {
+    font-size: 1.15rem;
+    font-weight: bold;
+    margin-bottom: var(--spacing-md);
+    color: #2c3e50;
+}
+
+.preview-question-body {
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+.preview-question-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.preview-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.preview-choices {
+    margin-bottom: var(--spacing-lg);
+}
+
+.preview-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: var(--border-radius);
+}
+
+.preview-choice .choice-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.preview-choice .choice-text {
+    flex: 1;
+    padding-top: 4px;
+}
+
+.preview-answer {
+    padding: var(--spacing-md);
+    background: #d4edda;
+    border-left: 4px solid var(--success-color);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-md);
+    font-size: 1rem;
+}
+
+.preview-answer span {
+    font-weight: bold;
+    color: #155724;
+}
+
+.preview-explanation {
+    padding: var(--spacing-md);
+    background: white;
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-md);
+}
+
+.preview-explanation h4 {
+    margin-bottom: var(--spacing-sm);
+    color: #2c3e50;
+}
+
+.preview-tags {
+    padding: var(--spacing-md);
+    background: white;
+    border-radius: var(--border-radius);
+}
+
+.preview-tags .tag-small {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #e7f3ff;
+    color: #0066cc;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    margin-right: var(--spacing-sm);
 }
 
 /* ==================== モーダル ==================== */

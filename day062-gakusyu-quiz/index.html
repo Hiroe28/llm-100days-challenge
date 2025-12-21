@@ -15,18 +15,18 @@
     <!-- スタイルシート -->
     <link rel="stylesheet" href="css/styles.css">
 
-    <!-- KaTeX（数式レンダリング） -->
+    <!-- KaTeX(数式レンダリング) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
-    <!-- Marked（Markdownパーサー） -->
+    <!-- Marked(Markdownパーサー) -->
     <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
 
-    <!-- DOMPurify（XSS対策） -->
+    <!-- DOMPurify(XSS対策) -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
 
-    <!-- JSZip（ZIP処理） -->
+    <!-- JSZip(ZIP処理) -->
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
@@ -131,10 +131,11 @@
             <div class="review-header">
                 <span id="review-count" class="review-count">復習が必要な問題: 0件</span>
                 <select id="review-sort" class="form-select form-select-small">
-                    <option value="wrong_count">誤答回数順</option>
-                    <option value="recent">最近間違えた順</option>
+                    <option value="wrong_count">間違いが多い順</option>
+                    <option value="recent">新しく間違えた順</option>
                 </select>
             </div>
+            <p class="review-description">間違えた問題は、「復習完了」ボタンを押すまでリストに残ります。納得いくまで繰り返し学習できます。</p>
 
             <div id="review-list" class="review-list">
                 <p class="empty-message">復習が必要な問題はありません</p>
@@ -176,13 +177,10 @@
                     <h3>データ管理</h3>
                     <div class="import-export-buttons">
                         <button id="export-zip-btn" class="btn btn-secondary">
-                            ZIPエクスポート
+                            バックアップ (ZIP)
                         </button>
                         <button id="export-json-btn" class="btn btn-secondary">
-                            JSONエクスポート
-                        </button>
-                        <button id="export-progress-btn" class="btn btn-secondary">
-                            進捗エクスポート
+                            問題をエクスポート (JSON)
                         </button>
                     </div>
                     <div class="import-export-buttons">
@@ -204,88 +202,137 @@
             <div id="question-editor" class="question-editor" style="display: none;">
                 <h3 id="editor-title">問題を追加</h3>
 
-                <!-- 入力モード切り替えタブ -->
                 <div class="editor-tabs">
                     <button type="button" class="tab-btn active" data-tab="form">フォーム入力</button>
                     <button type="button" class="tab-btn" data-tab="json">JSON入力</button>
-                </div>
+                </div>                
 
                 <!-- フォーム入力モード -->
-                <form id="question-form" class="question-form tab-content active" data-tab="form">
-                    <div class="form-group">
-                        <label for="q-title">タイトル（任意）</label>
-                        <input type="text" id="q-title" class="form-input" placeholder="問題のタイトル">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="q-body">問題文（Markdown対応）*</label>
-                        <textarea id="q-body" class="form-textarea" rows="5" placeholder="問題文を入力（Markdown, LaTeX対応）"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>画像（任意）</label>
-                        <input type="file" id="image-upload" class="form-input" accept="image/*" multiple>
-                        <div id="uploaded-images" class="uploaded-images"></div>
-                    </div>
-
-                    <div class="choices-edit">
-                        <h4>選択肢（Markdown対応）</h4>
+                <div class="tab-content active" data-tab="form">
+                    <form id="question-form" class="question-form">
                         <div class="form-group">
-                            <label for="q-choice-a">A</label>
-                            <input type="text" id="q-choice-a" class="form-input" placeholder="選択肢A">
+                            <label for="q-title">タイトル(任意)</label>
+                            <input type="text" id="q-title" class="form-input" placeholder="問題のタイトル">
                         </div>
+
                         <div class="form-group">
-                            <label for="q-choice-b">B</label>
-                            <input type="text" id="q-choice-b" class="form-input" placeholder="選択肢B">
+                            <label for="q-body">問題文(Markdown対応)*</label>
+                            <textarea id="q-body" class="form-textarea" rows="5" placeholder="問題文を入力(Markdown, LaTeX対応)"></textarea>
                         </div>
+
                         <div class="form-group">
-                            <label for="q-choice-c">C</label>
-                            <input type="text" id="q-choice-c" class="form-input" placeholder="選択肢C">
+                            <label>画像(任意)</label>
+                            <input type="file" id="image-upload" class="form-input" accept="image/*" multiple>
+                            <div id="uploaded-images" class="uploaded-images"></div>
                         </div>
+
+                        <div class="choices-edit">
+                            <h4>選択肢(Markdown対応)</h4>
+                            <div class="form-group">
+                                <label for="q-choice-a">A</label>
+                                <input type="text" id="q-choice-a" class="form-input" placeholder="選択肢A">
+                            </div>
+                            <div class="form-group">
+                                <label for="q-choice-b">B</label>
+                                <input type="text" id="q-choice-b" class="form-input" placeholder="選択肢B">
+                            </div>
+                            <div class="form-group">
+                                <label for="q-choice-c">C</label>
+                                <input type="text" id="q-choice-c" class="form-input" placeholder="選択肢C">
+                            </div>
+                            <div class="form-group">
+                                <label for="q-choice-d">D</label>
+                                <input type="text" id="q-choice-d" class="form-input" placeholder="選択肢D">
+                            </div>
+                        </div>
+
                         <div class="form-group">
-                            <label for="q-choice-d">D</label>
-                            <input type="text" id="q-choice-d" class="form-input" placeholder="選択肢D">
+                            <label for="q-answer">正解</label>
+                            <select id="q-answer" class="form-select">
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="q-explanation">解説(Markdown対応)</label>
+                            <textarea id="q-explanation" class="form-textarea" rows="3" placeholder="解説を入力"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tag-input">タグ(Enterで追加)</label>
+                            <input type="text" id="tag-input" class="form-input" placeholder="タグを入力してEnter">
+                            <div id="tags-container" class="tags-container"></div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="preview-form-btn" class="btn btn-secondary">
+                                プレビュー
+                            </button>
+                            <button type="button" id="cancel-edit-btn" class="btn btn-secondary">
+                                キャンセル
+                            </button>
+                            <button type="button" id="save-question-btn" class="btn btn-primary">
+                                保存
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- フォーム入力のプレビューエリア -->
+                    <div id="form-preview-area" class="preview-area" style="display: none;">
+                        <h4 class="preview-heading">プレビュー</h4>
+                        <div class="preview-container">
+                            <div class="preview-question">
+                                <h4 id="form-preview-title" class="preview-question-title">問題タイトル</h4>
+                                <div id="form-preview-body" class="preview-question-body markdown-content"></div>
+                                <div id="form-preview-images" class="preview-question-images"></div>
+                            </div>
+                            
+                            <div class="preview-choices">
+                                <div class="preview-choice">
+                                    <span class="choice-label">A</span>
+                                    <span id="form-preview-choice-a" class="choice-text markdown-content"></span>
+                                </div>
+                                <div class="preview-choice">
+                                    <span class="choice-label">B</span>
+                                    <span id="form-preview-choice-b" class="choice-text markdown-content"></span>
+                                </div>
+                                <div class="preview-choice">
+                                    <span class="choice-label">C</span>
+                                    <span id="form-preview-choice-c" class="choice-text markdown-content"></span>
+                                </div>
+                                <div class="preview-choice">
+                                    <span class="choice-label">D</span>
+                                    <span id="form-preview-choice-d" class="choice-text markdown-content"></span>
+                                </div>
+                            </div>
+
+                            <div class="preview-answer">
+                                <strong>正解: </strong><span id="form-preview-answer">A</span>
+                            </div>
+
+                            <div class="preview-explanation">
+                                <h4>解説</h4>
+                                <div id="form-preview-explanation" class="markdown-content"></div>
+                            </div>
+
+                            <div class="preview-tags">
+                                <strong>タグ: </strong><span id="form-preview-tags-list"></span>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="q-answer">正解</label>
-                        <select id="q-answer" class="form-select">
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                            <option value="D">D</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="q-explanation">解説（Markdown対応）</label>
-                        <textarea id="q-explanation" class="form-textarea" rows="3" placeholder="解説を入力"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="tag-input">タグ（Enterで追加）</label>
-                        <input type="text" id="tag-input" class="form-input" placeholder="タグを入力してEnter">
-                        <div id="tags-container" class="tags-container"></div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" id="cancel-edit-btn" class="btn btn-secondary">
-                            キャンセル
-                        </button>
-                        <button type="button" id="save-question-btn" class="btn btn-primary">
-                            保存
-                        </button>
-                    </div>
-                </form>
+                </div>
 
                 <!-- JSON入力モード -->
-                <div id="json-input-form" class="json-input-form tab-content" data-tab="json">
-                    <div class="form-group">
-                        <label for="json-input">JSON形式で問題を入力</label>
-                        <textarea id="json-input" class="form-textarea json-textarea" rows="15" placeholder='{
+                <div class="tab-content" data-tab="json">
+                    <div id="json-input-form" class="json-input-form">
+                        <div class="form-group">
+                            <label for="json-input">JSON形式で問題を入力</label>
+                            <textarea id="json-input" class="form-textarea json-textarea" rows="15" placeholder='{
   "title": "問題タイトル",
-  "body_md": "問題文（Markdown対応）",
+  "body_md": "問題文(Markdown対応)",
   "choices": {
     "A": "選択肢A",
     "B": "選択肢B",
@@ -293,18 +340,66 @@
     "D": "選択肢D"
   },
   "answer": "A",
-  "explanation_md": "解説（Markdown対応）",
+  "explanation_md": "解説(Markdown対応)",
   "tags": ["タグ1", "タグ2"]
 }'></textarea>
-                        <p class="json-help">配列で複数問題を一括追加できます: <code>[{問題1}, {問題2}, ...]</code></p>
+                            <p class="json-help">配列で複数問題を一括追加できます: <code>[{問題1}, {問題2}, ...]</code></p>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="preview-json-btn" class="btn btn-secondary">
+                                プレビュー
+                            </button>
+                            <button type="button" id="cancel-json-btn" class="btn btn-secondary">
+                                キャンセル
+                            </button>
+                            <button type="button" id="save-json-btn" class="btn btn-primary">
+                                JSONから追加
+                            </button>
+                        </div>
                     </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancel-json-btn" class="btn btn-secondary">
-                            キャンセル
-                        </button>
-                        <button type="button" id="save-json-btn" class="btn btn-primary">
-                            JSONから追加
-                        </button>
+
+                    <!-- JSON入力のプレビューエリア -->
+                    <div id="json-preview-area" class="preview-area" style="display: none;">
+                        <h4 class="preview-heading">プレビュー</h4>
+                        <div class="preview-container">
+                            <div class="preview-question">
+                                <h4 id="json-preview-title" class="preview-question-title">問題タイトル</h4>
+                                <div id="json-preview-body" class="preview-question-body markdown-content"></div>
+                                <div id="json-preview-images" class="preview-question-images"></div>
+                            </div>
+                            
+                            <div class="preview-choices">
+                                <div class="preview-choice">
+                                    <span class="choice-label">A</span>
+                                    <span id="json-preview-choice-a" class="choice-text markdown-content"></span>
+                                </div>
+                                <div class="preview-choice">
+                                    <span class="choice-label">B</span>
+                                    <span id="json-preview-choice-b" class="choice-text markdown-content"></span>
+                                </div>
+                                <div class="preview-choice">
+                                    <span class="choice-label">C</span>
+                                    <span id="json-preview-choice-c" class="choice-text markdown-content"></span>
+                                </div>
+                                <div class="preview-choice">
+                                    <span class="choice-label">D</span>
+                                    <span id="json-preview-choice-d" class="choice-text markdown-content"></span>
+                                </div>
+                            </div>
+
+                            <div class="preview-answer">
+                                <strong>正解: </strong><span id="json-preview-answer">A</span>
+                            </div>
+
+                            <div class="preview-explanation">
+                                <h4>解説</h4>
+                                <div id="json-preview-explanation" class="markdown-content"></div>
+                            </div>
+
+                            <div class="preview-tags">
+                                <strong>タグ: </strong><span id="json-preview-tags-list"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
