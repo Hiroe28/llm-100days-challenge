@@ -1,0 +1,174 @@
+{
+    "questions": [
+        {
+            "id": "sample-001",
+            "title": "二次方程式の解の公式",
+            "body_md": "二次方程式 $ax^2 + bx + c = 0$ の解の公式として正しいものはどれですか？\n\nただし、$a \\neq 0$ とします。",
+            "choices": {
+                "A": "$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$",
+                "B": "$x = \\frac{b \\pm \\sqrt{b^2 - 4ac}}{2a}$",
+                "C": "$x = \\frac{-b \\pm \\sqrt{b^2 + 4ac}}{2a}$",
+                "D": "$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{a}$"
+            },
+            "answer": "A",
+            "explanation_md": "二次方程式 $ax^2 + bx + c = 0$ の解の公式は\n\n$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$\n\nです。\n\n$b^2 - 4ac$ は**判別式**と呼ばれ、解の性質を決定します。",
+            "tags": ["数学", "二次方程式", "公式"],
+            "asset_ids": [],
+            "created_at": 1700000000000,
+            "updated_at": 1700000000000
+        },
+        {
+            "id": "sample-002",
+            "title": "HTMLの基本構造",
+            "body_md": "HTMLドキュメントの基本構造として、`<head>` 要素の中に含めるべき**必須**の要素はどれですか？",
+            "choices": {
+                "A": "`<title>`",
+                "B": "`<meta>`",
+                "C": "`<link>`",
+                "D": "`<script>`"
+            },
+            "answer": "A",
+            "explanation_md": "`<title>` 要素は HTML ドキュメントの `<head>` セクション内で**必須**の要素です。\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n    <title>ページタイトル</title>\n</head>\n<body>\n    ...\n</body>\n</html>\n```\n\n`<meta>`, `<link>`, `<script>` は推奨されますが必須ではありません。",
+            "tags": ["HTML", "Web開発", "基礎"],
+            "asset_ids": [],
+            "created_at": 1700000001000,
+            "updated_at": 1700000001000
+        },
+        {
+            "id": "sample-003",
+            "title": "JavaScriptのデータ型",
+            "body_md": "JavaScriptのプリミティブ型として**正しくないもの**はどれですか？",
+            "choices": {
+                "A": "`string`",
+                "B": "`number`",
+                "C": "`array`",
+                "D": "`symbol`"
+            },
+            "answer": "C",
+            "explanation_md": "JavaScriptのプリミティブ型は以下の7つです：\n\n1. `string`\n2. `number`\n3. `bigint`\n4. `boolean`\n5. `undefined`\n6. `symbol`\n7. `null`\n\n`array` はプリミティブ型ではなく、**オブジェクト型**です。配列は `Array` オブジェクトのインスタンスです。",
+            "tags": ["JavaScript", "プログラミング", "基礎"],
+            "asset_ids": [],
+            "created_at": 1700000002000,
+            "updated_at": 1700000002000
+        },
+        {
+            "id": "sample-004",
+            "title": "三角関数の公式",
+            "body_md": "$\\sin^2\\theta + \\cos^2\\theta$ の値はいくつですか？",
+            "choices": {
+                "A": "$0$",
+                "B": "$1$",
+                "C": "$2$",
+                "D": "$\\theta$ による"
+            },
+            "answer": "B",
+            "explanation_md": "これは三角関数の最も基本的な公式で、**三角関数の相互関係**または**ピタゴラスの恒等式**と呼ばれます。\n\n$$\\sin^2\\theta + \\cos^2\\theta = 1$$\n\nこれは単位円 $x^2 + y^2 = 1$ 上の点 $(\\cos\\theta, \\sin\\theta)$ から導かれます。",
+            "tags": ["数学", "三角関数", "公式"],
+            "asset_ids": [],
+            "created_at": 1700000003000,
+            "updated_at": 1700000003000
+        },
+        {
+            "id": "sample-005",
+            "title": "CSSのボックスモデル",
+            "body_md": "CSSのボックスモデルにおいて、要素の**コンテンツ領域**と**ボーダー**の間にある領域は何と呼ばれますか？",
+            "choices": {
+                "A": "margin",
+                "B": "padding",
+                "C": "border-spacing",
+                "D": "outline"
+            },
+            "answer": "B",
+            "explanation_md": "CSSボックスモデルは内側から順に：\n\n1. **Content（コンテンツ）** - 実際の内容\n2. **Padding（パディング）** - コンテンツとボーダーの間\n3. **Border（ボーダー）** - 要素の境界線\n4. **Margin（マージン）** - ボーダーと他の要素の間\n\n```css\n.box {\n    padding: 20px;  /* コンテンツとボーダーの間 */\n    border: 1px solid black;\n    margin: 10px;   /* ボーダーと他の要素の間 */\n}\n```",
+            "tags": ["CSS", "Web開発", "基礎"],
+            "asset_ids": [],
+            "created_at": 1700000004000,
+            "updated_at": 1700000004000
+        },
+        {
+            "id": "sample-006",
+            "title": "微分の基本",
+            "body_md": "関数 $f(x) = x^3$ の導関数 $f'(x)$ はどれですか？",
+            "choices": {
+                "A": "$3x$",
+                "B": "$3x^2$",
+                "C": "$x^2$",
+                "D": "$3x^3$"
+            },
+            "answer": "B",
+            "explanation_md": "べき乗の微分公式を使います：\n\n$$\\frac{d}{dx}x^n = nx^{n-1}$$\n\n$f(x) = x^3$ の場合（$n = 3$）：\n\n$$f'(x) = 3x^{3-1} = 3x^2$$",
+            "tags": ["数学", "微分", "公式"],
+            "asset_ids": [],
+            "created_at": 1700000005000,
+            "updated_at": 1700000005000
+        },
+        {
+            "id": "sample-007",
+            "title": "Gitの基本コマンド",
+            "body_md": "ローカルの変更を**ステージングエリア**に追加するGitコマンドはどれですか？",
+            "choices": {
+                "A": "`git commit`",
+                "B": "`git push`",
+                "C": "`git add`",
+                "D": "`git pull`"
+            },
+            "answer": "C",
+            "explanation_md": "Gitの基本的なワークフロー：\n\n1. **`git add`** - 変更をステージングエリアに追加\n2. **`git commit`** - ステージングエリアの変更をリポジトリにコミット\n3. **`git push`** - ローカルのコミットをリモートリポジトリにプッシュ\n4. **`git pull`** - リモートの変更をローカルにプル\n\n```bash\ngit add .\ngit commit -m \"変更内容の説明\"\ngit push origin main\n```",
+            "tags": ["Git", "開発ツール", "基礎"],
+            "asset_ids": [],
+            "created_at": 1700000006000,
+            "updated_at": 1700000006000
+        },
+        {
+            "id": "sample-008",
+            "title": "Pythonのリスト操作",
+            "body_md": "Pythonでリスト `[1, 2, 3]` の末尾に要素 `4` を追加するメソッドはどれですか？",
+            "choices": {
+                "A": "`list.add(4)`",
+                "B": "`list.append(4)`",
+                "C": "`list.push(4)`",
+                "D": "`list.insert(4)`"
+            },
+            "answer": "B",
+            "explanation_md": "Pythonのリストに要素を追加するメソッド：\n\n- **`append(x)`** - 末尾に要素を追加\n- **`insert(i, x)`** - 位置 `i` に要素を挿入\n- **`extend(iterable)`** - 複数の要素を追加\n\n```python\nmy_list = [1, 2, 3]\nmy_list.append(4)\nprint(my_list)  # [1, 2, 3, 4]\n```\n\n`add()` は集合（set）のメソッド、`push()` はPythonには存在しません。",
+            "tags": ["Python", "プログラミング", "基礎"],
+            "asset_ids": [],
+            "created_at": 1700000007000,
+            "updated_at": 1700000007000
+        },
+        {
+            "id": "sample-009",
+            "title": "SQLの集計関数",
+            "body_md": "SQLで、特定のカラムの**平均値**を計算する関数はどれですか？",
+            "choices": {
+                "A": "`SUM()`",
+                "B": "`COUNT()`",
+                "C": "`AVG()`",
+                "D": "`MEAN()`"
+            },
+            "answer": "C",
+            "explanation_md": "SQLの主な集計関数：\n\n| 関数 | 説明 |\n|------|------|\n| `COUNT()` | 行数をカウント |\n| `SUM()` | 合計を計算 |\n| `AVG()` | 平均を計算 |\n| `MAX()` | 最大値を取得 |\n| `MIN()` | 最小値を取得 |\n\n```sql\nSELECT AVG(price) AS average_price\nFROM products;\n```\n\n`MEAN()` は標準SQLには存在しません。",
+            "tags": ["SQL", "データベース", "基礎"],
+            "asset_ids": [],
+            "created_at": 1700000008000,
+            "updated_at": 1700000008000
+        },
+        {
+            "id": "sample-010",
+            "title": "対数の性質",
+            "body_md": "$\\log_a(xy)$ を $\\log_a x$ と $\\log_a y$ を使って表すとどうなりますか？",
+            "choices": {
+                "A": "$\\log_a x \\cdot \\log_a y$",
+                "B": "$\\log_a x + \\log_a y$",
+                "C": "$\\log_a x - \\log_a y$",
+                "D": "$\\frac{\\log_a x}{\\log_a y}$"
+            },
+            "answer": "B",
+            "explanation_md": "対数の重要な性質：\n\n1. **積の対数** $$\\log_a(xy) = \\log_a x + \\log_a y$$\n\n2. **商の対数** $$\\log_a\\left(\\frac{x}{y}\\right) = \\log_a x - \\log_a y$$\n\n3. **べき乗の対数** $$\\log_a(x^n) = n\\log_a x$$\n\nこれらは対数計算の基本となる公式です。",
+            "tags": ["数学", "対数", "公式"],
+            "asset_ids": [],
+            "created_at": 1700000009000,
+            "updated_at": 1700000009000
+        }
+    ]
+}

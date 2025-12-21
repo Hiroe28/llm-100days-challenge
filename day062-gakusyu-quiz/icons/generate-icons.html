@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>アイコン生成ツール</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .canvas-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        canvas {
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>PWAアイコン生成ツール</h1>
+
+    <div class="info">
+        <p>このツールでPWA用のアイコンを生成できます。</p>
+        <p>「PNGをダウンロード」ボタンをクリックして、<code>icons/</code> フォルダに保存してください。</p>
+    </div>
+
+    <div class="canvas-container">
+        <div>
+            <h3>192x192</h3>
+            <canvas id="canvas-192" width="192" height="192"></canvas>
+            <br>
+            <button onclick="downloadCanvas('canvas-192', 'icon-192.png')">PNGをダウンロード</button>
+        </div>
+        <div>
+            <h3>512x512</h3>
+            <canvas id="canvas-512" width="512" height="512"></canvas>
+            <br>
+            <button onclick="downloadCanvas('canvas-512', 'icon-512.png')">PNGをダウンロード</button>
+        </div>
+    </div>
+
+    <script>
+        function drawIcon(canvas) {
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const scale = size / 512;
+
+            // 背景グラデーション
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#4a90d9');
+            gradient.addColorStop(1, '#3a7bc8');
+
+            // 角丸背景
+            const radius = 80 * scale;
+            ctx.beginPath();
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            // Q文字
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${280 * scale}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Q', size / 2, size * 0.52);
+
+            // 四択ボックス
+            const boxSize = 80 * scale;
+            const boxY = 380 * scale;
+            const boxRadius = 10 * scale;
+            const positions = [60, 160, 270, 370].map(x => x * scale);
+            const labels = ['A', 'B', 'C', 'D'];
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            positions.forEach((x, i) => {
+                // ボックス描画
+                ctx.beginPath();
+                ctx.moveTo(x + boxRadius, boxY);
+                ctx.lineTo(x + boxSize - boxRadius, boxY);
+                ctx.quadraticCurveTo(x + boxSize, boxY, x + boxSize, boxY + boxRadius);
+                ctx.lineTo(x + boxSize, boxY + boxSize - boxRadius);
+                ctx.quadraticCurveTo(x + boxSize, boxY + boxSize, x + boxSize - boxRadius, boxY + boxSize);
+                ctx.lineTo(x + boxRadius, boxY + boxSize);
+                ctx.quadraticCurveTo(x, boxY + boxSize, x, boxY + boxSize - boxRadius);
+                ctx.lineTo(x, boxY + boxRadius);
+                ctx.quadraticCurveTo(x, boxY, x + boxRadius, boxY);
+                ctx.closePath();
+                ctx.fill();
+            });
+
+            // ABCD文字
+            ctx.fillStyle = '#4a90d9';
+            ctx.font = `bold ${40 * scale}px Arial`;
+            const labelPositions = [100, 200, 310, 410].map(x => x * scale);
+            labels.forEach((label, i) => {
+                ctx.fillText(label, labelPositions[i], boxY + boxSize * 0.6);
+            });
+        }
+
+        function downloadCanvas(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // 初期描画
+        drawIcon(document.getElementById('canvas-192'));
+        drawIcon(document.getElementById('canvas-512'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4a90d9">
+    <meta name="description" content="四択クイズで学習できるPWAアプリ">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <title>学習クイズアプリ</title>
+
+    <!-- スタイルシート -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- KaTeX（数式レンダリング） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Marked（Markdownパーサー） -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+
+    <!-- DOMPurify（XSS対策） -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+
+    <!-- JSZip（ZIP処理） -->
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="app-header">
+        <h1 class="app-title">学習クイズ</h1>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="app-main">
+        <!-- クイズ画面 -->
+        <section id="quiz-screen" class="screen">
+            <!-- クイズ開始画面 -->
+            <div id="quiz-start" class="quiz-start">
+                <h2>クイズに挑戦</h2>
+
+                <div class="form-group">
+                    <label for="quiz-mode">出題モード</label>
+                    <select id="quiz-mode" class="form-select">
+                        <option value="random">ランダム</option>
+                        <option value="tag">タグ指定</option>
+                        <option value="review">復習優先</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="quiz-tag-select-container" style="display: none;">
+                    <label for="quiz-tag-select">タグを選択</label>
+                    <select id="quiz-tag-select" class="form-select">
+                        <option value="">タグを選択</option>
+                    </select>
+                </div>
+
+                <button id="start-quiz-btn" class="btn btn-primary btn-large">
+                    クイズを開始
+                </button>
+            </div>
+
+            <!-- クイズ本体 -->
+            <div id="quiz-content" class="quiz-content" style="display: none;">
+                <div class="quiz-header">
+                    <span id="quiz-progress" class="quiz-progress">1 / 10</span>
+                    <button id="end-quiz-btn" class="btn btn-small btn-secondary">終了</button>
+                </div>
+
+                <div class="question-container">
+                    <h3 id="question-title" class="question-title">問題</h3>
+                    <div id="question-body" class="question-body markdown-content"></div>
+                    <div id="question-images" class="question-images"></div>
+                </div>
+
+                <div class="choices-container">
+                    <button class="choice-btn" data-choice="A">
+                        <span class="choice-label">A</span>
+                        <span class="choice-text"></span>
+                    </button>
+                    <button class="choice-btn" data-choice="B">
+                        <span class="choice-label">B</span>
+                        <span class="choice-text"></span>
+                    </button>
+                    <button class="choice-btn" data-choice="C">
+                        <span class="choice-label">C</span>
+                        <span class="choice-text"></span>
+                    </button>
+                    <button class="choice-btn" data-choice="D">
+                        <span class="choice-label">D</span>
+                        <span class="choice-text"></span>
+                    </button>
+                </div>
+
+                <div id="explanation-container" class="explanation-container" style="display: none;">
+                    <div id="result-text" class="result-text"></div>
+                    <div class="explanation-box">
+                        <h4>解説</h4>
+                        <div id="explanation-body" class="markdown-content"></div>
+                    </div>
+                </div>
+
+                <div class="quiz-actions">
+                    <button id="skip-question-btn" class="btn btn-secondary">
+                        スキップ (S)
+                    </button>
+                    <button id="next-question-btn" class="btn btn-primary" style="display: none;">
+                        次へ (N)
+                    </button>
+                </div>
+            </div>
+
+            <!-- クイズ結果 -->
+            <div id="quiz-result" class="quiz-result" style="display: none;">
+                <h2>クイズ完了</h2>
+                <p id="result-total" class="result-total">全10問完了しました</p>
+                <button id="end-quiz-btn-result" class="btn btn-primary" onclick="endQuiz()">
+                    最初に戻る
+                </button>
+            </div>
+        </section>
+
+        <!-- 復習画面 -->
+        <section id="review-screen" class="screen">
+            <h2>復習</h2>
+
+            <div class="review-header">
+                <span id="review-count" class="review-count">復習が必要な問題: 0件</span>
+                <select id="review-sort" class="form-select form-select-small">
+                    <option value="wrong_count">誤答回数順</option>
+                    <option value="recent">最近間違えた順</option>
+                </select>
+            </div>
+
+            <div id="review-list" class="review-list">
+                <p class="empty-message">復習が必要な問題はありません</p>
+            </div>
+
+            <button id="start-review-btn" class="btn btn-primary btn-large" style="display: none;">
+                復習を開始
+            </button>
+        </section>
+
+        <!-- 管理画面 -->
+        <section id="manage-screen" class="screen active">
+            <h2>問題管理</h2>
+
+            <!-- 問題一覧 -->
+            <div id="question-list-container" class="question-list-container">
+                <div class="manage-header">
+                    <div class="search-box">
+                        <input type="text" id="search-input" class="form-input" placeholder="検索...">
+                    </div>
+                    <select id="filter-tag" class="form-select form-select-small">
+                        <option value="">全てのタグ</option>
+                    </select>
+                </div>
+
+                <div class="manage-actions">
+                    <span id="question-count" class="question-count">全0問</span>
+                    <button id="add-question-btn" class="btn btn-primary">
+                        + 問題を追加
+                    </button>
+                </div>
+
+                <div id="question-list" class="question-list">
+                    <p class="empty-message">問題がありません</p>
+                </div>
+
+                <!-- インポート/エクスポート -->
+                <div class="import-export-section">
+                    <h3>データ管理</h3>
+                    <div class="import-export-buttons">
+                        <button id="export-zip-btn" class="btn btn-secondary">
+                            ZIPエクスポート
+                        </button>
+                        <button id="export-json-btn" class="btn btn-secondary">
+                            JSONエクスポート
+                        </button>
+                        <button id="export-progress-btn" class="btn btn-secondary">
+                            進捗エクスポート
+                        </button>
+                    </div>
+                    <div class="import-export-buttons">
+                        <label class="btn btn-secondary file-label">
+                            インポート
+                            <input type="file" id="import-file" accept=".zip,.json" hidden>
+                        </label>
+                        <button id="import-sample-btn" class="btn btn-secondary">
+                            サンプルデータ
+                        </button>
+                        <button id="clear-data-btn" class="btn btn-danger">
+                            全削除
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 問題エディタ -->
+            <div id="question-editor" class="question-editor" style="display: none;">
+                <h3 id="editor-title">問題を追加</h3>
+
+                <!-- 入力モード切り替えタブ -->
+                <div class="editor-tabs">
+                    <button type="button" class="tab-btn active" data-tab="form">フォーム入力</button>
+                    <button type="button" class="tab-btn" data-tab="json">JSON入力</button>
+                </div>
+
+                <!-- フォーム入力モード -->
+                <form id="question-form" class="question-form tab-content active" data-tab="form">
+                    <div class="form-group">
+                        <label for="q-title">タイトル（任意）</label>
+                        <input type="text" id="q-title" class="form-input" placeholder="問題のタイトル">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="q-body">問題文（Markdown対応）*</label>
+                        <textarea id="q-body" class="form-textarea" rows="5" placeholder="問題文を入力（Markdown, LaTeX対応）"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>画像（任意）</label>
+                        <input type="file" id="image-upload" class="form-input" accept="image/*" multiple>
+                        <div id="uploaded-images" class="uploaded-images"></div>
+                    </div>
+
+                    <div class="choices-edit">
+                        <h4>選択肢（Markdown対応）</h4>
+                        <div class="form-group">
+                            <label for="q-choice-a">A</label>
+                            <input type="text" id="q-choice-a" class="form-input" placeholder="選択肢A">
+                        </div>
+                        <div class="form-group">
+                            <label for="q-choice-b">B</label>
+                            <input type="text" id="q-choice-b" class="form-input" placeholder="選択肢B">
+                        </div>
+                        <div class="form-group">
+                            <label for="q-choice-c">C</label>
+                            <input type="text" id="q-choice-c" class="form-input" placeholder="選択肢C">
+                        </div>
+                        <div class="form-group">
+                            <label for="q-choice-d">D</label>
+                            <input type="text" id="q-choice-d" class="form-input" placeholder="選択肢D">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="q-answer">正解</label>
+                        <select id="q-answer" class="form-select">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="q-explanation">解説（Markdown対応）</label>
+                        <textarea id="q-explanation" class="form-textarea" rows="3" placeholder="解説を入力"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tag-input">タグ（Enterで追加）</label>
+                        <input type="text" id="tag-input" class="form-input" placeholder="タグを入力してEnter">
+                        <div id="tags-container" class="tags-container"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" id="cancel-edit-btn" class="btn btn-secondary">
+                            キャンセル
+                        </button>
+                        <button type="button" id="save-question-btn" class="btn btn-primary">
+                            保存
+                        </button>
+                    </div>
+                </form>
+
+                <!-- JSON入力モード -->
+                <div id="json-input-form" class="json-input-form tab-content" data-tab="json">
+                    <div class="form-group">
+                        <label for="json-input">JSON形式で問題を入力</label>
+                        <textarea id="json-input" class="form-textarea json-textarea" rows="15" placeholder='{
+  "title": "問題タイトル",
+  "body_md": "問題文（Markdown対応）",
+  "choices": {
+    "A": "選択肢A",
+    "B": "選択肢B",
+    "C": "選択肢C",
+    "D": "選択肢D"
+  },
+  "answer": "A",
+  "explanation_md": "解説（Markdown対応）",
+  "tags": ["タグ1", "タグ2"]
+}'></textarea>
+                        <p class="json-help">配列で複数問題を一括追加できます: <code>[{問題1}, {問題2}, ...]</code></p>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancel-json-btn" class="btn btn-secondary">
+                            キャンセル
+                        </button>
+                        <button type="button" id="save-json-btn" class="btn btn-primary">
+                            JSONから追加
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ナビゲーション -->
+    <nav class="app-nav">
+        <button class="nav-btn" data-screen="quiz-screen">
+            <span class="nav-icon">📝</span>
+            <span class="nav-label">解く</span>
+        </button>
+        <button class="nav-btn" data-screen="review-screen">
+            <span class="nav-icon">🔄</span>
+            <span class="nav-label">復習</span>
+        </button>
+        <button class="nav-btn active" data-screen="manage-screen">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">管理</span>
+        </button>
+    </nav>
+
+    <!-- 画像モーダル -->
+    <div id="image-modal" class="modal">
+        <img id="modal-image" src="" alt="拡大画像">
+    </div>
+
+    <!-- 確認モーダル -->
+    <div id="confirm-modal" class="modal confirm-modal">
+        <div class="confirm-content">
+            <p id="confirm-message">確認メッセージ</p>
+            <div class="confirm-actions">
+                <button id="confirm-no" class="btn btn-secondary">いいえ</button>
+                <button id="confirm-yes" class="btn btn-primary">はい</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ローディング -->
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p id="loading-message">読み込み中...</p>
+    </div>
+
+    <!-- トースト通知 -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="js/db.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/export-import.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
