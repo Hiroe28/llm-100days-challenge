@@ -658,12 +658,27 @@ function filterQuestionList() {
         if (questions.length === 0) {
             listContainer.innerHTML = '<p class="empty-message">問題がありません</p>';
         } else {
-            listContainer.innerHTML = questions.map(q => `
+            listContainer.innerHTML = questions.map(q => {
+                // 問題文のプレビュー（最初の50文字、Markdown記号を除去）
+                const bodyPreview = (q.body_md || '').replace(/[#*`$\\[\]]/g, '').slice(0, 50);
+                
+                // 作成日をフォーマット
+                const createdDate = q.created_at ? new Date(q.created_at).toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }) : '-';
+                
+                return `
                 <div class="question-item" data-id="${q.id}">
                     <div class="question-item-content">
                         <div class="question-item-title">${QuizUI.escapeHtml(q.title || '無題')}</div>
-                        <div class="question-item-tags">
-                            ${(q.tags || []).map(tag => `<span class="tag-small">${QuizUI.escapeHtml(tag)}</span>`).join('')}
+                        <div class="question-item-preview">${QuizUI.escapeHtml(bodyPreview)}${bodyPreview.length >= 50 ? '...' : ''}</div>
+                        <div class="question-item-meta">
+                            <span class="question-item-date">📅 ${createdDate}</span>
+                            <div class="question-item-tags">
+                                ${(q.tags || []).map(tag => `<span class="tag-small">${QuizUI.escapeHtml(tag)}</span>`).join('')}
+                            </div>
                         </div>
                     </div>
                     <div class="question-item-actions">
@@ -671,7 +686,7 @@ function filterQuestionList() {
                         <button class="btn btn-small btn-danger" onclick="deleteQuestionConfirm('${q.id}')">削除</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
     }
 }

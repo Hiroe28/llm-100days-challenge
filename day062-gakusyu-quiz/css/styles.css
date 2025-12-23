@@ -874,6 +874,53 @@ body {
     margin-right: var(--spacing-sm);
 }
 
+/* 問題アイテムのプレビュー */
+.question-item-preview {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 問題アイテムのメタ情報 */
+.question-item-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* 問題アイテムの日付 */
+.question-item-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* タグコンテナの調整 */
+.question-item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+
+/* データ管理のヘルプテキスト */
+.data-help {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: var(--spacing-sm) 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: #f8f9fa;
+    border-radius: var(--border-radius);
+    border-left: 3px solid var(--info-color);
+}
+
+.data-help strong {
+    color: var(--text-color);
+}
+
 /* ==================== モーダル ==================== */
 
 .modal {

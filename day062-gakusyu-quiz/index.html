@@ -191,22 +191,26 @@
                     <h3>データ管理</h3>
                     <div class="import-export-buttons">
                         <button id="export-zip-btn" class="btn btn-secondary">
-                            バックアップ (ZIP)
+                            📦 完全バックアップ (ZIP)
                         </button>
                         <button id="export-json-btn" class="btn btn-secondary">
-                            問題をエクスポート (JSON)
+                            📄 問題のみエクスポート (JSON)
                         </button>
                     </div>
+                    <p class="data-help">
+                        💡 <strong>完全バックアップ</strong>：画像・統計・履歴すべて含む<br>
+                        💡 <strong>問題のみ</strong>：テキストデータのみ（画像含まず）
+                    </p>
                     <div class="import-export-buttons">
                         <label class="btn btn-secondary file-label">
-                            インポート
+                            📥 インポート
                             <input type="file" id="import-file" accept=".zip,.json" hidden>
                         </label>
                         <button id="import-sample-btn" class="btn btn-secondary">
-                            サンプルデータ
+                            📝 サンプルデータ
                         </button>
                         <button id="clear-data-btn" class="btn btn-danger">
-                            全削除
+                            🗑️ 全削除
                         </button>
                     </div>
                 </div>
