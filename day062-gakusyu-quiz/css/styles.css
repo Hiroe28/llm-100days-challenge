@@ -252,6 +252,57 @@ body {
     min-width: 150px;
 }
 
+/* チェックボックス用スタイル */
+.form-checkbox {
+    margin-right: var(--spacing-xs);
+    cursor: pointer;
+}
+
+/* ==================== タグチェックボックス ==================== */
+
+.tag-checkboxes {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--card-bg);
+    margin-top: var(--spacing-sm);
+}
+
+.tag-checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.tag-checkbox-item:hover {
+    background: #f8f9fa;
+}
+
+.tag-checkbox-item input[type="checkbox"] {
+    margin-right: var(--spacing-sm);
+    cursor: pointer;
+}
+
+.tag-checkbox-item label {
+    cursor: pointer;
+    margin: 0;
+    flex: 1;
+    font-weight: 400;
+}
+
+/* タグチェックボックスが空の場合 */
+.tag-checkboxes-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--spacing-md);
+    font-size: 0.9rem;
+}
+
 /* ==================== クイズ画面 ==================== */
 
 .quiz-start {

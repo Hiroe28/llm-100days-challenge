@@ -67,10 +67,10 @@
                 </div>
 
                 <div class="form-group" id="quiz-tag-select-container" style="display: none;">
-                    <label for="quiz-tag-select">タグを選択</label>
-                    <select id="quiz-tag-select" class="form-select">
-                        <option value="">タグを選択</option>
-                    </select>
+                    <label>タグを選択（複数選択可）</label>
+                    <div id="quiz-tag-checkboxes" class="tag-checkboxes">
+                        <!-- タグのチェックボックスがここに動的に追加されます -->
+                    </div>
                 </div>
 
                 <button id="start-quiz-btn" class="btn btn-primary btn-large">
@@ -151,6 +151,17 @@
             </div>
             <p class="review-description">間違えた問題は、「復習完了」ボタンを押すまでリストに残ります。納得いくまで繰り返し学習できます。</p>
 
+            <!-- タグフィルタ追加 -->
+            <div class="form-group" id="review-tag-filter-container">
+                <label>
+                    <input type="checkbox" id="review-enable-tag-filter" class="form-checkbox">
+                    タグで絞り込む（複数選択可）
+                </label>
+                <div id="review-tag-checkboxes" class="tag-checkboxes" style="display: none;">
+                    <!-- タグのチェックボックスがここに動的に追加されます -->
+                </div>
+            </div>
+
             <div id="review-list" class="review-list">
                 <p class="empty-message">復習が必要な問題はありません</p>
             </div>
@@ -198,8 +209,8 @@
                         </button>
                     </div>
                     <p class="data-help">
-                        💡 <strong>完全バックアップ</strong>：画像・統計・履歴すべて含む<br>
-                        💡 <strong>問題のみ</strong>：テキストデータのみ（画像含まず）
+                        💡 <strong>完全バックアップ</strong>:画像・統計・履歴すべて含む<br>
+                        💡 <strong>問題のみ</strong>:テキストデータのみ(画像含まず)
                     </p>
                     <div class="import-export-buttons">
                         <label class="btn btn-secondary file-label">

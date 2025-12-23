@@ -13,7 +13,7 @@ const AppState = {
         answered: false,        // 回答済みフラグ
         selectedChoice: null,   // 選択した回答
         mode: 'random',         // 出題モード: random, tag, review
-        selectedTag: null       // タグ指定モードのタグ
+        selectedTags: []        // 選択されたタグ(複数)
     },
     // 管理画面の状態
     manage: {
@@ -21,6 +21,11 @@ const AppState = {
         editingId: null,        // 編集中の問題ID
         searchQuery: '',        // 検索クエリ
         filterTag: null         // 絞り込みタグ
+    },
+    // 復習画面の状態
+    review: {
+        enableTagFilter: false, // タグフィルタ有効化
+        selectedTags: []        // 選択されたタグ(複数)
     },
     // タグ入力ヘルパー
     tagInput: null
@@ -152,6 +157,16 @@ function setupQuizEventListeners() {
 function setupReviewEventListeners() {
     // 復習ソート
     document.getElementById('review-sort')?.addEventListener('change', refreshReviewScreen);
+
+    // タグフィルタ有効化チェックボックス
+    document.getElementById('review-enable-tag-filter')?.addEventListener('change', (e) => {
+        AppState.review.enableTagFilter = e.target.checked;
+        const checkboxContainer = document.getElementById('review-tag-checkboxes');
+        if (checkboxContainer) {
+            checkboxContainer.style.display = e.target.checked ? 'block' : 'none';
+        }
+        refreshReviewScreen();
+    });
 
     // 復習開始ボタン
     document.getElementById('start-review-btn')?.addEventListener('click', startReview);
@@ -293,14 +308,64 @@ async function showQuizStart() {
     document.getElementById('quiz-content').style.display = 'none';
     document.getElementById('quiz-result').style.display = 'none';
 
-    // タグ選択肢を更新
+    // タグ選択肢を更新(チェックボックス形式)
+    await renderTagCheckboxes('quiz-tag-checkboxes', AppState.quiz.selectedTags);
+}
+
+/**
+ * タグチェックボックスをレンダリング
+ * @param {string} containerId - チェックボックスを表示するコンテナID
+ * @param {Array} selectedTags - 選択済みタグの配列
+ */
+async function renderTagCheckboxes(containerId, selectedTags = []) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
     const tags = await QuizDB.getAllTags();
-    const tagSelect = document.getElementById('quiz-tag-select');
-    if (tagSelect) {
-        tagSelect.innerHTML = '<option value="">タグを選択</option>';
-        tags.forEach(tag => {
-            tagSelect.innerHTML += `<option value="${QuizUI.escapeHtml(tag)}">${QuizUI.escapeHtml(tag)}</option>`;
+    
+    if (tags.length === 0) {
+        container.innerHTML = '<div class="tag-checkboxes-empty">タグがありません</div>';
+        return;
+    }
+
+    container.innerHTML = tags.map(tag => {
+        const isChecked = selectedTags.includes(tag);
+        const checkboxId = `${containerId}-${tag.replace(/\s+/g, '-')}`;
+        return `
+            <div class="tag-checkbox-item">
+                <input type="checkbox" 
+                       id="${checkboxId}" 
+                       value="${QuizUI.escapeHtml(tag)}"
+                       ${isChecked ? 'checked' : ''}>
+                <label for="${checkboxId}">${QuizUI.escapeHtml(tag)}</label>
+            </div>
+        `;
+    }).join('');
+
+    // チェックボックスの変更イベント
+    container.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            updateSelectedTags(containerId);
         });
+    });
+}
+
+/**
+ * 選択されたタグを更新
+ * @param {string} containerId - チェックボックスコンテナID
+ */
+function updateSelectedTags(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const selectedTags = Array.from(container.querySelectorAll('input[type="checkbox"]:checked'))
+        .map(checkbox => checkbox.value);
+
+    // 状態を更新
+    if (containerId === 'quiz-tag-checkboxes') {
+        AppState.quiz.selectedTags = selectedTags;
+    } else if (containerId === 'review-tag-checkboxes') {
+        AppState.review.selectedTags = selectedTags;
     }
 }
 
@@ -310,12 +375,19 @@ async function showQuizStart() {
 async function startQuiz() {
     try {
         const mode = document.getElementById('quiz-mode')?.value || 'random';
-        const tag = document.getElementById('quiz-tag-select')?.value;
-
         let questions = [];
 
-        if (mode === 'tag' && tag) {
-            questions = await QuizDB.getQuestionsByTag(tag);
+        if (mode === 'tag') {
+            // 複数タグで絞り込み
+            updateSelectedTags('quiz-tag-checkboxes');
+            const selectedTags = AppState.quiz.selectedTags;
+
+            if (selectedTags.length === 0) {
+                QuizUI.showToast('タグを選択してください', 'warning');
+                return;
+            }
+
+            questions = await getQuestionsByMultipleTags(selectedTags);
         } else if (mode === 'review') {
             questions = await QuizDB.getReviewQuestions();
         } else {
@@ -341,6 +413,21 @@ async function startQuiz() {
         console.error('クイズ開始エラー:', error);
         QuizUI.showToast('クイズの開始に失敗しました', 'error');
     }
+}
+
+/**
+ * 複数タグに該当する問題を取得(OR条件)
+ * @param {Array} tags - タグの配列
+ * @returns {Promise<Array>} 問題の配列
+ */
+async function getQuestionsByMultipleTags(tags) {
+    const allQuestions = await QuizDB.getAllQuestions();
+    
+    // いずれかのタグを含む問題を抽出
+    return allQuestions.filter(q => {
+        if (!q.tags || q.tags.length === 0) return false;
+        return tags.some(tag => q.tags.includes(tag));
+    });
 }
 
 /**
@@ -504,8 +591,21 @@ function endQuiz() {
  */
 async function refreshReviewScreen() {
     try {
-        const reviewQuestions = await QuizDB.getReviewQuestions();
+        let reviewQuestions = await QuizDB.getReviewQuestions();
         const sortBy = document.getElementById('review-sort')?.value || 'wrong_count';
+
+        // タグフィルタが有効な場合
+        if (AppState.review.enableTagFilter) {
+            updateSelectedTags('review-tag-checkboxes');
+            const selectedTags = AppState.review.selectedTags;
+            
+            if (selectedTags.length > 0) {
+                reviewQuestions = reviewQuestions.filter(q => {
+                    if (!q.tags || q.tags.length === 0) return false;
+                    return selectedTags.some(tag => q.tags.includes(tag));
+                });
+            }
+        }
 
         // ソート
         if (sortBy === 'recent') {
@@ -524,6 +624,9 @@ async function refreshReviewScreen() {
         if (countEl) {
             countEl.textContent = `復習が必要な問題: ${reviewQuestions.length}件`;
         }
+
+        // タグチェックボックスを更新
+        await renderTagCheckboxes('review-tag-checkboxes', AppState.review.selectedTags);
 
         if (listContainer) {
             if (reviewQuestions.length === 0) {
@@ -659,7 +762,7 @@ function filterQuestionList() {
             listContainer.innerHTML = '<p class="empty-message">問題がありません</p>';
         } else {
             listContainer.innerHTML = questions.map(q => {
-                // 問題文のプレビュー（最初の50文字、Markdown記号を除去）
+                // 問題文のプレビュー(最初の50文字、Markdown記号を除去)
                 const bodyPreview = (q.body_md || '').replace(/[#*`$\\[\]]/g, '').slice(0, 50);
                 
                 // 作成日をフォーマット
@@ -789,7 +892,7 @@ function hideQuestionEditor() {
     AppState.manage.editingId = null;
     // タブをリセット
     switchEditorTab('form');
-    // JSONインput をクリア
+    // JSONinput をクリア
     const jsonInput = document.getElementById('json-input');
     if (jsonInput) jsonInput.value = '';
     // プレビューを非表示
