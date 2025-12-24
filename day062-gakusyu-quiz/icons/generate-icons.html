@@ -83,12 +83,12 @@
             ctx.fillStyle = gradient;
             ctx.fill();
 
-            // Q文字
+            // Q文字(位置を上に調整: 0.52 → 0.45)
             ctx.fillStyle = 'white';
             ctx.font = `bold ${280 * scale}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('Q', size / 2, size * 0.52);
+            ctx.fillText('Q', size / 2, size * 0.45);
 
             // 四択ボックス
             const boxSize = 80 * scale;

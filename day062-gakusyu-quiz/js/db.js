@@ -519,6 +519,23 @@ async function getReviewQuestions() {
     return questions;
 }
 
+/**
+ * 未解答の問題を取得
+ * 条件: statsに記録がない問題 = 一度も解いたことがない問題
+ */
+async function getUnansweredQuestions() {
+    const allQuestions = await getAllQuestions();
+    const allStats = await getAllStats();
+    
+    // statsに記録があるquestion_idのSetを作成
+    const answeredQuestionIds = new Set(allStats.map(s => s.question_id));
+    
+    // statsに記録がない問題のみを抽出
+    const unansweredQuestions = allQuestions.filter(q => !answeredQuestionIds.has(q.id));
+    
+    return unansweredQuestions;
+}
+
 // ==================== エクスポート ====================
 
 // グローバルにエクスポート
@@ -552,5 +569,6 @@ window.QuizDB = {
     getAllStats,
     deleteStats,
     addStatsData,
-    getReviewQuestions
+    getReviewQuestions,
+    getUnansweredQuestions  // 追加
 };

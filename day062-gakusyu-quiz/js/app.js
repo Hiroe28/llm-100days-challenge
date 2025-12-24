@@ -377,7 +377,10 @@ async function startQuiz() {
         const mode = document.getElementById('quiz-mode')?.value || 'random';
         let questions = [];
 
-        if (mode === 'tag') {
+        if (mode === 'unanswered') {
+            // 未解答問題のみ
+            questions = await QuizDB.getUnansweredQuestions();
+        } else if (mode === 'tag') {
             // 複数タグで絞り込み
             updateSelectedTags('quiz-tag-checkboxes');
             const selectedTags = AppState.quiz.selectedTags;
@@ -395,7 +398,11 @@ async function startQuiz() {
         }
 
         if (questions.length === 0) {
-            QuizUI.showToast('出題できる問題がありません', 'warning');
+            if (mode === 'unanswered') {
+                QuizUI.showToast('未解答の問題がありません。すべての問題を解答済みです!', 'info');
+            } else {
+                QuizUI.showToast('出題できる問題がありません', 'warning');
+            }
             return;
         }
 
