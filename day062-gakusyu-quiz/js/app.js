@@ -116,6 +116,24 @@ function setupEventListeners() {
     setupExportImportEventListeners();
 }
 
+
+/**
+ * 現在表示中の問題を復習リストに追加
+ */
+async function addCurrentQuestionToReview() {
+    try {
+        const question = AppState.quiz.questions[AppState.quiz.currentIndex];
+        if (!question) return;
+
+        await QuizDB.markForReview(question.id);
+        QuizUI.showToast('復習リストに追加しました', 'success');
+    } catch (error) {
+        console.error('復習追加エラー:', error);
+        QuizUI.showToast('エラーが発生しました', 'error');
+    }
+}
+
+
 /**
  * クイズ画面のイベントリスナー
  */
@@ -149,6 +167,9 @@ function setupQuizEventListeners() {
 
     // クイズ終了ボタン
     document.getElementById('end-quiz-btn')?.addEventListener('click', endQuiz);
+
+    // 復習追加ボタン（クイズ画面）
+    document.getElementById('add-to-review-btn')?.addEventListener('click', addCurrentQuestionToReview);
 }
 
 /**
@@ -1324,6 +1345,7 @@ window.deleteQuestionConfirm = deleteQuestionConfirm;
 window.removeUploadedImage = removeUploadedImage;
 window.completeReview = completeReview;
 window.addToReview = addToReview;  // 追加
+window.addCurrentQuestionToReview = addCurrentQuestionToReview;  // 追加
 
 // ==================== 初期化実行 ====================
 

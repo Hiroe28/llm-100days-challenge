@@ -461,8 +461,14 @@ body {
 
 .quiz-actions {
     display: flex;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
     justify-content: center;
+    flex-wrap: wrap; /* 小さい画面で折り返し */
+}
+
+.quiz-actions .btn {
+    flex: 1;
+    min-width: 100px; /* 最小幅を確保 */
 }
 
 .quiz-result {
@@ -934,7 +940,10 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%; /* 追加 */
 }
+
+
 
 /* 問題アイテムのメタ情報 */
 .question-item-meta {
@@ -1174,11 +1183,14 @@ body {
         align-items: flex-start;
     }
 
+    .question-item-content {
+        width: 100%; /* 幅を明示的に指定 */
+    }    
+
     .question-item-actions {
         width: 100%;
         margin-top: var(--spacing-sm);
     }
-
     .question-item-actions .btn {
         flex: 1;
         min-width: 0;
@@ -1201,6 +1213,17 @@ body {
     .form-select-small {
         width: 100%;
     }
+
+    /* クイズアクションボタンも調整 */
+    .quiz-actions {
+        width: 100%;
+    }
+
+    .quiz-actions .btn {
+        min-width: 80px;
+        font-size: 0.9rem;
+    }
+
 }
 
 /* 大画面 */
