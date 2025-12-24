@@ -614,6 +614,7 @@ body {
     display: flex;
     gap: var(--spacing-xs);
     flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 /* タグ */
@@ -1180,6 +1181,9 @@ body {
 
     .question-item-actions .btn {
         flex: 1;
+        min-width: 0;
+        font-size: 0.8rem;
+        padding: var(--spacing-xs);
     }
 
     .import-export-buttons {

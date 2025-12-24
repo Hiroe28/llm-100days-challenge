@@ -792,12 +792,28 @@ function filterQuestionList() {
                         </div>
                     </div>
                     <div class="question-item-actions">
+                        <button class="btn btn-small btn-secondary" onclick="addToReview('${q.id}')" title="復習リストに追加">
+                            📌 復習追加
+                        </button>
                         <button class="btn btn-small btn-edit" onclick="editQuestion('${q.id}')">編集</button>
                         <button class="btn btn-small btn-danger" onclick="deleteQuestionConfirm('${q.id}')">削除</button>
                     </div>
                 </div>
             `}).join('');
         }
+    }
+}
+
+/**
+ * 問題を復習リストに追加
+ */
+async function addToReview(questionId) {
+    try {
+        await QuizDB.markForReview(questionId);
+        QuizUI.showToast('復習リストに追加しました', 'success');
+    } catch (error) {
+        console.error('復習追加エラー:', error);
+        QuizUI.showToast('エラーが発生しました', 'error');
     }
 }
 
@@ -1307,6 +1323,7 @@ window.editQuestion = editQuestion;
 window.deleteQuestionConfirm = deleteQuestionConfirm;
 window.removeUploadedImage = removeUploadedImage;
 window.completeReview = completeReview;
+window.addToReview = addToReview;  // 追加
 
 // ==================== 初期化実行 ====================
 
