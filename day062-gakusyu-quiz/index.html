@@ -57,9 +57,44 @@
             <div id="quiz-start" class="quiz-start">
                 <h2>クイズに挑戦</h2>
 
+                <div class="study-dashboard">
+                    <h3>📊 今日の学習</h3>
+                    <div class="study-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="today-review-count">0</div>
+                            <div class="stat-label">復習</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="today-new-count">0</div>
+                            <div class="stat-label">新規</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="today-total-count">0</div>
+                            <div class="stat-label">合計</div>
+                        </div>
+                    </div>
+
+                    <h3>📈 習得状況</h3>
+                    <div class="mastery-stats">
+                        <div class="mastery-item">
+                            <span class="mastery-label">習得済み（7日以上）</span>
+                            <span class="mastery-count" id="mastered-count">0問</span>
+                        </div>
+                        <div class="mastery-item">
+                            <span class="mastery-label">学習中（1-6日）</span>
+                            <span class="mastery-count" id="learning-count">0問</span>
+                        </div>
+                        <div class="mastery-item">
+                            <span class="mastery-label">未学習</span>
+                            <span class="mastery-count" id="new-count">0問</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="quiz-mode">出題モード</label>
                     <select id="quiz-mode" class="form-select">
+                        <option value="today">📅 今日の学習</option>
                         <option value="unanswered">未解答問題</option>
                         <option value="random">ランダム</option>
                         <option value="tag">タグ指定</option>
@@ -484,6 +519,7 @@
     <script src="js/db.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/export-import.js"></script>
+    <script src="js/sm2.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

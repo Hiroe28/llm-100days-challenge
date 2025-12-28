@@ -1175,6 +1175,73 @@ body {
     padding: var(--spacing-xl);
 }
 
+/* ==================== 学習ダッシュボード ==================== */
+
+.study-dashboard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    color: white;
+}
+
+.study-dashboard h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.study-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.mastery-stats {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.mastery-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mastery-item:last-child {
+    border-bottom: none;
+}
+
+.mastery-label {
+    font-size: 14px;
+}
+
+.mastery-count {
+    font-weight: bold;
+}
+
 /* ==================== レスポンシブ ==================== */
 
 @media (max-width: 600px) {
@@ -1225,6 +1292,8 @@ body {
     }
 
 }
+
+
 
 /* 大画面 */
 @media (min-width: 768px) {

@@ -405,10 +405,11 @@ async function getAllAttempts() {
 
 // ==================== Stats ====================
 
+
 /**
- * 統計を更新（解答後に呼ぶ）
+ * 統計を更新（解答後に呼ぶ）- SM-2対応版
  */
-async function updateStats(questionId, correct) {
+async function updateStats(questionId, correct, timeSpent = null) {
     return new Promise((resolve, reject) => {
         const store = getStore('stats', 'readwrite');
         const getRequest = store.get(questionId);
@@ -416,17 +417,38 @@ async function updateStats(questionId, correct) {
         getRequest.onsuccess = () => {
             let stats = getRequest.result || {
                 question_id: questionId,
+                // SM-2用フィールド
+                easeFactor: 2.5,
+                interval: 0,
+                repetitions: 0,
+                nextReviewDate: null,
+                totalReviews: 0,
+                lastReviewDate: null,
+                // 既存フィールド
                 wrong_count: 0,
                 last_wrong_at: null,
                 last_correct_at: null
             };
 
-            if (correct) {
-                stats.last_correct_at = Date.now();
-            } else {
-                stats.wrong_count++;
-                stats.last_wrong_at = Date.now();
-            }
+            // SM-2計算用の品質判定
+            const quality = timeSpent !== null 
+                ? SM2.determineQuality(correct, timeSpent)
+                : (correct ? 4 : 1);
+
+            // SM-2アルゴリズムで次回復習日を計算
+            const sm2Result = SM2.calculateSM2(stats, quality);
+
+            // 統計を更新
+            stats = {
+                ...stats,
+                ...sm2Result,
+                lastReviewDate: Date.now(),
+                totalReviews: (stats.totalReviews || 0) + 1,
+                // 既存の統計も更新
+                wrong_count: correct ? stats.wrong_count || 0 : (stats.wrong_count || 0) + 1,
+                last_correct_at: correct ? Date.now() : stats.last_correct_at,
+                last_wrong_at: correct ? stats.last_wrong_at : Date.now()
+            };
 
             const putRequest = store.put(stats);
             putRequest.onsuccess = () => resolve(stats);
@@ -445,6 +467,16 @@ async function resetStats(questionId) {
         const store = getStore('stats', 'readwrite');
         const stats = {
             question_id: questionId,
+
+            // SM-2用の新フィールド
+            easeFactor: 2.5,        // 難易度係数（デフォルト2.5）
+            interval: 0,            // 次回までの日数
+            repetitions: 0,         // 連続正解回数
+            nextReviewDate: null,   // 次回復習日（タイムスタンプ）
+            lastReviewDate: null,   // 最終復習日
+            totalReviews: 0,        // 総復習回数
+
+            // 既存フィールド（互換性のため残す）
             wrong_count: 0,
             last_wrong_at: null,
             last_correct_at: Date.now()
@@ -453,6 +485,41 @@ async function resetStats(questionId) {
         const request = store.put(stats);
         request.onsuccess = () => resolve(stats);
         request.onerror = () => reject(request.error);
+    });
+}
+
+/**
+ * 問題を復習リストに追加（手動マーク用）
+ */
+async function markForReview(questionId) {
+    return new Promise((resolve, reject) => {
+        const store = getStore('stats', 'readwrite');
+        const getRequest = store.get(questionId);
+
+        getRequest.onsuccess = () => {
+            let stats = getRequest.result || {
+                question_id: questionId,
+                easeFactor: 2.5,
+                interval: 0,
+                repetitions: 0,
+                nextReviewDate: null,
+                totalReviews: 0,
+                lastReviewDate: null,
+                wrong_count: 0,
+                last_wrong_at: null,
+                last_correct_at: null
+            };
+
+            // 復習リストに追加（wrong_countを増やす）
+            stats.wrong_count = (stats.wrong_count || 0) + 1;
+            stats.last_wrong_at = Date.now();
+
+            const putRequest = store.put(stats);
+            putRequest.onsuccess = () => resolve(stats);
+            putRequest.onerror = () => reject(putRequest.error);
+        };
+
+        getRequest.onerror = () => reject(getRequest.error);
     });
 }
 
@@ -570,5 +637,6 @@ window.QuizDB = {
     deleteStats,
     addStatsData,
     getReviewQuestions,
-    getUnansweredQuestions  // 追加
+    getUnansweredQuestions,
+    markForReview  // ★追加
 };

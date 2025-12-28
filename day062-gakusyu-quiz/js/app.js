@@ -331,6 +331,35 @@ async function showQuizStart() {
 
     // タグ選択肢を更新(チェックボックス形式)
     await renderTagCheckboxes('quiz-tag-checkboxes', AppState.quiz.selectedTags);
+
+    // ★ダッシュボードを更新
+    await updateStudyDashboard();
+
+}
+
+/**
+ * 学習ダッシュボードを更新
+ */
+async function updateStudyDashboard() {
+    try {
+        // 今日の学習計画を取得
+        const studyPlan = await SM2.getTodayStudyPlan();
+        
+        // 今日の学習
+        document.getElementById('today-review-count').textContent = studyPlan.review.length;
+        document.getElementById('today-new-count').textContent = studyPlan.new.length;
+        document.getElementById('today-total-count').textContent = studyPlan.total;
+        
+        // 習得状況
+        const masteryStats = await SM2.getMasteryStats();
+        
+        document.getElementById('mastered-count').textContent = masteryStats.mastered + '問';
+        document.getElementById('learning-count').textContent = masteryStats.learning + '問';
+        document.getElementById('new-count').textContent = masteryStats.new + '問';
+        
+    } catch (error) {
+        console.error('ダッシュボード更新エラー:', error);
+    }
 }
 
 /**
@@ -398,7 +427,18 @@ async function startQuiz() {
         const mode = document.getElementById('quiz-mode')?.value || 'random';
         let questions = [];
 
-        if (mode === 'unanswered') {
+        if (mode === 'today') {
+            // ★今日の学習モード（新規追加）
+            const studyPlan = await SM2.getTodayStudyPlan();
+            const questionIds = [...studyPlan.review, ...studyPlan.new];
+            
+            questions = [];
+            for (const id of questionIds) {
+                const q = await QuizDB.getQuestion(id);
+                if (q) questions.push(q);
+            }
+            
+        } else if (mode === 'unanswered') {
             // 未解答問題のみ
             questions = await QuizDB.getUnansweredQuestions();
         } else if (mode === 'tag') {
@@ -470,6 +510,7 @@ async function showCurrentQuestion() {
 
     AppState.quiz.answered = false;
     AppState.quiz.selectedChoice = null;
+    AppState.quiz.questionStartTime = Date.now();  // ★開始時刻を記録
 
     // 進捗表示
     document.getElementById('quiz-progress').textContent =
@@ -528,11 +569,18 @@ async function selectChoice(choice) {
     const question = AppState.quiz.questions[AppState.quiz.currentIndex];
     const isCorrect = choice === question.answer;
 
+    // ★回答時間を計算（問題表示からの経過時間）
+    const timeSpent = AppState.quiz.questionStartTime 
+        ? (Date.now() - AppState.quiz.questionStartTime) / 1000 
+        : null;
+
     // 解答を記録
     await QuizDB.addAttempt(question.id, choice, isCorrect);
-    await QuizDB.updateStats(question.id, isCorrect);
+    
+    // ★SM-2対応のupdateStatsを呼ぶ（回答時間を渡す）
+    await QuizDB.updateStats(question.id, isCorrect, timeSpent);
 
-    // ボタンの色を変える
+    // ボタンの色を変える（既存のコード）
     const choices = ['A', 'B', 'C', 'D'];
     choices.forEach(c => {
         const btn = document.querySelector(`.choice-btn[data-choice="${c}"]`);
@@ -546,7 +594,7 @@ async function selectChoice(choice) {
         }
     });
 
-    // 解説を表示
+    // 解説を表示（既存のコード）
     const explanationContainer = document.getElementById('explanation-container');
     const explanationBody = document.getElementById('explanation-body');
     const resultText = document.getElementById('result-text');
@@ -723,6 +771,8 @@ async function completeReview(questionId) {
         QuizUI.showToast('エラーが発生しました', 'error');
     }
 }
+
+
 
 // ==================== 管理画面 ====================
 
@@ -1346,6 +1396,7 @@ window.removeUploadedImage = removeUploadedImage;
 window.completeReview = completeReview;
 window.addToReview = addToReview;  // 追加
 window.addCurrentQuestionToReview = addCurrentQuestionToReview;  // 追加
+window.updateStudyDashboard = updateStudyDashboard;
 
 // ==================== 初期化実行 ====================
 
