@@ -524,6 +524,66 @@ async function markForReview(questionId) {
 }
 
 /**
+ * 問題を手動で完全習得済みにする
+ */
+async function markAsCompleted(questionId) {
+    return new Promise((resolve, reject) => {
+        const store = getStore('stats', 'readwrite');
+        const getRequest = store.get(questionId);
+
+        getRequest.onsuccess = () => {
+            let stats = getRequest.result || {
+                question_id: questionId,
+                easeFactor: 2.5,
+                interval: 0,
+                repetitions: 0,
+                nextReviewDate: null,
+                totalReviews: 0,
+                lastReviewDate: null,
+                wrong_count: 0,
+                last_wrong_at: null,
+                last_correct_at: null
+            };
+
+            // intervalを90日に設定して完全習得状態にする
+            stats.interval = 90;
+            stats.nextReviewDate = Date.now() + 90 * 24 * 60 * 60 * 1000;
+
+            const putRequest = store.put(stats);
+            putRequest.onsuccess = () => resolve(stats);
+            putRequest.onerror = () => reject(putRequest.error);
+        };
+
+        getRequest.onerror = () => reject(getRequest.error);
+    });
+}
+
+/**
+ * 完全習得済みの問題を再学習対象に戻す
+ */
+async function restartLearning(questionId) {
+    return new Promise((resolve, reject) => {
+        const store = getStore('stats', 'readwrite');
+        const stats = {
+            question_id: questionId,
+            easeFactor: 2.5,
+            interval: 0,
+            repetitions: 0,
+            nextReviewDate: Date.now(), // すぐに復習対象
+            lastReviewDate: null,
+            totalReviews: 0,
+            wrong_count: 0,
+            last_wrong_at: null,
+            last_correct_at: null
+        };
+
+        const request = store.put(stats);
+        request.onsuccess = () => resolve(stats);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+/**
  * 問題の統計を取得
  */
 async function getStats(questionId) {
@@ -636,7 +696,7 @@ window.QuizDB = {
     getAllStats,
     deleteStats,
     addStatsData,
-    getReviewQuestions,
     getUnansweredQuestions,
-    markForReview  // ★追加
+    markAsCompleted,      // ★追加
+    restartLearning       // ★追加
 };

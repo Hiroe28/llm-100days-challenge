@@ -22,11 +22,6 @@ const AppState = {
         searchQuery: '',        // 検索クエリ
         filterTag: null         // 絞り込みタグ
     },
-    // 復習画面の状態
-    review: {
-        enableTagFilter: false, // タグフィルタ有効化
-        selectedTags: []        // 選択されたタグ(複数)
-    },
     // タグ入力ヘルパー
     tagInput: null
 };
@@ -94,8 +89,6 @@ function setupEventListeners() {
                 QuizUI.showScreen(screen);
                 if (screen === 'quiz-screen') {
                     showQuizStart();
-                } else if (screen === 'review-screen') {
-                    refreshReviewScreen();
                 } else if (screen === 'manage-screen') {
                     refreshManageScreen();
                 }
@@ -106,9 +99,6 @@ function setupEventListeners() {
     // クイズ画面
     setupQuizEventListeners();
 
-    // 復習画面
-    setupReviewEventListeners();
-
     // 管理画面
     setupManageEventListeners();
 
@@ -116,22 +106,6 @@ function setupEventListeners() {
     setupExportImportEventListeners();
 }
 
-
-/**
- * 現在表示中の問題を復習リストに追加
- */
-async function addCurrentQuestionToReview() {
-    try {
-        const question = AppState.quiz.questions[AppState.quiz.currentIndex];
-        if (!question) return;
-
-        await QuizDB.markForReview(question.id);
-        QuizUI.showToast('復習リストに追加しました', 'success');
-    } catch (error) {
-        console.error('復習追加エラー:', error);
-        QuizUI.showToast('エラーが発生しました', 'error');
-    }
-}
 
 
 /**
@@ -168,30 +142,10 @@ function setupQuizEventListeners() {
     // クイズ終了ボタン
     document.getElementById('end-quiz-btn')?.addEventListener('click', endQuiz);
 
-    // 復習追加ボタン（クイズ画面）
-    document.getElementById('add-to-review-btn')?.addEventListener('click', addCurrentQuestionToReview);
+    // 習得済みボタン（クイズ画面）
+    document.getElementById('mark-completed-btn')?.addEventListener('click', markCurrentAsCompleted);
 }
 
-/**
- * 復習画面のイベントリスナー
- */
-function setupReviewEventListeners() {
-    // 復習ソート
-    document.getElementById('review-sort')?.addEventListener('change', refreshReviewScreen);
-
-    // タグフィルタ有効化チェックボックス
-    document.getElementById('review-enable-tag-filter')?.addEventListener('change', (e) => {
-        AppState.review.enableTagFilter = e.target.checked;
-        const checkboxContainer = document.getElementById('review-tag-checkboxes');
-        if (checkboxContainer) {
-            checkboxContainer.style.display = e.target.checked ? 'block' : 'none';
-        }
-        refreshReviewScreen();
-    });
-
-    // 復習開始ボタン
-    document.getElementById('start-review-btn')?.addEventListener('click', startReview);
-}
 
 /**
  * 管理画面のイベントリスナー
@@ -353,12 +307,57 @@ async function updateStudyDashboard() {
         // 習得状況
         const masteryStats = await SM2.getMasteryStats();
         
+        document.getElementById('completed-count').textContent = masteryStats.completed + '問';
         document.getElementById('mastered-count').textContent = masteryStats.mastered + '問';
         document.getElementById('learning-count').textContent = masteryStats.learning + '問';
         document.getElementById('new-count').textContent = masteryStats.new + '問';
         
     } catch (error) {
         console.error('ダッシュボード更新エラー:', error);
+    }
+}
+
+/**
+ * 問題を習得済みにする（クイズ画面から）
+ */
+async function markCurrentAsCompleted() {
+    try {
+        const question = AppState.quiz.questions[AppState.quiz.currentIndex];
+        if (!question) return;
+
+        await QuizDB.markAsCompleted(question.id);
+        QuizUI.showToast('習得済みにしました', 'success');
+    } catch (error) {
+        console.error('習得済み設定エラー:', error);
+        QuizUI.showToast('エラーが発生しました', 'error');
+    }
+}
+
+/**
+ * 問題を習得済みにする（管理画面から）
+ */
+async function markQuestionAsCompleted(questionId) {
+    try {
+        await QuizDB.markAsCompleted(questionId);
+        QuizUI.showToast('習得済みにしました', 'success');
+        await refreshManageScreen();
+    } catch (error) {
+        console.error('習得済み設定エラー:', error);
+        QuizUI.showToast('エラーが発生しました', 'error');
+    }
+}
+
+/**
+ * 完全習得済み問題を再学習対象にする
+ */
+async function restartQuestionLearning(questionId) {
+    try {
+        await QuizDB.restartLearning(questionId);
+        QuizUI.showToast('再学習対象にしました', 'success');
+        await refreshManageScreen();
+    } catch (error) {
+        console.error('再学習設定エラー:', error);
+        QuizUI.showToast('エラーが発生しました', 'error');
     }
 }
 
@@ -428,7 +427,7 @@ async function startQuiz() {
         let questions = [];
 
         if (mode === 'today') {
-            // ★今日の学習モード（新規追加）
+            // 今日の学習モード
             const studyPlan = await SM2.getTodayStudyPlan();
             const questionIds = [...studyPlan.review, ...studyPlan.new];
             
@@ -452,8 +451,6 @@ async function startQuiz() {
             }
 
             questions = await getQuestionsByMultipleTags(selectedTags);
-        } else if (mode === 'review') {
-            questions = await QuizDB.getReviewQuestions();
         } else {
             questions = await QuizDB.getAllQuestions();
         }
@@ -569,16 +566,11 @@ async function selectChoice(choice) {
     const question = AppState.quiz.questions[AppState.quiz.currentIndex];
     const isCorrect = choice === question.answer;
 
-    // ★回答時間を計算（問題表示からの経過時間）
-    const timeSpent = AppState.quiz.questionStartTime 
-        ? (Date.now() - AppState.quiz.questionStartTime) / 1000 
-        : null;
-
     // 解答を記録
     await QuizDB.addAttempt(question.id, choice, isCorrect);
     
-    // ★SM-2対応のupdateStatsを呼ぶ（回答時間を渡す）
-    await QuizDB.updateStats(question.id, isCorrect, timeSpent);
+    // ★SM-2対応のupdateStatsを呼ぶ（timeSpentは不要）
+    await QuizDB.updateStats(question.id, isCorrect);
 
     // ボタンの色を変える（既存のコード）
     const choices = ['A', 'B', 'C', 'D'];
@@ -660,119 +652,6 @@ function endQuiz() {
     showQuizStart();
 }
 
-// ==================== 復習画面 ====================
-
-/**
- * 復習画面を更新
- */
-async function refreshReviewScreen() {
-    try {
-        let reviewQuestions = await QuizDB.getReviewQuestions();
-        const sortBy = document.getElementById('review-sort')?.value || 'wrong_count';
-
-        // タグフィルタが有効な場合
-        if (AppState.review.enableTagFilter) {
-            updateSelectedTags('review-tag-checkboxes');
-            const selectedTags = AppState.review.selectedTags;
-            
-            if (selectedTags.length > 0) {
-                reviewQuestions = reviewQuestions.filter(q => {
-                    if (!q.tags || q.tags.length === 0) return false;
-                    return selectedTags.some(tag => q.tags.includes(tag));
-                });
-            }
-        }
-
-        // ソート
-        if (sortBy === 'recent') {
-            reviewQuestions.sort((a, b) =>
-                (b.stats?.last_wrong_at || 0) - (a.stats?.last_wrong_at || 0)
-            );
-        } else {
-            reviewQuestions.sort((a, b) =>
-                (b.stats?.wrong_count || 0) - (a.stats?.wrong_count || 0)
-            );
-        }
-
-        const listContainer = document.getElementById('review-list');
-        const countEl = document.getElementById('review-count');
-
-        if (countEl) {
-            countEl.textContent = `復習が必要な問題: ${reviewQuestions.length}件`;
-        }
-
-        // タグチェックボックスを更新
-        await renderTagCheckboxes('review-tag-checkboxes', AppState.review.selectedTags);
-
-        if (listContainer) {
-            if (reviewQuestions.length === 0) {
-                listContainer.innerHTML = '<p class="empty-message">復習が必要な問題はありません</p>';
-                document.getElementById('start-review-btn').style.display = 'none';
-            } else {
-                listContainer.innerHTML = reviewQuestions.map(q => {
-                    // 問題文の抜粋(最初の50文字)
-                    const bodyPreview = (q.body_md || '').replace(/[#*`$\\[\]]/g, '').slice(0, 50);
-                    return `
-                    <div class="review-item" data-id="${q.id}">
-                        <div class="review-item-content">
-                            <div class="review-item-title">${QuizUI.escapeHtml(q.title || '無題')}</div>
-                            <div class="review-item-preview">${QuizUI.escapeHtml(bodyPreview)}${bodyPreview.length >= 50 ? '...' : ''}</div>
-                            <div class="review-item-stats">
-                                誤答: ${q.stats?.wrong_count || 0}回
-                            </div>
-                        </div>
-                        <button class="btn btn-small btn-complete-review" onclick="completeReview('${q.id}')">
-                            復習完了
-                        </button>
-                    </div>
-                `}).join('');
-                document.getElementById('start-review-btn').style.display = 'inline-block';
-            }
-        }
-
-        // 復習問題を状態に保存
-        AppState.quiz.questions = reviewQuestions;
-
-    } catch (error) {
-        console.error('復習画面の更新エラー:', error);
-        QuizUI.showToast('復習データの取得に失敗しました', 'error');
-    }
-}
-
-/**
- * 復習を開始
- */
-function startReview() {
-    if (AppState.quiz.questions.length === 0) {
-        QuizUI.showToast('復習が必要な問題がありません', 'info');
-        return;
-    }
-
-    AppState.quiz.currentIndex = 0;
-    AppState.quiz.mode = 'review';
-
-    QuizUI.showScreen('quiz-screen');
-    document.getElementById('quiz-start').style.display = 'none';
-    document.getElementById('quiz-content').style.display = 'block';
-
-    showCurrentQuestion();
-}
-
-/**
- * 復習を完了(リストから削除)
- */
-async function completeReview(questionId) {
-    try {
-        await QuizDB.resetStats(questionId);
-        QuizUI.showToast('復習完了しました', 'success');
-        await refreshReviewScreen();
-    } catch (error) {
-        console.error('復習完了エラー:', error);
-        QuizUI.showToast('エラーが発生しました', 'error');
-    }
-}
-
-
 
 // ==================== 管理画面 ====================
 
@@ -811,7 +690,7 @@ async function refreshManageScreen() {
 /**
  * 問題リストをフィルタリング
  */
-function filterQuestionList() {
+async function filterQuestionList() {
     let questions = [...AppState.manage.questions];
 
     // タグ絞り込み
@@ -833,6 +712,11 @@ function filterQuestionList() {
     // ソート(更新日時の降順)
     questions.sort((a, b) => (b.updated_at || 0) - (a.updated_at || 0));
 
+    // 全統計を取得してマスタリーレベルをチェック
+    const allStats = await QuizDB.getAllStats();
+    const statsMap = new Map();
+    allStats.forEach(s => statsMap.set(s.question_id, s));
+
     // 表示
     const listContainer = document.getElementById('question-list');
     if (listContainer) {
@@ -850,10 +734,18 @@ function filterQuestionList() {
                     day: '2-digit'
                 }) : '-';
                 
+                // マスタリーレベルを取得
+                const stats = statsMap.get(q.id);
+                const masteryLevel = SM2.getMasteryLevel(stats);
+                const isCompleted = masteryLevel === 'completed';
+                
                 return `
-                <div class="question-item" data-id="${q.id}">
+                <div class="question-item ${isCompleted ? 'question-item-completed' : ''}" data-id="${q.id}">
                     <div class="question-item-content">
-                        <div class="question-item-title">${QuizUI.escapeHtml(q.title || '無題')}</div>
+                        <div class="question-item-title">
+                            ${isCompleted ? '<span class="completed-badge">✓ 習得済み</span>' : ''}
+                            ${QuizUI.escapeHtml(q.title || '無題')}
+                        </div>
                         <div class="question-item-preview">${QuizUI.escapeHtml(bodyPreview)}${bodyPreview.length >= 50 ? '...' : ''}</div>
                         <div class="question-item-meta">
                             <span class="question-item-date">📅 ${createdDate}</span>
@@ -863,28 +755,20 @@ function filterQuestionList() {
                         </div>
                     </div>
                     <div class="question-item-actions">
-                        <button class="btn btn-small btn-secondary" onclick="addToReview('${q.id}')" title="復習リストに追加">
-                            📌 復習追加
-                        </button>
+                        ${isCompleted 
+                            ? `<button class="btn btn-small btn-secondary" onclick="restartQuestionLearning('${q.id}')" title="再度学習する">
+                                🔄 再学習
+                            </button>`
+                            : `<button class="btn btn-small btn-success" onclick="markQuestionAsCompleted('${q.id}')" title="習得済みにする">
+                                ✓ 習得済み
+                            </button>`
+                        }
                         <button class="btn btn-small btn-edit" onclick="editQuestion('${q.id}')">編集</button>
                         <button class="btn btn-small btn-danger" onclick="deleteQuestionConfirm('${q.id}')">削除</button>
                     </div>
                 </div>
             `}).join('');
         }
-    }
-}
-
-/**
- * 問題を復習リストに追加
- */
-async function addToReview(questionId) {
-    try {
-        await QuizDB.markForReview(questionId);
-        QuizUI.showToast('復習リストに追加しました', 'success');
-    } catch (error) {
-        console.error('復習追加エラー:', error);
-        QuizUI.showToast('エラーが発生しました', 'error');
     }
 }
 
@@ -1393,9 +1277,9 @@ window.refreshManageScreen = refreshManageScreen;
 window.editQuestion = editQuestion;
 window.deleteQuestionConfirm = deleteQuestionConfirm;
 window.removeUploadedImage = removeUploadedImage;
-window.completeReview = completeReview;
-window.addToReview = addToReview;  // 追加
-window.addCurrentQuestionToReview = addCurrentQuestionToReview;  // 追加
+window.markCurrentAsCompleted = markCurrentAsCompleted;
+window.markQuestionAsCompleted = markQuestionAsCompleted;
+window.restartQuestionLearning = restartQuestionLearning;
 window.updateStudyDashboard = updateStudyDashboard;
 
 // ==================== 初期化実行 ====================

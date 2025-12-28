@@ -77,7 +77,11 @@
                     <h3>📈 習得状況</h3>
                     <div class="mastery-stats">
                         <div class="mastery-item">
-                            <span class="mastery-label">習得済み（7日以上）</span>
+                            <span class="mastery-label">完全習得（90日以上）</span>
+                            <span class="mastery-count" id="completed-count">0問</span>
+                        </div>
+                        <div class="mastery-item">
+                            <span class="mastery-label">習得済み（7-89日）</span>
                             <span class="mastery-count" id="mastered-count">0問</span>
                         </div>
                         <div class="mastery-item">
@@ -98,7 +102,6 @@
                         <option value="unanswered">未解答問題</option>
                         <option value="random">ランダム</option>
                         <option value="tag">タグ指定</option>
-                        <option value="review">復習優先</option>
                     </select>
                 </div>
 
@@ -155,9 +158,10 @@
                 </div>
 
                 <div class="quiz-actions">
-                    <button id="add-to-review-btn" class="btn btn-secondary">
-                        📌 復習追加
-                    </button>                    
+                    <br>
+                    <button id="mark-completed-btn" class="btn btn-success">
+                        ✓ 習得済みにする
+                    </button>
                     <button id="skip-question-btn" class="btn btn-secondary">
                         スキップ (S)
                     </button>
@@ -175,39 +179,6 @@
                     最初に戻る
                 </button>
             </div>
-        </section>
-
-        <!-- 復習画面 -->
-        <section id="review-screen" class="screen">
-            <h2>復習</h2>
-
-            <div class="review-header">
-                <span id="review-count" class="review-count">復習が必要な問題: 0件</span>
-                <select id="review-sort" class="form-select form-select-small">
-                    <option value="wrong_count">間違いが多い順</option>
-                    <option value="recent">新しく間違えた順</option>
-                </select>
-            </div>
-            <p class="review-description">間違えた問題は、「復習完了」ボタンを押すまでリストに残ります。納得いくまで繰り返し学習できます。</p>
-
-            <!-- タグフィルタ追加 -->
-            <div class="form-group" id="review-tag-filter-container">
-                <label>
-                    <input type="checkbox" id="review-enable-tag-filter" class="form-checkbox">
-                    タグで絞り込む（複数選択可）
-                </label>
-                <div id="review-tag-checkboxes" class="tag-checkboxes" style="display: none;">
-                    <!-- タグのチェックボックスがここに動的に追加されます -->
-                </div>
-            </div>
-
-            <div id="review-list" class="review-list">
-                <p class="empty-message">復習が必要な問題はありません</p>
-            </div>
-
-            <button id="start-review-btn" class="btn btn-primary btn-large" style="display: none;">
-                復習を開始
-            </button>
         </section>
 
         <!-- 管理画面 -->
@@ -479,10 +450,6 @@
         <button class="nav-btn" data-screen="quiz-screen">
             <span class="nav-icon">📝</span>
             <span class="nav-label">解く</span>
-        </button>
-        <button class="nav-btn" data-screen="review-screen">
-            <span class="nav-icon">🔄</span>
-            <span class="nav-label">復習</span>
         </button>
         <button class="nav-btn active" data-screen="manage-screen">
             <span class="nav-icon">⚙️</span>

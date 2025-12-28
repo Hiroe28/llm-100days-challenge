@@ -63,26 +63,11 @@ function calculateSM2(card, quality) {
 /**
  * 回答品質を判定（4択クイズ用の簡易版）
  * @param {boolean} correct - 正解かどうか
- * @param {number} timeSpent - 回答にかかった時間（秒）
- * @returns {number} quality (0-5)
+ * @returns {number} quality (1 or 4)
  */
-function determineQuality(correct, timeSpent = null) {
-    if (!correct) {
-        return 1; // 不正解
-    }
-
-    // 正解の場合、回答時間で品質を判定
-    if (timeSpent === null) {
-        return 4; // デフォルトは「正解（少し考えた）」
-    }
-
-    if (timeSpent < 3) {
-        return 5; // 3秒未満: 完璧（即答）
-    } else if (timeSpent < 10) {
-        return 4; // 10秒未満: 正解（少し考えた）
-    } else {
-        return 3; // 10秒以上: 正解（かなり考えた）
-    }
+function determineQuality(correct) {
+    // 正解なら4、不正解なら1（時間判定は削除）
+    return correct ? 4 : 1;
 }
 
 /**
@@ -93,6 +78,9 @@ function determineQuality(correct, timeSpent = null) {
 function getQuestionsForReview(allStats) {
     const now = Date.now();
     const reviewQuestions = allStats.filter(stat => {
+        // 完全習得済みは除外
+        if (getMasteryLevel(stat) === 'completed') return false;
+        
         // nextReviewDateが設定されていない場合は復習不要
         if (!stat.nextReviewDate) return false;
         
@@ -127,7 +115,7 @@ function getNewQuestionsForToday(allQuestions, allStats, limit = 20) {
 /**
  * クイズ回答時の処理例
  */
-async function handleQuizAnswer(questionId, isCorrect, timeSpent) {
+async function handleQuizAnswer(questionId, isCorrect) {
     // 既存の統計データを取得
     let stats = await QuizDB.getStats(questionId) || {
         question_id: questionId,
@@ -137,8 +125,8 @@ async function handleQuizAnswer(questionId, isCorrect, timeSpent) {
         nextReviewDate: null
     };
 
-    // 回答品質を判定
-    const quality = determineQuality(isCorrect, timeSpent);
+    // 回答品質を判定（時間判定なし）
+    const quality = determineQuality(isCorrect);
 
     // SM-2アルゴリズムで次回復習日を計算
     const updated = calculateSM2(stats, quality);
@@ -170,7 +158,7 @@ async function getTodayStudyPlan() {
         statsMap.set(stat.question_id, stat);
     });
 
-    // 復習が必要な問題
+    // 復習が必要な問題（完全習得済みは除外）
     const reviewQuestions = getQuestionsForReview(allStats);
 
     // 新規問題を取得（statsに記録がない問題）
@@ -200,15 +188,18 @@ async function getMasteryStats() {
         statsMap.set(stat.question_id, stat);
     });
     
-    let mastered = 0;  // 習得済み（7日以上）
-    let learning = 0;  // 学習中（1-6日）
-    let newCount = 0;  // 未学習
+    let completed = 0;  // 完全習得（90日以上）
+    let mastered = 0;   // 習得済み（7-89日）
+    let learning = 0;   // 学習中（1-6日）
+    let newCount = 0;   // 未学習
     
     allQuestions.forEach(q => {
         const stats = statsMap.get(q.id);
         const level = getMasteryLevel(stats);
         
-        if (level === 'mastered') {
+        if (level === 'completed') {
+            completed++;
+        } else if (level === 'mastered') {
             mastered++;
         } else if (level === 'learning') {
             learning++;
@@ -218,6 +209,7 @@ async function getMasteryStats() {
     });
     
     return {
+        completed,
         mastered,
         learning,
         new: newCount,
@@ -230,15 +222,19 @@ async function getMasteryStats() {
 /**
  * 問題のマスタリーレベルを判定
  * @param {Object} stats - 統計データ
- * @returns {string} 'mastered' | 'learning' | 'new'
+ * @returns {string} 'completed' | 'mastered' | 'learning' | 'new'
  */
 function getMasteryLevel(stats) {
     if (!stats || stats.interval === undefined) {
         return 'new'; // 未学習
     }
     
+    if (stats.interval >= 90) {
+        return 'completed'; // 完全習得（90日以上）
+    }
+    
     if (stats.interval >= 7) {
-        return 'mastered'; // 習得済み（7日以上）
+        return 'mastered'; // 習得済み（7-89日）
     }
     
     if (stats.interval > 0) {
