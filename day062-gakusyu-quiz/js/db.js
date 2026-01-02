@@ -48,20 +48,20 @@ async function initDB() {
                 questionsStore.createIndex('tags', 'tags', { unique: false, multiEntry: true });
             }
 
-            // assetsストア（画像など）
+            // assetsストア(画像など)
             if (!database.objectStoreNames.contains('assets')) {
                 const assetsStore = database.createObjectStore('assets', { keyPath: 'id' });
                 assetsStore.createIndex('created_at', 'created_at', { unique: false });
             }
 
-            // attemptsストア（解答履歴）
+            // attemptsストア(解答履歴)
             if (!database.objectStoreNames.contains('attempts')) {
                 const attemptsStore = database.createObjectStore('attempts', { keyPath: 'id' });
                 attemptsStore.createIndex('question_id', 'question_id', { unique: false });
                 attemptsStore.createIndex('timestamp', 'timestamp', { unique: false });
             }
 
-            // statsストア（統計情報）
+            // statsストア(統計情報)
             if (!database.objectStoreNames.contains('stats')) {
                 const statsStore = database.createObjectStore('stats', { keyPath: 'question_id' });
                 statsStore.createIndex('wrong_count', 'wrong_count', { unique: false });
@@ -119,7 +119,7 @@ async function addQuestion(questionData) {
 }
 
 /**
- * IDを指定して問題を追加（インポート用）
+ * IDを指定して問題を追加(インポート用)
  * IDが指定されていない場合は自動生成
  */
 async function addQuestionWithId(questionData) {
@@ -145,7 +145,7 @@ async function addQuestionWithId(questionData) {
 }
 
 /**
- * アセットをIDを指定して追加（インポート用）
+ * アセットをIDを指定して追加(インポート用)
  */
 async function addAssetWithId(id, blob, filename, created_at) {
     return new Promise((resolve, reject) => {
@@ -165,7 +165,7 @@ async function addAssetWithId(id, blob, filename, created_at) {
 }
 
 /**
- * 統計データを直接追加（インポート用）
+ * 統計データを直接追加(インポート用)
  */
 async function addStatsData(statsData) {
     return new Promise((resolve, reject) => {
@@ -177,7 +177,7 @@ async function addStatsData(statsData) {
 }
 
 /**
- * 解答履歴を直接追加（インポート用）
+ * 解答履歴を直接追加(インポート用)
  */
 async function addAttemptData(attemptData) {
     return new Promise((resolve, reject) => {
@@ -301,7 +301,7 @@ async function getAllTags() {
 // ==================== Assets ====================
 
 /**
- * アセット（画像など）を追加
+ * アセット(画像など)を追加
  */
 async function addAsset(blob, filename) {
     return new Promise((resolve, reject) => {
@@ -405,11 +405,12 @@ async function getAllAttempts() {
 
 // ==================== Stats ====================
 
-
 /**
- * 統計を更新（解答後に呼ぶ）- SM-2対応版
+ * 統計を更新(解答後に呼ぶ) - SM-2対応版
+ * @param {string} questionId - 問題ID
+ * @param {boolean} correct - 正解かどうか
  */
-async function updateStats(questionId, correct, timeSpent = null) {
+async function updateStats(questionId, correct) {
     return new Promise((resolve, reject) => {
         const store = getStore('stats', 'readwrite');
         const getRequest = store.get(questionId);
@@ -424,16 +425,14 @@ async function updateStats(questionId, correct, timeSpent = null) {
                 nextReviewDate: null,
                 totalReviews: 0,
                 lastReviewDate: null,
-                // 既存フィールド
+                // 既存フィールド(互換性のため残す)
                 wrong_count: 0,
                 last_wrong_at: null,
                 last_correct_at: null
             };
 
-            // SM-2計算用の品質判定
-            const quality = timeSpent !== null 
-                ? SM2.determineQuality(correct, timeSpent)
-                : (correct ? 4 : 1);
+            // SM-2での品質判定: 正解なら4、不正解なら1
+            const quality = correct ? 4 : 1;
 
             // SM-2アルゴリズムで次回復習日を計算
             const sm2Result = SM2.calculateSM2(stats, quality);
@@ -444,11 +443,21 @@ async function updateStats(questionId, correct, timeSpent = null) {
                 ...sm2Result,
                 lastReviewDate: Date.now(),
                 totalReviews: (stats.totalReviews || 0) + 1,
-                // 既存の統計も更新
+                // 既存の統計も更新(互換性のため)
                 wrong_count: correct ? stats.wrong_count || 0 : (stats.wrong_count || 0) + 1,
                 last_correct_at: correct ? Date.now() : stats.last_correct_at,
                 last_wrong_at: correct ? stats.last_wrong_at : Date.now()
             };
+
+            // デバッグ用ログ
+            console.log('📊 統計更新:', {
+                questionId: questionId.substring(0, 8) + '...',
+                correct,
+                repetitions: stats.repetitions,
+                interval: stats.interval,
+                nextReview: new Date(stats.nextReviewDate).toLocaleString('ja-JP'),
+                masteryLevel: SM2.getMasteryLevelDescription(stats)
+            });
 
             const putRequest = store.put(stats);
             putRequest.onsuccess = () => resolve(stats);
@@ -460,7 +469,7 @@ async function updateStats(questionId, correct, timeSpent = null) {
 }
 
 /**
- * 統計をリセット（復習完了時など）
+ * 統計をリセット(復習完了時など)
  */
 async function resetStats(questionId) {
     return new Promise((resolve, reject) => {
@@ -469,14 +478,14 @@ async function resetStats(questionId) {
             question_id: questionId,
 
             // SM-2用の新フィールド
-            easeFactor: 2.5,        // 難易度係数（デフォルト2.5）
+            easeFactor: 2.5,        // 難易度係数(デフォルト2.5)
             interval: 0,            // 次回までの日数
             repetitions: 0,         // 連続正解回数
-            nextReviewDate: null,   // 次回復習日（タイムスタンプ）
+            nextReviewDate: null,   // 次回復習日(タイムスタンプ)
             lastReviewDate: null,   // 最終復習日
             totalReviews: 0,        // 総復習回数
 
-            // 既存フィールド（互換性のため残す）
+            // 既存フィールド(互換性のため残す)
             wrong_count: 0,
             last_wrong_at: null,
             last_correct_at: Date.now()
@@ -489,7 +498,7 @@ async function resetStats(questionId) {
 }
 
 /**
- * 問題を復習リストに追加（手動マーク用）
+ * 問題を復習リストに追加(手動マーク用)
  */
 async function markForReview(questionId) {
     return new Promise((resolve, reject) => {
@@ -510,7 +519,7 @@ async function markForReview(questionId) {
                 last_correct_at: null
             };
 
-            // 復習リストに追加（wrong_countを増やす）
+            // 復習リストに追加(wrong_countを増やす)
             stats.wrong_count = (stats.wrong_count || 0) + 1;
             stats.last_wrong_at = Date.now();
 
@@ -549,6 +558,12 @@ async function markAsCompleted(questionId) {
             stats.interval = 90;
             stats.nextReviewDate = Date.now() + 90 * 24 * 60 * 60 * 1000;
 
+            console.log('✅ 手動で完全習得済みに設定:', {
+                questionId: questionId.substring(0, 8) + '...',
+                interval: stats.interval,
+                masteryLevel: SM2.getMasteryLevelDescription(stats)
+            });
+
             const putRequest = store.put(stats);
             putRequest.onsuccess = () => resolve(stats);
             putRequest.onerror = () => reject(putRequest.error);
@@ -576,6 +591,11 @@ async function restartLearning(questionId) {
             last_wrong_at: null,
             last_correct_at: null
         };
+
+        console.log('🔄 再学習対象に設定:', {
+            questionId: questionId.substring(0, 8) + '...',
+            masteryLevel: SM2.getMasteryLevelDescription(stats)
+        });
 
         const request = store.put(stats);
         request.onsuccess = () => resolve(stats);
@@ -697,6 +717,6 @@ window.QuizDB = {
     deleteStats,
     addStatsData,
     getUnansweredQuestions,
-    markAsCompleted,      // ★追加
-    restartLearning       // ★追加
+    markAsCompleted,
+    restartLearning
 };

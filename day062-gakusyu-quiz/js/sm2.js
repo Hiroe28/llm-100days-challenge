@@ -61,16 +61,6 @@ function calculateSM2(card, quality) {
 }
 
 /**
- * 回答品質を判定（4択クイズ用の簡易版）
- * @param {boolean} correct - 正解かどうか
- * @returns {number} quality (1 or 4)
- */
-function determineQuality(correct) {
-    // 正解なら4、不正解なら1（時間判定は削除）
-    return correct ? 4 : 1;
-}
-
-/**
  * 復習が必要な問題を取得（SM-2版）
  * @param {Array} allStats - 全統計データ
  * @returns {Array} 復習が必要な問題IDのリスト
@@ -111,39 +101,6 @@ function getNewQuestionsForToday(allQuestions, allStats, limit = 20) {
 }
 
 // ==================== 使用例 ====================
-
-/**
- * クイズ回答時の処理例
- */
-async function handleQuizAnswer(questionId, isCorrect) {
-    // 既存の統計データを取得
-    let stats = await QuizDB.getStats(questionId) || {
-        question_id: questionId,
-        easeFactor: 2.5,
-        interval: 0,
-        repetitions: 0,
-        nextReviewDate: null
-    };
-
-    // 回答品質を判定（時間判定なし）
-    const quality = determineQuality(isCorrect);
-
-    // SM-2アルゴリズムで次回復習日を計算
-    const updated = calculateSM2(stats, quality);
-
-    // 統計データを更新
-    stats = {
-        ...stats,
-        ...updated,
-        lastReviewDate: Date.now(),
-        totalReviews: (stats.totalReviews || 0) + 1
-    };
-
-    // DBに保存
-    await QuizDB.updateStats(questionId, stats);
-
-    return stats;
-}
 
 /**
  * 今日の学習内容を取得
@@ -244,15 +201,33 @@ function getMasteryLevel(stats) {
     return 'new'; // 未学習
 }
 
+/**
+ * マスタリーレベルの説明を取得（デバッグ用）
+ * @param {Object} stats - 統計データ
+ * @returns {string} レベルの説明
+ */
+function getMasteryLevelDescription(stats) {
+    if (!stats) return '未学習';
+    
+    const level = getMasteryLevel(stats);
+    const descriptions = {
+        'completed': `完全習得 (${stats.interval}日間隔, ${stats.repetitions}回連続正解)`,
+        'mastered': `習得済み (${stats.interval}日間隔, ${stats.repetitions}回連続正解)`,
+        'learning': `学習中 (${stats.interval}日間隔, ${stats.repetitions}回連続正解)`,
+        'new': '未学習'
+    };
+    
+    return descriptions[level] || '未学習';
+}
+
 // ==================== エクスポート ====================
 
 window.SM2 = {
     calculateSM2,
-    determineQuality,
     getQuestionsForReview,
     getNewQuestionsForToday,
-    handleQuizAnswer,
     getTodayStudyPlan,
     getMasteryStats,
-    getMasteryLevel
+    getMasteryLevel,
+    getMasteryLevelDescription
 };
