@@ -708,14 +708,18 @@ body {
 /* インポート/エクスポート */
 
 .import-export-section {
-    margin-top: var(--spacing-xl);
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .import-export-section h3 {
     margin-bottom: var(--spacing-md);
-    font-size: 1rem;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .import-export-buttons {
@@ -905,6 +909,28 @@ body {
 
 .data-help strong {
     color: var(--text-color);
+}
+
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--spacing-md) 0;
+}
+
+.markdown-content th,
+.markdown-content td {
+    border: 1px solid var(--border-color);
+    padding: var(--spacing-sm);
+    text-align: left;
+}
+
+.markdown-content th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.markdown-content tr:nth-child(even) {
+    background: #f8f9fa;
 }
 
 /* ==================== モーダル ==================== */

@@ -187,29 +187,10 @@
 
             <!-- 問題一覧 -->
             <div id="question-list-container" class="question-list-container">
-                <div class="manage-header">
-                    <div class="search-box">
-                        <input type="text" id="search-input" class="form-input" placeholder="検索...">
-                    </div>
-                    <select id="filter-tag" class="form-select form-select-small">
-                        <option value="">全てのタグ</option>
-                    </select>
-                </div>
-
-                <div class="manage-actions">
-                    <span id="question-count" class="question-count">全0問</span>
-                    <button id="add-question-btn" class="btn btn-primary">
-                        + 問題を追加
-                    </button>
-                </div>
-
-                <div id="question-list" class="question-list">
-                    <p class="empty-message">問題がありません</p>
-                </div>
-
-                <!-- インポート/エクスポート -->
+                
+                <!-- ⭐ データ管理を最上部に移動 -->
                 <div class="import-export-section">
-                    <h3>データ管理</h3>
+                    <h3>📦 データ管理</h3>
                     <div class="import-export-buttons">
                         <button id="export-zip-btn" class="btn btn-secondary">
                             📦 完全バックアップ (ZIP)
@@ -235,6 +216,29 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- 検索とフィルター -->
+                <div class="manage-header">
+                    <div class="search-box">
+                        <input type="text" id="search-input" class="form-input" placeholder="検索...">
+                    </div>
+                    <select id="filter-tag" class="form-select form-select-small">
+                        <option value="">全てのタグ</option>
+                    </select>
+                </div>
+
+                <div class="manage-actions">
+                    <span id="question-count" class="question-count">全0問</span>
+                    <button id="add-question-btn" class="btn btn-primary">
+                        + 問題を追加
+                    </button>
+                </div>
+
+                <div id="question-list" class="question-list">
+                    <p class="empty-message">問題がありません</p>
+                </div>
+
+                <!-- ⭐ 元のインポート/エクスポート部分は削除（上に移動したため） -->
             </div>
 
             <!-- 問題エディタ -->
