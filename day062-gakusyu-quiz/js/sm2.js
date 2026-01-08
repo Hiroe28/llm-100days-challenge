@@ -250,13 +250,33 @@ async function getReviewScheduleStats() {
     let tomorrowCount = 0;
     let within3DaysCount = 0;
     let withinWeekCount = 0;
-    let laterCount = 0;
+    let masteredCount = 0;     // 8-89日
+    let completedCount = 0;    // 90日以上
     let newCount = 0;
     
     allQuestions.forEach(q => {
         const stats = statsMap.get(q.id);
         
-        if (!stats || !stats.nextReviewDate) {
+        // 未学習
+        if (!stats || !stats.interval || stats.interval === 0) {
+            newCount++;
+            return;
+        }
+        
+        // 完全習得(90日以上)
+        if (stats.interval >= 90) {
+            completedCount++;
+            return;
+        }
+        
+        // 長期定着(8-89日)
+        if (stats.interval >= 8) {
+            masteredCount++;
+            return;
+        }
+        
+        // 学習中(1-7日)はスケジュールで判定
+        if (!stats.nextReviewDate) {
             newCount++;
             return;
         }
@@ -271,8 +291,6 @@ async function getReviewScheduleStats() {
             within3DaysCount++;
         } else if (nextReview <= inWeek.getTime()) {
             withinWeekCount++;
-        } else {
-            laterCount++;
         }
     });
     
@@ -281,7 +299,8 @@ async function getReviewScheduleStats() {
         tomorrow: tomorrowCount,
         within3Days: within3DaysCount,
         withinWeek: withinWeekCount,
-        later: laterCount,
+        mastered: masteredCount,
+        completed: completedCount,
         new: newCount,
         total: allQuestions.length
     };

@@ -311,7 +311,8 @@ async function updateStudyDashboard() {
         document.getElementById('tomorrow-due-count').textContent = scheduleStats.tomorrow + '問';
         document.getElementById('within-3days-count').textContent = scheduleStats.within3Days + '問';
         document.getElementById('within-week-count').textContent = scheduleStats.withinWeek + '問';
-        document.getElementById('later-count').textContent = scheduleStats.later + '問';
+        document.getElementById('mastered-count').textContent = scheduleStats.mastered + '問';
+        document.getElementById('completed-count').textContent = scheduleStats.completed + '問';
         document.getElementById('new-count').textContent = scheduleStats.new + '問';
         
     } catch (error) {
