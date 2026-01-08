@@ -220,6 +220,73 @@ function getMasteryLevelDescription(stats) {
     return descriptions[level] || '未学習';
 }
 
+/**
+ * 復習スケジュールの統計を取得
+ */
+async function getReviewScheduleStats() {
+    const allQuestions = await QuizDB.getAllQuestions();
+    const allStats = await QuizDB.getAllStats();
+    
+    // 統計データをMapに変換
+    const statsMap = new Map();
+    allStats.forEach(stat => {
+        statsMap.set(stat.question_id, stat);
+    });
+    
+    const now = Date.now();
+    const today = new Date(now);
+    today.setHours(23, 59, 59, 999); // 今日の終わり
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const in3Days = new Date(today);
+    in3Days.setDate(in3Days.getDate() + 3);
+    
+    const inWeek = new Date(today);
+    inWeek.setDate(inWeek.getDate() + 7);
+    
+    let todayCount = 0;
+    let tomorrowCount = 0;
+    let within3DaysCount = 0;
+    let withinWeekCount = 0;
+    let laterCount = 0;
+    let newCount = 0;
+    
+    allQuestions.forEach(q => {
+        const stats = statsMap.get(q.id);
+        
+        if (!stats || !stats.nextReviewDate) {
+            newCount++;
+            return;
+        }
+        
+        const nextReview = stats.nextReviewDate;
+        
+        if (nextReview <= today.getTime()) {
+            todayCount++;
+        } else if (nextReview <= tomorrow.getTime()) {
+            tomorrowCount++;
+        } else if (nextReview <= in3Days.getTime()) {
+            within3DaysCount++;
+        } else if (nextReview <= inWeek.getTime()) {
+            withinWeekCount++;
+        } else {
+            laterCount++;
+        }
+    });
+    
+    return {
+        today: todayCount,
+        tomorrow: tomorrowCount,
+        within3Days: within3DaysCount,
+        withinWeek: withinWeekCount,
+        later: laterCount,
+        new: newCount,
+        total: allQuestions.length
+    };
+}
+
 // ==================== エクスポート ====================
 
 window.SM2 = {
@@ -229,5 +296,6 @@ window.SM2 = {
     getTodayStudyPlan,
     getMasteryStats,
     getMasteryLevel,
-    getMasteryLevelDescription
+    getMasteryLevelDescription,
+    getReviewScheduleStats
 };

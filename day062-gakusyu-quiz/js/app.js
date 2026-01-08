@@ -304,13 +304,15 @@ async function updateStudyDashboard() {
         document.getElementById('today-new-count').textContent = studyPlan.new.length;
         document.getElementById('today-total-count').textContent = studyPlan.total;
         
-        // 習得状況
-        const masteryStats = await SM2.getMasteryStats();
+        // 復習スケジュール統計を取得
+        const scheduleStats = await SM2.getReviewScheduleStats();
         
-        document.getElementById('completed-count').textContent = masteryStats.completed + '問';
-        document.getElementById('mastered-count').textContent = masteryStats.mastered + '問';
-        document.getElementById('learning-count').textContent = masteryStats.learning + '問';
-        document.getElementById('new-count').textContent = masteryStats.new + '問';
+        document.getElementById('today-due-count').textContent = scheduleStats.today + '問';
+        document.getElementById('tomorrow-due-count').textContent = scheduleStats.tomorrow + '問';
+        document.getElementById('within-3days-count').textContent = scheduleStats.within3Days + '問';
+        document.getElementById('within-week-count').textContent = scheduleStats.withinWeek + '問';
+        document.getElementById('later-count').textContent = scheduleStats.later + '問';
+        document.getElementById('new-count').textContent = scheduleStats.new + '問';
         
     } catch (error) {
         console.error('ダッシュボード更新エラー:', error);
