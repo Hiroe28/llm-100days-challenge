@@ -61,12 +61,18 @@ function calculateSM2(card, quality) {
 }
 
 /**
- * 復習が必要な問題を取得（SM-2版）
+ * 復習が必要な問題を取得(SM-2版)
  * @param {Array} allStats - 全統計データ
  * @returns {Array} 復習が必要な問題IDのリスト
  */
 function getQuestionsForReview(allStats) {
     const now = Date.now();
+    
+    // ★ 今日の終わりまでを基準にする
+    const today = new Date(now);
+    today.setHours(23, 59, 59, 999);
+    const todayEnd = today.getTime();
+    
     const reviewQuestions = allStats.filter(stat => {
         // 完全習得済みは除外
         if (getMasteryLevel(stat) === 'completed') return false;
@@ -74,11 +80,11 @@ function getQuestionsForReview(allStats) {
         // nextReviewDateが設定されていない場合は復習不要
         if (!stat.nextReviewDate) return false;
         
-        // 復習日が過ぎている問題のみ
-        return stat.nextReviewDate <= now;
+        // 今日の終わりまでに復習日が来ている問題
+        return stat.nextReviewDate <= todayEnd;
     });
 
-    // 次回復習日が古い順（最優先）でソート
+    // 次回復習日が古い順(最優先)でソート
     reviewQuestions.sort((a, b) => a.nextReviewDate - b.nextReviewDate);
 
     return reviewQuestions;
