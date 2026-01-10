@@ -115,20 +115,24 @@ async function getTodayStudyPlan() {
     const allQuestions = await QuizDB.getAllQuestions();
     const allStats = await QuizDB.getAllStats();
 
-    // 統計データをMapに変換（高速検索用）
+    // 統計データをMapに変換(高速検索用)
     const statsMap = new Map();
     allStats.forEach(stat => {
         statsMap.set(stat.question_id, stat);
     });
 
-    // 復習が必要な問題（完全習得済みは除外）
+    // 復習が必要な問題(完全習得済みは除外)
     const reviewQuestions = getQuestionsForReview(allStats);
 
-    // 新規問題を取得（statsに記録がない問題）
+    // 新規問題を取得(statsに記録がない問題)
     const newQuestions = allQuestions.filter(q => !statsMap.has(q.id));
     
-    // 新規問題の数を制限（復習が少ない場合のみ追加）
-    const newQuestionsLimit = Math.max(0, 50 - reviewQuestions.length);
+    // ★ 新規問題の数を決定
+    // - 最低10問は確保(ただし利用可能な新規問題数を超えない)
+    // - 復習が少ない場合は最大50問まで追加可能
+    const minNewQuestions = Math.min(10, newQuestions.length);
+    const maxNewQuestions = Math.max(0, 50 - reviewQuestions.length);
+    const newQuestionsLimit = Math.max(minNewQuestions, maxNewQuestions);
     const selectedNewQuestions = newQuestions.slice(0, newQuestionsLimit);
 
     return {
