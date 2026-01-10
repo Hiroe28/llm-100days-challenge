@@ -395,6 +395,7 @@
     let gameMode = 'player'; // 'player' or 'computer'
     let difficulty = 'easy'; // 'easy', 'medium', 'hard'
     let isComputerThinking = false;
+    let playerStarts = null; // null=初回(ランダム), true=プレイヤー先攻, false=コンピュータ先攻
 
     const winPatterns = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -443,6 +444,7 @@
       document.getElementById('mode-selection').style.display = 'block';
       document.getElementById('game-container').classList.remove('active');
       scores = { maru: 0, batsu: 0 };
+      playerStarts = null; // リセット
       updateScores();
     }
 
@@ -491,10 +493,22 @@
     }
 
     function updateStatus() {
-      const playerName = gameMode === 'computer' && currentPlayer === 'batsu' 
-        ? 'コンピュータ' 
-        : names[currentPlayer];
-      showStatus(`${symbols[currentPlayer]} ${playerName}のばん！`, currentPlayer);
+      let playerName;
+      let turnIndicator = '';
+      
+      if (gameMode === 'computer') {
+        if (currentPlayer === 'maru') {
+          playerName = 'あなた';
+          turnIndicator = playerStarts ? ' (先攻)' : ' (後攻)';
+        } else {
+          playerName = 'コンピュータ';
+          turnIndicator = playerStarts ? ' (後攻)' : ' (先攻)';
+        }
+      } else {
+        playerName = names[currentPlayer];
+      }
+      
+      showStatus(`${symbols[currentPlayer]} ${playerName}${turnIndicator}のばん！`, currentPlayer);
     }
 
     function computerMove() {
@@ -688,11 +702,31 @@
 
     function resetGame() {
       board = ['', '', '', '', '', '', '', '', ''];
-      currentPlayer = 'maru';
       gameOver = false;
       isComputerThinking = false;
+      
+      // 先攻後攻の決定
+      if (gameMode === 'computer') {
+        if (playerStarts === null) {
+          // 初回はランダム
+          playerStarts = Math.random() < 0.5;
+        } else {
+          // 2回目以降は交互
+          playerStarts = !playerStarts;
+        }
+        
+        currentPlayer = playerStarts ? 'maru' : 'batsu';
+      } else {
+        currentPlayer = 'maru';
+      }
+      
       createBoard();
       updateStatus();
+      
+      // コンピュータが先攻の場合、自動的に打つ
+      if (gameMode === 'computer' && currentPlayer === 'batsu') {
+        computerMove();
+      }
     }
 
     createBoard();
