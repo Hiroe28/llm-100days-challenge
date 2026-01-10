@@ -96,6 +96,18 @@ function setupEventListeners() {
         });
     });
 
+    // ★ 復習スケジュールの折りたたみ
+    const scheduleHeader = document.getElementById('schedule-header');
+    const scheduleContent = document.getElementById('schedule-content');
+    const scheduleToggle = document.getElementById('schedule-toggle');
+    
+    if (scheduleHeader && scheduleContent && scheduleToggle) {
+        scheduleHeader.addEventListener('click', () => {
+            scheduleContent.classList.toggle('expanded');
+            scheduleToggle.classList.toggle('expanded');
+        });
+    }
+
     // クイズ画面
     setupQuizEventListeners();
 

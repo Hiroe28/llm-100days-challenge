@@ -1146,7 +1146,7 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .stat-card {
@@ -1166,6 +1166,43 @@ body {
 .stat-label {
     font-size: 12px;
     opacity: 0.9;
+}
+
+/* 復習スケジュールの折りたたみ */
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 8px 0;
+    margin-bottom: 8px;
+}
+
+.schedule-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.schedule-toggle {
+    font-size: 16px;
+    transition: transform 0.3s;
+}
+
+.schedule-toggle.expanded {
+    transform: rotate(180deg);
+}
+
+.schedule-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.schedule-content.expanded {
+    max-height: 500px;
 }
 
 .mastery-stats {

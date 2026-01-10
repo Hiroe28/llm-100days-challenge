@@ -109,36 +109,19 @@ async function getTodayStudyPlan() {
     const allQuestions = await QuizDB.getAllQuestions();
     const allStats = await QuizDB.getAllStats();
 
-    // 統計データをMapに変換(高速検索用)
+    // 統計データをMapに変換（高速検索用）
     const statsMap = new Map();
     allStats.forEach(stat => {
         statsMap.set(stat.question_id, stat);
     });
 
-    // 今日の終わりの時刻を計算
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    const todayEnd = today.getTime();
+    // 復習が必要な問題（完全習得済みは除外）
+    const reviewQuestions = getQuestionsForReview(allStats);
 
-    // 復習が必要な問題(今日中が期限のもの)
-    const reviewQuestions = allStats.filter(stat => {
-        // 完全習得済みは除外
-        if (getMasteryLevel(stat) === 'completed') return false;
-        
-        // nextReviewDateが設定されていない場合は復習不要
-        if (!stat.nextReviewDate) return false;
-        
-        // 今日中に復習予定の問題
-        return stat.nextReviewDate <= todayEnd;
-    });
-
-    // 次回復習日が古い順(最優先)でソート
-    reviewQuestions.sort((a, b) => a.nextReviewDate - b.nextReviewDate);
-
-    // 新規問題を取得(statsに記録がない問題)
+    // 新規問題を取得（statsに記録がない問題）
     const newQuestions = allQuestions.filter(q => !statsMap.has(q.id));
     
-    // 新規問題の数を制限(復習が少ない場合のみ追加)
+    // 新規問題の数を制限（復習が少ない場合のみ追加）
     const newQuestionsLimit = Math.max(0, 50 - reviewQuestions.length);
     const selectedNewQuestions = newQuestions.slice(0, newQuestionsLimit);
 
@@ -148,7 +131,6 @@ async function getTodayStudyPlan() {
         total: reviewQuestions.length + selectedNewQuestions.length
     };
 }
-
 
 /**
  * 習得状況の統計を取得
