@@ -49,6 +49,121 @@
       50% { transform: translateY(-10px); }
     }
 
+    .mode-selection {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      text-align: center;
+      margin-bottom: 20px;
+      max-width: 500px;
+    }
+
+    .mode-selection h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    .mode-buttons {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .mode-btn {
+      padding: 15px 30px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: 3px solid #ddd;
+      border-radius: 15px;
+      cursor: pointer;
+      background: white;
+      transition: all 0.3s ease;
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .mode-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: #667eea;
+    }
+
+    .difficulty-section {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #eee;
+    }
+
+    .difficulty-section h3 {
+      color: #666;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+    }
+
+    .difficulty-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .difficulty-btn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      cursor: pointer;
+      background: white;
+      transition: all 0.3s ease;
+    }
+
+    .difficulty-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
+    .difficulty-btn.active {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      border-color: #f093fb;
+    }
+
+    .start-btn {
+      margin-top: 20px;
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(17, 153, 142, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(17, 153, 142, 0.5);
+    }
+
+    .game-container {
+      display: none;
+    }
+
+    .game-container.active {
+      display: block;
+    }
+
     .status {
       background: white;
       padding: 15px 30px;
@@ -151,6 +266,24 @@
       transform: translateY(0);
     }
 
+    .back-btn {
+      margin-top: 15px;
+      padding: 10px 30px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #666;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
     .score-board {
       display: flex;
       gap: 30px;
@@ -193,38 +326,75 @@
       }
     }
 
-    @media (max-width: 400px) {
+    @media (max-width: 500px) {
       h1 { font-size: 1.8rem; }
       .cell { width: 80px; height: 80px; font-size: 3rem; }
       .status { font-size: 1.2rem; padding: 10px 20px; }
+      .mode-selection { padding: 20px; }
+      .mode-btn { min-width: 120px; font-size: 1rem; }
     }
   </style>
 </head>
 <body>
   <h1>🎮 マルバツゲーム 🎮</h1>
 
-  <div class="score-board">
-    <div class="score maru">
-      <div class="score-label">⭕ マル</div>
-      <div class="score-value" id="score-maru">0</div>
+  <div class="mode-selection" id="mode-selection">
+    <h2>ゲームモードを選んでね！</h2>
+    <div class="mode-buttons">
+      <button class="mode-btn active" onclick="selectMode('player')">
+        👥 2人で対戦
+      </button>
+      <button class="mode-btn" onclick="selectMode('computer')">
+        🤖 コンピュータと対戦
+      </button>
     </div>
-    <div class="score batsu">
-      <div class="score-label">❌ バツ</div>
-      <div class="score-value" id="score-batsu">0</div>
+    
+    <div class="difficulty-section" id="difficulty-section" style="display: none;">
+      <h3>💪 コンピュータの強さ</h3>
+      <div class="difficulty-buttons">
+        <button class="difficulty-btn active" onclick="selectDifficulty('easy')">
+          😊 初級
+        </button>
+        <button class="difficulty-btn" onclick="selectDifficulty('medium')">
+          😎 中級
+        </button>
+        <button class="difficulty-btn" onclick="selectDifficulty('hard')">
+          😈 上級
+        </button>
+      </div>
     </div>
+
+    <button class="start-btn" onclick="startGame()">🎮 ゲーム開始！</button>
   </div>
 
-  <div class="status" id="status">⭕ マルのばん！</div>
+  <div class="game-container" id="game-container">
+    <div class="score-board">
+      <div class="score maru">
+        <div class="score-label" id="label-maru">⭕ マル</div>
+        <div class="score-value" id="score-maru">0</div>
+      </div>
+      <div class="score batsu">
+        <div class="score-label" id="label-batsu">❌ バツ</div>
+        <div class="score-value" id="score-batsu">0</div>
+      </div>
+    </div>
 
-  <div class="board" id="board"></div>
+    <div class="status" id="status">⭕ マルのばん!</div>
 
-<button class="reset-btn" onclick="resetGame()">🔄 もういっかい！</button>
+    <div class="board" id="board"></div>
+
+    <button class="reset-btn" onclick="resetGame()">🔄 もういっかい！</button>
+    <button class="back-btn" onclick="backToMenu()">⬅️ メニューに戻る</button>
+  </div>
 
   <script>
     let board = ['', '', '', '', '', '', '', '', ''];
     let currentPlayer = 'maru';
     let gameOver = false;
     let scores = { maru: 0, batsu: 0 };
+    let gameMode = 'player'; // 'player' or 'computer'
+    let difficulty = 'easy'; // 'easy', 'medium', 'hard'
+    let isComputerThinking = false;
 
     const winPatterns = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -234,6 +404,47 @@
 
     const symbols = { maru: '⭕', batsu: '❌' };
     const names = { maru: 'マル', batsu: 'バツ' };
+
+    function selectMode(mode) {
+      gameMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      const difficultySection = document.getElementById('difficulty-section');
+      if (mode === 'computer') {
+        difficultySection.style.display = 'block';
+      } else {
+        difficultySection.style.display = 'none';
+      }
+    }
+
+    function selectDifficulty(level) {
+      difficulty = level;
+      document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function startGame() {
+      document.getElementById('mode-selection').style.display = 'none';
+      document.getElementById('game-container').classList.add('active');
+      
+      if (gameMode === 'computer') {
+        document.getElementById('label-maru').textContent = '⭕ あなた';
+        document.getElementById('label-batsu').textContent = '🤖 コンピュータ';
+      } else {
+        document.getElementById('label-maru').textContent = '⭕ マル';
+        document.getElementById('label-batsu').textContent = '❌ バツ';
+      }
+      
+      resetGame();
+    }
+
+    function backToMenu() {
+      document.getElementById('mode-selection').style.display = 'block';
+      document.getElementById('game-container').classList.remove('active');
+      scores = { maru: 0, batsu: 0 };
+      updateScores();
+    }
 
     function createBoard() {
       const boardEl = document.getElementById('board');
@@ -248,27 +459,169 @@
     }
 
     function makeMove(index) {
-      if (board[index] || gameOver) return;
+      if (board[index] || gameOver || isComputerThinking) return;
+      
+      // コンピュータモードで、バツのターンの場合は人間の操作を無視
+      if (gameMode === 'computer' && currentPlayer === 'batsu') return;
 
-      board[index] = currentPlayer;
-      const cell = document.querySelector(`[data-index="${index}"]`);
-      cell.textContent = symbols[currentPlayer];
-      cell.classList.add('taken', currentPlayer);
+      placeMark(index, currentPlayer);
 
       const winner = checkWinner();
       if (winner) {
-        gameOver = true;
-        scores[winner]++;
-        updateScores();
-        highlightWinner(winner);
-        showStatus(`🎉 ${symbols[winner]} ${names[winner]}のかち！🎉`, winner);
-        celebrate();
+        endGame(winner);
       } else if (board.every(cell => cell)) {
         gameOver = true;
         showStatus('🤝 ひきわけ！ 🤝', 'draw');
       } else {
         currentPlayer = currentPlayer === 'maru' ? 'batsu' : 'maru';
-        showStatus(`${symbols[currentPlayer]} ${names[currentPlayer]}のばん！`, currentPlayer);
+        updateStatus();
+        
+        // コンピュータのターン
+        if (gameMode === 'computer' && currentPlayer === 'batsu') {
+          computerMove();
+        }
+      }
+    }
+
+    function placeMark(index, player) {
+      board[index] = player;
+      const cell = document.querySelector(`[data-index="${index}"]`);
+      cell.textContent = symbols[player];
+      cell.classList.add('taken', player);
+    }
+
+    function updateStatus() {
+      const playerName = gameMode === 'computer' && currentPlayer === 'batsu' 
+        ? 'コンピュータ' 
+        : names[currentPlayer];
+      showStatus(`${symbols[currentPlayer]} ${playerName}のばん！`, currentPlayer);
+    }
+
+    function computerMove() {
+      isComputerThinking = true;
+      
+      // 少し考えているように見せる
+      setTimeout(() => {
+        let move;
+        
+        switch(difficulty) {
+          case 'easy':
+            move = getRandomMove();
+            break;
+          case 'medium':
+            move = getMediumMove();
+            break;
+          case 'hard':
+            move = getBestMove();
+            break;
+        }
+        
+        placeMark(move, 'batsu');
+        
+        const winner = checkWinner();
+        if (winner) {
+          endGame(winner);
+        } else if (board.every(cell => cell)) {
+          gameOver = true;
+          showStatus('🤝 ひきわけ！ 🤝', 'draw');
+        } else {
+          currentPlayer = 'maru';
+          updateStatus();
+        }
+        
+        isComputerThinking = false;
+      }, 500);
+    }
+
+    // 初級: ランダムに打つ
+    function getRandomMove() {
+      const availableMoves = board.map((cell, i) => cell === '' ? i : null).filter(i => i !== null);
+      return availableMoves[Math.floor(Math.random() * availableMoves.length)];
+    }
+
+    // 中級: 勝てる手があれば勝つ、負ける手があれば防ぐ、それ以外はランダム
+    function getMediumMove() {
+      // 勝てる手を探す
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = 'batsu';
+          if (checkWinner() === 'batsu') {
+            board[i] = '';
+            return i;
+          }
+          board[i] = '';
+        }
+      }
+      
+      // 相手の勝ちを防ぐ
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = 'maru';
+          if (checkWinner() === 'maru') {
+            board[i] = '';
+            return i;
+          }
+          board[i] = '';
+        }
+      }
+      
+      // 中央が空いていれば中央に
+      if (board[4] === '') return 4;
+      
+      // それ以外はランダム
+      return getRandomMove();
+    }
+
+    // 上級: ミニマックスアルゴリズム
+    function getBestMove() {
+      let bestScore = -Infinity;
+      let bestMove;
+      
+      for (let i = 0; i < 9; i++) {
+        if (board[i] === '') {
+          board[i] = 'batsu';
+          let score = minimax(board, 0, false);
+          board[i] = '';
+          
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = i;
+          }
+        }
+      }
+      
+      return bestMove;
+    }
+
+    function minimax(board, depth, isMaximizing) {
+      const winner = checkWinner();
+      
+      if (winner === 'batsu') return 10 - depth;
+      if (winner === 'maru') return depth - 10;
+      if (board.every(cell => cell)) return 0;
+      
+      if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === '') {
+            board[i] = 'batsu';
+            let score = minimax(board, depth + 1, false);
+            board[i] = '';
+            bestScore = Math.max(score, bestScore);
+          }
+        }
+        return bestScore;
+      } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < 9; i++) {
+          if (board[i] === '') {
+            board[i] = 'maru';
+            let score = minimax(board, depth + 1, true);
+            board[i] = '';
+            bestScore = Math.min(score, bestScore);
+          }
+        }
+        return bestScore;
       }
     }
 
@@ -280,6 +633,19 @@
         }
       }
       return null;
+    }
+
+    function endGame(winner) {
+      gameOver = true;
+      scores[winner]++;
+      updateScores();
+      highlightWinner(winner);
+      
+      const winnerName = gameMode === 'computer' && winner === 'batsu' 
+        ? 'コンピュータ' 
+        : names[winner];
+      showStatus(`🎉 ${symbols[winner]} ${winnerName}のかち！🎉`, winner);
+      celebrate();
     }
 
     function highlightWinner(winner) {
@@ -324,8 +690,9 @@
       board = ['', '', '', '', '', '', '', '', ''];
       currentPlayer = 'maru';
       gameOver = false;
+      isComputerThinking = false;
       createBoard();
-      showStatus(`${symbols.maru} マルのばん！`, 'maru');
+      updateStatus();
     }
 
     createBoard();
