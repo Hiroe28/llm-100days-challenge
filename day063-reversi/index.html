@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>リバーシ - CPU対戦対応ボードゲーム</title>
+  <meta name="description" content="ブラウザで遊べるリバーシ（白黒ゲーム）。2人対戦とCPU対戦（3段階の強さ）に対応。" />
+
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content="リバーシ - CPU対戦対応ボードゲーム" />
+  <meta property="og:description" content="ブラウザで遊べるリバーシ。2人対戦とCPU対戦（弱い・普通・強い）に対応。ミニマックス法による本格AI搭載。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day025-reversi/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day025-reversi/index.html" />
+  <meta property="og:type" content="website" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="リバーシ - CPU対戦対応ボードゲーム" />
+  <meta name="twitter:description" content="ブラウザで遊べるリバーシ。2人対戦とCPU対戦（弱い・普通・強い）に対応。ミニマックス法による本格AI搭載。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day025-reversi/screenshot.png" />
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useCallback, useEffect } = React;
+
+    const BOARD_SIZE = 8;
+    const EMPTY = 0, BLACK = 1, WHITE = 2;
+    const DIRECTIONS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+    const POSITION_WEIGHTS = [
+      [100,-20,10,5,5,10,-20,100],
+      [-20,-50,-2,-2,-2,-2,-50,-20],
+      [10,-2,-1,-1,-1,-1,-2,10],
+      [5,-2,-1,-1,-1,-1,-2,5],
+      [5,-2,-1,-1,-1,-1,-2,5],
+      [10,-2,-1,-1,-1,-1,-2,10],
+      [-20,-50,-2,-2,-2,-2,-50,-20],
+      [100,-20,10,5,5,10,-20,100]
+    ];
+
+    const initBoard = () => {
+      const b = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(EMPTY));
+      b[3][3] = WHITE; b[3][4] = BLACK; b[4][3] = BLACK; b[4][4] = WHITE;
+      return b;
+    };
+
+    const copyBoard = (b) => b.map(row => [...row]);
+
+    const isValidPos = (r, c) => r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE;
+
+    const getFlips = (board, row, col, player) => {
+      if (board[row][col] !== EMPTY) return [];
+      const opponent = player === BLACK ? WHITE : BLACK;
+      let allFlips = [];
+      for (const [dr, dc] of DIRECTIONS) {
+        let r = row + dr, c = col + dc, flips = [];
+        while (isValidPos(r, c) && board[r][c] === opponent) {
+          flips.push([r, c]);
+          r += dr; c += dc;
+        }
+        if (flips.length > 0 && isValidPos(r, c) && board[r][c] === player) {
+          allFlips = allFlips.concat(flips);
+        }
+      }
+      return allFlips;
+    };
+
+    const getValidMoves = (board, player) => {
+      const moves = [];
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          if (getFlips(board, r, c, player).length > 0) moves.push([r, c]);
+        }
+      }
+      return moves;
+    };
+
+    const makeMove = (board, row, col, player) => {
+      const newBoard = copyBoard(board);
+      const flips = getFlips(board, row, col, player);
+      if (flips.length === 0) return null;
+      newBoard[row][col] = player;
+      for (const [r, c] of flips) newBoard[r][c] = player;
+      return newBoard;
+    };
+
+    const countPieces = (board) => {
+      let black = 0, white = 0;
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          if (board[r][c] === BLACK) black++;
+          else if (board[r][c] === WHITE) white++;
+        }
+      }
+      return { black, white };
+    };
+
+    const evaluateBoard = (board, player) => {
+      let score = 0;
+      for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          if (board[r][c] === player) score += POSITION_WEIGHTS[r][c];
+          else if (board[r][c] !== EMPTY) score -= POSITION_WEIGHTS[r][c];
+        }
+      }
+      return score;
+    };
+
+    const minimax = (board, depth, alpha, beta, maximizing, player) => {
+      const opponent = player === BLACK ? WHITE : BLACK;
+      const current = maximizing ? player : opponent;
+      const moves = getValidMoves(board, current);
+      
+      if (depth === 0 || moves.length === 0) {
+        return { score: evaluateBoard(board, player), move: null };
+      }
+      
+      let bestMove = moves[0];
+      if (maximizing) {
+        let maxEval = -Infinity;
+        for (const [r, c] of moves) {
+          const newBoard = makeMove(board, r, c, current);
+          const { score } = minimax(newBoard, depth - 1, alpha, beta, false, player);
+          if (score > maxEval) { maxEval = score; bestMove = [r, c]; }
+          alpha = Math.max(alpha, score);
+          if (beta <= alpha) break;
+        }
+        return { score: maxEval, move: bestMove };
+      } else {
+        let minEval = Infinity;
+        for (const [r, c] of moves) {
+          const newBoard = makeMove(board, r, c, current);
+          const { score } = minimax(newBoard, depth - 1, alpha, beta, true, player);
+          if (score < minEval) { minEval = score; bestMove = [r, c]; }
+          beta = Math.min(beta, score);
+          if (beta <= alpha) break;
+        }
+        return { score: minEval, move: bestMove };
+      }
+    };
+
+    const getAIMove = (board, player, difficulty) => {
+      const moves = getValidMoves(board, player);
+      if (moves.length === 0) return null;
+      
+      if (difficulty === 'easy') {
+        return moves[Math.floor(Math.random() * moves.length)];
+      } else if (difficulty === 'medium') {
+        let bestScore = -Infinity, bestMove = moves[0];
+        for (const [r, c] of moves) {
+          const score = POSITION_WEIGHTS[r][c] + Math.random() * 10;
+          if (score > bestScore) { bestScore = score; bestMove = [r, c]; }
+        }
+        return bestMove;
+      } else {
+        const { move } = minimax(board, 4, -Infinity, Infinity, true, player);
+        return move;
+      }
+    };
+
+    function ReversiGame() {
+      const [board, setBoard] = useState(initBoard);
+      const [currentPlayer, setCurrentPlayer] = useState(BLACK);
+      const [gameMode, setGameMode] = useState(null);
+      const [difficulty, setDifficulty] = useState('medium');
+      const [playerColor, setPlayerColor] = useState(BLACK);
+      const [gameOver, setGameOver] = useState(false);
+      const [message, setMessage] = useState('');
+      const [isAIThinking, setIsAIThinking] = useState(false);
+
+      const validMoves = getValidMoves(board, currentPlayer);
+      const { black, white } = countPieces(board);
+
+      const checkGameEnd = useCallback((b, nextPlayer) => {
+        const nextMoves = getValidMoves(b, nextPlayer);
+        const opponent = nextPlayer === BLACK ? WHITE : BLACK;
+        const oppMoves = getValidMoves(b, opponent);
+        
+        if (nextMoves.length === 0 && oppMoves.length === 0) {
+          setGameOver(true);
+          const { black: bl, white: wh } = countPieces(b);
+          if (bl > wh) setMessage('黒の勝ち！');
+          else if (wh > bl) setMessage('白の勝ち！');
+          else setMessage('引き分け！');
+          return true;
+        }
+        return false;
+      }, []);
+
+      const cpuColor = playerColor === BLACK ? WHITE : BLACK;
+
+      const handleClick = useCallback((row, col) => {
+        if (gameOver || isAIThinking) return;
+        if (gameMode === 'cpu' && currentPlayer === cpuColor) return;
+        
+        const newBoard = makeMove(board, row, col, currentPlayer);
+        if (!newBoard) return;
+        
+        setBoard(newBoard);
+        const nextPlayer = currentPlayer === BLACK ? WHITE : BLACK;
+        
+        if (checkGameEnd(newBoard, nextPlayer)) return;
+        
+        const nextMoves = getValidMoves(newBoard, nextPlayer);
+        if (nextMoves.length === 0) {
+          setMessage(`${nextPlayer === BLACK ? '黒' : '白'}はパスです`);
+          setTimeout(() => setMessage(''), 1500);
+        } else {
+          setCurrentPlayer(nextPlayer);
+        }
+      }, [board, currentPlayer, gameOver, gameMode, isAIThinking, checkGameEnd]);
+
+      useEffect(() => {
+        if (gameMode === 'cpu' && currentPlayer === cpuColor && !gameOver && !isAIThinking) {
+          const moves = getValidMoves(board, cpuColor);
+          if (moves.length === 0) {
+            const playerMoves = getValidMoves(board, playerColor);
+            if (playerMoves.length > 0) {
+              setMessage(`${cpuColor === BLACK ? '黒' : '白'}はパスです`);
+              setTimeout(() => { setMessage(''); setCurrentPlayer(playerColor); }, 1000);
+            }
+            return;
+          }
+          
+          setIsAIThinking(true);
+          setTimeout(() => {
+            const move = getAIMove(board, cpuColor, difficulty);
+            if (move) {
+              const newBoard = makeMove(board, move[0], move[1], cpuColor);
+              setBoard(newBoard);
+              if (!checkGameEnd(newBoard, playerColor)) {
+                const playerMoves = getValidMoves(newBoard, playerColor);
+                if (playerMoves.length === 0) {
+                  setMessage(`${playerColor === BLACK ? '黒' : '白'}はパスです`);
+                  setTimeout(() => setMessage(''), 1500);
+                } else {
+                  setCurrentPlayer(playerColor);
+                }
+              }
+            }
+            setIsAIThinking(false);
+          }, 500);
+        }
+      }, [currentPlayer, gameMode, board, difficulty, gameOver, isAIThinking, checkGameEnd, cpuColor, playerColor]);
+
+      const resetGame = () => {
+        setBoard(initBoard());
+        setCurrentPlayer(BLACK);
+        setGameOver(false);
+        setMessage('');
+        setIsAIThinking(false);
+        setPlayerColor(BLACK);
+      };
+
+      const startGame = (mode, color = BLACK) => {
+        resetGame();
+        setGameMode(mode);
+        if (mode === 'cpu') {
+          const pColor = color === 'random' ? (Math.random() < 0.5 ? BLACK : WHITE) : color;
+          setPlayerColor(pColor);
+        }
+      };
+
+      const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+
+      if (!gameMode) {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
+            <h1 className="text-4xl font-bold mb-8">リバーシ</h1>
+            <div className="flex flex-col items-center space-y-4">
+              <button onClick={() => startGame('pvp')} className="w-64 py-3 px-6 bg-green-600 hover:bg-green-700 rounded-lg text-xl font-semibold transition">
+                👥 2人対戦
+              </button>
+              <div className="flex flex-col items-center space-y-3">
+                <p className="text-gray-400">🤖 CPU対戦</p>
+                {!selectedDifficulty ? (
+                  <div className="flex justify-center gap-2">
+                    {[['easy','弱い'],['medium','普通'],['hard','強い']].map(([d, label]) => (
+                      <button key={d} onClick={() => { setDifficulty(d); setSelectedDifficulty(d); }}
+                        className={`py-2 px-4 rounded-lg font-semibold transition ${
+                          d === 'easy' ? 'bg-blue-500 hover:bg-blue-600' :
+                          d === 'medium' ? 'bg-yellow-500 hover:bg-yellow-600 text-black' :
+                          'bg-red-500 hover:bg-red-600'
+                        }`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center space-y-2">
+                    <p className="text-gray-300">先攻・後攻を選択</p>
+                    <div className="flex justify-center gap-2">
+                      <button onClick={() => { startGame('cpu', BLACK); setSelectedDifficulty(null); }}
+                        className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition flex items-center gap-2">
+                        <div className="w-5 h-5 bg-black rounded-full border border-gray-400"></div>先攻
+                      </button>
+                      <button onClick={() => { startGame('cpu', WHITE); setSelectedDifficulty(null); }}
+                        className="py-2 px-4 bg-gray-200 hover:bg-white text-black rounded-lg font-semibold transition flex items-center gap-2">
+                        <div className="w-5 h-5 bg-white rounded-full"></div>後攻
+                      </button>
+                      <button onClick={() => { startGame('cpu', 'random'); setSelectedDifficulty(null); }}
+                        className="py-2 px-4 bg-purple-500 hover:bg-purple-600 rounded-lg font-semibold transition">
+                        🎲 ランダム
+                      </button>
+                    </div>
+                    <button onClick={() => setSelectedDifficulty(null)} className="text-gray-500 hover:text-gray-300 text-sm mt-1">
+                      ← 戻る
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-4">
+          <h1 className="text-2xl font-bold mb-2">リバーシ</h1>
+          
+          <div className="flex gap-8 mb-2 text-lg">
+            <div className={`flex items-center gap-2 px-3 py-1 rounded ${currentPlayer === BLACK && !gameOver ? 'bg-green-700' : ''}`}>
+              <div className="w-6 h-6 bg-black rounded-full border-2 border-gray-400"></div>
+              <span>{black}</span>
+            </div>
+            <div className={`flex items-center gap-2 px-3 py-1 rounded ${currentPlayer === WHITE && !gameOver ? 'bg-green-700' : ''}`}>
+              <div className="w-6 h-6 bg-white rounded-full"></div>
+              <span>{white}</span>
+            </div>
+          </div>
+
+          {(message || isAIThinking) && (
+            <div className="mb-2 text-yellow-400 font-semibold h-6">
+              {isAIThinking ? 'CPU思考中...' : message}
+            </div>
+          )}
+          {!message && !isAIThinking && <div className="mb-2 h-6"></div>}
+
+          <div className="bg-green-700 p-2 rounded-lg shadow-2xl">
+            <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)` }}>
+              {board.map((row, r) => row.map((cell, c) => {
+                const isValid = !gameOver && validMoves.some(([vr, vc]) => vr === r && vc === c) && 
+                  !(gameMode === 'cpu' && currentPlayer === cpuColor);
+                return (
+                  <div key={`${r}-${c}`} onClick={() => handleClick(r, c)}
+                    className={`w-10 h-10 bg-green-600 rounded-sm flex items-center justify-center cursor-pointer transition-all ${isValid ? 'hover:bg-green-500' : ''}`}>
+                    {cell !== EMPTY ? (
+                      <div className={`w-8 h-8 rounded-full shadow-lg transition-all duration-300 ${cell === BLACK ? 'bg-black' : 'bg-white'}`}></div>
+                    ) : isValid ? (
+                      <div className="w-3 h-3 bg-green-400 rounded-full opacity-60"></div>
+                    ) : null}
+                  </div>
+                );
+              }))}
+            </div>
+          </div>
+
+          <div className="mt-4 flex gap-4">
+            <button onClick={resetGame} className="py-2 px-4 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition">
+              リセット
+            </button>
+            <button onClick={() => { setGameMode(null); setSelectedDifficulty(null); }} className="py-2 px-4 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition">
+              メニューへ
+            </button>
+          </div>
+
+          {gameOver && (
+            <div className="mt-4 text-2xl font-bold text-yellow-400">{message}</div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<ReversiGame />);
+  </script>
+</body>
+</html>
