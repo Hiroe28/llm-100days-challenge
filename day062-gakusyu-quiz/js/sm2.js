@@ -111,6 +111,9 @@ function getNewQuestionsForToday(allQuestions, allStats, limit = 20) {
 /**
  * 今日の学習内容を取得
  */
+/**
+ * 今日の学習内容を取得
+ */
 async function getTodayStudyPlan() {
     const allQuestions = await QuizDB.getAllQuestions();
     const allStats = await QuizDB.getAllStats();
@@ -128,11 +131,20 @@ async function getTodayStudyPlan() {
     const newQuestions = allQuestions.filter(q => !statsMap.has(q.id));
     
     // ★ 新規問題の数を決定
-    // - 最低10問は確保(ただし利用可能な新規問題数を超えない)
-    // - 復習が少ない場合は最大50問まで追加可能
-    const minNewQuestions = Math.min(10, newQuestions.length);
-    const maxNewQuestions = Math.max(0, 50 - reviewQuestions.length);
-    const newQuestionsLimit = Math.max(minNewQuestions, maxNewQuestions);
+    // - 新規問題がある場合、復習件数に関わらず最低5件は確保
+    // - 復習が50件以下の場合は10件まで新規を追加
+    // - 復習が51件以上の場合は5件の新規を追加
+    let newQuestionsLimit = 0;
+    if (newQuestions.length > 0) {
+        if (reviewQuestions.length <= 50) {
+            // 復習が少ない場合は新規10件まで
+            newQuestionsLimit = Math.min(10, newQuestions.length);
+        } else {
+            // 復習が多い場合でも新規5件は確保
+            newQuestionsLimit = Math.min(5, newQuestions.length);
+        }
+    }
+    
     const selectedNewQuestions = newQuestions.slice(0, newQuestionsLimit);
 
     return {

@@ -444,13 +444,26 @@ async function startQuiz() {
         if (mode === 'today') {
             // 今日の学習モード
             const studyPlan = await SM2.getTodayStudyPlan();
-            const questionIds = [...studyPlan.review, ...studyPlan.new];
             
-            questions = [];
-            for (const id of questionIds) {
+            // 新規問題を取得
+            const newQuestions = [];
+            for (const id of studyPlan.new) {
                 const q = await QuizDB.getQuestion(id);
-                if (q) questions.push(q);
+                if (q) newQuestions.push(q);
             }
+            
+            // 復習問題を取得
+            const reviewQuestions = [];
+            for (const id of studyPlan.review) {
+                const q = await QuizDB.getQuestion(id);
+                if (q) reviewQuestions.push(q);
+            }
+            
+            // 復習問題のみシャッフル
+            const shuffledReview = QuizUI.shuffleArray(reviewQuestions);
+            
+            // ★ 新規問題を先頭に固定配置し、その後に復習問題を配置
+            questions = [...newQuestions, ...shuffledReview];
             
         } else if (mode === 'unanswered') {
             // 未解答問題のみ
@@ -479,8 +492,12 @@ async function startQuiz() {
             return;
         }
 
-        // シャッフル
-        AppState.quiz.questions = QuizUI.shuffleArray(questions);
+        // ★ 今日の学習モード以外はシャッフル
+        if (mode !== 'today') {
+            questions = QuizUI.shuffleArray(questions);
+        }
+        
+        AppState.quiz.questions = questions;
         AppState.quiz.currentIndex = 0;
         AppState.quiz.mode = mode;
 
