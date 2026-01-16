@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>こどもスライドパズル</title>
 
+```
 <!-- Meta Tags -->
 <meta name="description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応。">
 <meta name="keywords" content="スライドパズル,子供向けゲーム,パズルゲーム,知育ゲーム,キッズパズル">
@@ -72,6 +73,7 @@
         .button-group button {
             min-width: 120px;
             padding: 10px;
+            font-size: 13px;
         }
 
         .info {
@@ -84,6 +86,24 @@
 
         #countdown {
             font-size: 36px;
+        }
+
+        .modal-content {
+            margin: 10% auto;
+            padding: 20px;
+            width: 95%;
+        }
+
+        .modal-content h2 {
+            font-size: 1.5em;
+        }
+
+        .modal-content h3 {
+            font-size: 1.2em;
+        }
+
+        .help-section {
+            padding: 10px;
         }
     }
 
@@ -160,6 +180,106 @@
 
     #hint-btn:hover {
         background: #45a616;
+    }
+
+    .help-button {
+        background: #ff9800;
+    }
+
+    .help-button:hover {
+        background: #f57c00;
+    }
+
+    .next-move-button {
+        background: #9c27b0;
+    }
+
+    .next-move-button:hover {
+        background: #7b1fa2;
+    }
+
+    /* モーダルスタイル */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.6);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 30px;
+        border: none;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 32px;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 20px;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #667eea;
+    }
+
+    .modal-content h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .modal-content h3 {
+        color: #333;
+        margin-top: 15px;
+        margin-bottom: 10px;
+    }
+
+    .help-section {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 10px;
+    }
+
+    .help-section p {
+        margin: 8px 0;
+        line-height: 1.6;
+    }
+
+    .help-section strong {
+        color: #667eea;
+    }
+
+    .puzzle-piece.highlight {
+        box-shadow: 0 0 20px 5px #ffd700;
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { 
+            box-shadow: 0 0 20px 5px #ffd700;
+            transform: scale(1);
+        }
+        50% { 
+            box-shadow: 0 0 30px 8px #ffd700;
+            transform: scale(1.05);
+        }
     }
 
     #countdown {
@@ -268,8 +388,8 @@
         <div class="control-group">
             <label>パズルのおおきさ:</label>
             <select id="size-select">
-                <option value="3">かんたん (3×3)</option>
-                <option value="4" selected>ふつう (4×4)</option>
+                <option value="3" selected>かんたん (3×3)</option>
+                <option value="4">ふつう (4×4)</option>
                 <option value="5">むずかしい (5×5)</option>
             </select>
         </div>
@@ -289,6 +409,39 @@
             <button id="start-btn">あたらしくはじめる</button>
             <button id="hint-btn" style="display: none;">おてほんをみる</button>
         </div>
+        <div class="button-group">
+            <button id="help-btn" class="help-button">❓ あそびかた</button>
+            <button id="next-move-btn" style="display: none;" class="next-move-button">💡 つぎの一手</button>
+        </div>
+    </div>
+
+    <!-- ヘルプモーダル -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>🎮 あそびかた</h2>
+            <div class="help-section">
+                <h3>🎯 もくひょう</h3>
+                <p>ばらばらになったピースを、ただしいじゅんばんにならべかえよう！</p>
+            </div>
+            <div class="help-section">
+                <h3>📝 ルール</h3>
+                <p>✅ くうはく（灰色のマス）のとなりのピースだけうごかせるよ</p>
+                <p>✅ うごかしたいピースをクリックしよう</p>
+            </div>
+            <div class="help-section">
+                <h3>💡 かんたんにとくコツ</h3>
+                <p><strong>ステップ1:</strong> まず、いちばんうえの1ぎょうをかんせいさせよう</p>
+                <p><strong>ステップ2:</strong> つぎに、2ぎょうめをかんせいさせよう</p>
+                <p><strong>ステップ3:</strong> のこりはかんたん！じゅんばんにそろえていこう</p>
+                <p><strong>ポイント:</strong> くうはくをうまくつかって、ピースをうごかそう</p>
+            </div>
+            <div class="help-section">
+                <h3>🎁 おたすけきのう</h3>
+                <p>🖼️ <strong>おてほんをみる:</strong> かんせいしたすがたをみられるよ（3びょうかん）</p>
+                <p>💡 <strong>つぎの一手:</strong> どのピースをうごかせばいいかおしえてくれるよ</p>
+            </div>
+        </div>
     </div>
 
     <div id="countdown" style="display: none;"></div>
@@ -304,7 +457,7 @@
 </div>
 
 <script>
-    let gridSize = 4;
+    let gridSize = 3;
     let tiles = [];
     let emptyIndex;
     let moves = 0;
@@ -312,6 +465,7 @@
     let customImageUrl = null;
     let isPlaying = false;
     let hintTimeout;
+    let highlightedTile = null;
 
     const imageThemes = {
         cat: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
@@ -348,13 +502,31 @@
 
     document.getElementById('start-btn').addEventListener('click', initPuzzle);
     document.getElementById('hint-btn').addEventListener('click', showHint);
+    document.getElementById('help-btn').addEventListener('click', () => {
+        document.getElementById('help-modal').style.display = 'block';
+    });
+    document.getElementById('next-move-btn').addEventListener('click', showNextMove);
+    
+    // モーダルを閉じる
+    document.querySelector('.close').addEventListener('click', () => {
+        document.getElementById('help-modal').style.display = 'none';
+    });
+    
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('help-modal');
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
 
     function initPuzzle() {
         moves = 0;
         isPlaying = false;
+        highlightedTile = null;
         document.getElementById('moves').textContent = moves;
         document.getElementById('success-message').style.display = 'none';
         document.getElementById('hint-btn').style.display = 'none';
+        document.getElementById('next-move-btn').style.display = 'none';
 
         const container = document.getElementById('puzzle-container');
         container.innerHTML = '';
@@ -385,6 +557,7 @@
                         renderPuzzle();
                         isPlaying = true;
                         document.getElementById('hint-btn').style.display = 'inline-block';
+                        document.getElementById('next-move-btn').style.display = 'inline-block';
                     }, 1000);
                 }, 1000);
             }, 1000);
@@ -400,6 +573,55 @@
         }
     }
 
+    function showNextMove() {
+        if (!isPlaying) return;
+        
+        // 現在位置が正しくないピースの中で、動かせるものを探す
+        const validMoves = getValidMoves();
+        let bestMove = null;
+        
+        // 正しい位置にないピースで、空白の隣にあるものを優先
+        for (let move of validMoves) {
+            const tileNum = tiles[move];
+            if (tileNum !== move && tileNum !== tiles.length - 1) {
+                // このピースが正しい位置に近づくかチェック
+                const currentRow = Math.floor(move / gridSize);
+                const currentCol = move % gridSize;
+                const targetRow = Math.floor(tileNum / gridSize);
+                const targetCol = tileNum % gridSize;
+                
+                // 空白の位置
+                const emptyRow = Math.floor(emptyIndex / gridSize);
+                const emptyCol = emptyIndex % gridSize;
+                
+                // 空白に移動することで目的地に近づくか
+                const currentDist = Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
+                const newDist = Math.abs(emptyRow - targetRow) + Math.abs(emptyCol - targetCol);
+                
+                if (newDist <= currentDist) {
+                    bestMove = move;
+                    break;
+                }
+            }
+        }
+        
+        // 見つからなければ、とりあえず動かせるピースを提案
+        if (!bestMove && validMoves.length > 0) {
+            bestMove = validMoves[0];
+        }
+        
+        if (bestMove !== null) {
+            highlightedTile = bestMove;
+            renderPuzzle();
+            
+            // 5秒後にハイライトを消す
+            setTimeout(() => {
+                highlightedTile = null;
+                renderPuzzle();
+            }, 5000);
+        }
+    }
+    
     function showHint() {
         if (!isPlaying) return;
         
@@ -465,6 +687,11 @@
                 tile.style.backgroundSize = `${gridSize * 100}% ${gridSize * 100}%`;
                 tile.style.backgroundPosition = `${percentX}% ${percentY}%`;
                 
+                // 次の一手のハイライト
+                if (index === highlightedTile) {
+                    tile.classList.add('highlight');
+                }
+                
                 tile.addEventListener('click', () => moveTile(index));
             }
 
@@ -478,6 +705,7 @@
         [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
         emptyIndex = index;
         moves++;
+        highlightedTile = null; // ハイライトをクリア
         document.getElementById('moves').textContent = moves;
         
         renderPuzzle();
@@ -488,7 +716,9 @@
         const isWin = tiles.every((tile, index) => tile === index);
         if (isWin) {
             isPlaying = false;
+            highlightedTile = null;
             document.getElementById('hint-btn').style.display = 'none';
+            document.getElementById('next-move-btn').style.display = 'none';
             document.getElementById('success-message').style.display = 'block';
             document.getElementById('puzzle-container').classList.add('celebrating');
             setTimeout(() => {
@@ -501,6 +731,7 @@
     currentImage = 'cat';
     initPuzzle();
 </script>
+```
 
 </body>
 </html>
