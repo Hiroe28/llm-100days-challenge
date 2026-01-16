@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>こどもスライドパズル</title>
+
+```
+<!-- Meta Tags -->
+<meta name="description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応。">
+<meta name="keywords" content="スライドパズル,子供向けゲーム,パズルゲーム,知育ゲーム,キッズパズル">
+
+<!-- OGP (Open Graph Protocol) -->
+<meta property="og:title" content="こどもスライドパズル - 楽しく遊べる知育パズルゲーム" />
+<meta property="og:description" content="かわいい動物や自然の写真を使った子供向けスライドパズル。3×3から5×5までの難易度選択、カスタム画像アップロード機能付き。" />
+<meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/screenshot.png" />
+<meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/index.html" />
+<meta property="og:type" content="website" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="こどもスライドパズル" />
+<meta name="twitter:description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応で、何度でも楽しめる知育パズル。" />
+<meta property="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/screenshot.png" />
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 100%;
+    }
+
+    h1 {
+        text-align: center;
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 2em;
+    }
+
+    .controls {
+        margin-bottom: 20px;
+    }
+
+    .control-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    select, button, input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 2px solid #667eea;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    button {
+        background: #667eea;
+        color: white;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .image-options {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+
+    .image-btn {
+        flex: 1;
+        min-width: 120px;
+        padding: 10px;
+        background: #f0f0f0;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .image-btn:hover, .image-btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    #puzzle-container {
+        display: grid;
+        gap: 2px;
+        background: #333;
+        padding: 2px;
+        border-radius: 10px;
+        margin: 20px auto;
+        width: fit-content;
+    }
+
+    .puzzle-piece {
+        width: 100px;
+        height: 100px;
+        background-size: cover;
+        background-position: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid #fff;
+    }
+
+    .puzzle-piece:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .puzzle-piece.empty {
+        background: #ddd;
+        cursor: default;
+    }
+
+    .info {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .moves {
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .success-message {
+        text-align: center;
+        color: #4caf50;
+        font-size: 24px;
+        font-weight: bold;
+        margin-top: 20px;
+        display: none;
+    }
+
+    @keyframes celebrate {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .celebrating {
+        animation: celebrate 0.5s ease-in-out 3;
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <h1>🧩 こどもスライドパズル 🧩</h1>
+
+```
+    <div class="controls">
+        <div class="control-group">
+            <label>パズルのおおきさ:</label>
+            <select id="size-select">
+                <option value="3">かんたん (3×3)</option>
+                <option value="4" selected>ふつう (4×4)</option>
+                <option value="5">むずかしい (5×5)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>がぞうをえらぶ:</label>
+            <div class="image-options">
+                <button class="image-btn active" data-image="cat">🐱 ねこ</button>
+                <button class="image-btn" data-image="dog">🐶 いぬ</button>
+                <button class="image-btn" data-image="flower">🌸 はな</button>
+                <button class="image-btn" data-image="nature">🌈 しぜん</button>
+            </div>
+            <input type="file" id="custom-image" accept="image/*">
+        </div>
+
+        <button id="start-btn">あたらしくはじめる</button>
+    </div>
+
+    <div id="puzzle-container"></div>
+
+    <div class="info">
+        うごかしたかず: <span class="moves" id="moves">0</span>
+    </div>
+
+    <div class="success-message" id="success-message">
+        🎉 おめでとう! 🎉<br>かんせいしました!
+    </div>
+</div>
+
+<script>
+    let gridSize = 4;
+    let tiles = [];
+    let emptyIndex;
+    let moves = 0;
+    let currentImage = '';
+    let customImageUrl = null;
+
+    const imageThemes = {
+        cat: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
+        dog: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800',
+        flower: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800',
+        nature: 'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=800'
+    };
+
+    document.getElementById('size-select').addEventListener('change', (e) => {
+        gridSize = parseInt(e.target.value);
+    });
+
+    document.querySelectorAll('.image-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.image-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentImage = e.target.dataset.image;
+            customImageUrl = null;
+        });
+    });
+
+    document.getElementById('custom-image').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                customImageUrl = event.target.result;
+                document.querySelectorAll('.image-btn').forEach(b => b.classList.remove('active'));
+                initPuzzle();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('start-btn').addEventListener('click', initPuzzle);
+
+    function initPuzzle() {
+        moves = 0;
+        document.getElementById('moves').textContent = moves;
+        document.getElementById('success-message').style.display = 'none';
+
+        const container = document.getElementById('puzzle-container');
+        container.innerHTML = '';
+        container.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`;
+
+        const totalTiles = gridSize * gridSize;
+        tiles = Array.from({length: totalTiles}, (_, i) => i);
+        
+        shuffleTiles();
+        renderPuzzle();
+    }
+
+    function shuffleTiles() {
+        for (let i = 0; i < 1000; i++) {
+            const validMoves = getValidMoves();
+            const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+            [tiles[emptyIndex], tiles[randomMove]] = [tiles[randomMove], tiles[emptyIndex]];
+            emptyIndex = randomMove;
+        }
+    }
+
+    function getValidMoves() {
+        const moves = [];
+        const row = Math.floor(emptyIndex / gridSize);
+        const col = emptyIndex % gridSize;
+
+        if (row > 0) moves.push(emptyIndex - gridSize);
+        if (row < gridSize - 1) moves.push(emptyIndex + gridSize);
+        if (col > 0) moves.push(emptyIndex - 1);
+        if (col < gridSize - 1) moves.push(emptyIndex + 1);
+
+        return moves;
+    }
+
+    function renderPuzzle() {
+        const container = document.getElementById('puzzle-container');
+        container.innerHTML = '';
+
+        const imageUrl = customImageUrl || imageThemes[currentImage] || imageThemes['cat'];
+
+        tiles.forEach((tileNum, index) => {
+            const tile = document.createElement('div');
+            tile.className = 'puzzle-piece';
+            
+            if (tileNum === tiles.length - 1) {
+                tile.classList.add('empty');
+                emptyIndex = index;
+            } else {
+                const row = Math.floor(tileNum / gridSize);
+                const col = tileNum % gridSize;
+                const percentX = (col / (gridSize - 1)) * 100;
+                const percentY = (row / (gridSize - 1)) * 100;
+                
+                tile.style.backgroundImage = `url(${imageUrl})`;
+                tile.style.backgroundPosition = `${percentX}% ${percentY}%`;
+                tile.style.backgroundSize = `${gridSize * 100}%`;
+                
+                tile.addEventListener('click', () => moveTile(index));
+            }
+
+            container.appendChild(tile);
+        });
+    }
+
+    function moveTile(index) {
+        if (!getValidMoves().includes(index)) return;
+
+        [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
+        emptyIndex = index;
+        moves++;
+        document.getElementById('moves').textContent = moves;
+        
+        renderPuzzle();
+        checkWin();
+    }
+
+    function checkWin() {
+        const isWin = tiles.every((tile, index) => tile === index);
+        if (isWin) {
+            document.getElementById('success-message').style.display = 'block';
+            document.getElementById('puzzle-container').classList.add('celebrating');
+            setTimeout(() => {
+                document.getElementById('puzzle-container').classList.remove('celebrating');
+            }, 1500);
+        }
+    }
+
+    // 初期化
+    currentImage = 'cat';
+    initPuzzle();
+</script>
+```
+
+</body>
+</html>
