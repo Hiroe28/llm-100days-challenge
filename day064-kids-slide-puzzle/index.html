@@ -1,765 +1,501 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>こどもスライドパズル</title>
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応。">
+    <meta name="keywords" content="スライドパズル,子供向けゲーム,パズルゲーム,知育ゲーム,キッズパズル">
 
-<!-- Meta Tags -->
-<meta name="description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応。">
-<meta name="keywords" content="スライドパズル,子供向けゲーム,パズルゲーム,知育ゲーム,キッズパズル">
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" content="こどもスライドパズル - 楽しく遊べる知育パズルゲーム" />
+    <meta property="og:description" content="かわいい動物や自然の写真を使った子供向けスライドパズル。3×3から5×5までの難易度選択、カスタム画像アップロード機能付き。" />
+    <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/screenshot.png" />
+    <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/index.html" />
+    <meta property="og:type" content="website" />
 
-<!-- OGP (Open Graph Protocol) -->
-<meta property="og:title" content="こどもスライドパズル - 楽しく遊べる知育パズルゲーム" />
-<meta property="og:description" content="かわいい動物や自然の写真を使った子供向けスライドパズル。3×3から5×5までの難易度選択、カスタム画像アップロード機能付き。" />
-<meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/screenshot.png" />
-<meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/index.html" />
-<meta property="og:type" content="website" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="こどもスライドパズル" />
+    <meta name="twitter:description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応で、何度でも楽しめる知育パズル。" />
+    <meta property="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/screenshot.png" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="こどもスライドパズル" />
-<meta name="twitter:description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応で、何度でも楽しめる知育パズル。" />
-<meta property="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day064-kids-slide-puzzle/screenshot.png" />
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-    body {
-        font-family: 'Arial', sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-    }
-
-    .container {
-        background: white;
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        max-width: 600px;
-        width: 100%;
-    }
-
-    @media (max-width: 768px) {
         .container {
-            padding: 15px;
-            border-radius: 15px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                border-radius: 15px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 15px;
+            }
+
+            select, button, input[type="file"] {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .image-btn {
+                padding: 8px;
+                font-size: 14px;
+            }
+
+            .button-group button {
+                min-width: 120px;
+                padding: 10px;
+            }
+
+            .info {
+                font-size: 16px;
+            }
+
+            .success-message {
+                font-size: 20px;
+            }
+
+            #countdown {
+                font-size: 36px;
+            }
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .celebrating {
+            animation: celebrate 0.5s ease-in-out 3;
         }
 
         h1 {
-            font-size: 1.5em;
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        .control-group {
             margin-bottom: 15px;
         }
 
-        select, button, input[type="file"] {
-            padding: 10px;
-            font-size: 14px;
-        }
-
-        .image-btn {
-            padding: 8px;
-            font-size: 14px;
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .button-group button {
-            min-width: 120px;
-            padding: 10px;
-            font-size: 13px;
+            flex: 1;
+            min-width: 150px;
+            margin-top: 0;
         }
 
-        .info {
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        select, button, input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #667eea;
             font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        .success-message {
-            font-size: 20px;
+        button {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #hint-btn {
+            background: #52c41a;
+            margin-left: 10px;
+        }
+
+        #hint-btn:hover {
+            background: #45a616;
         }
 
         #countdown {
-            font-size: 36px;
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+            height: 60px;
         }
 
-        .modal-content {
-            margin: 10% auto;
-            padding: 20px;
-            width: 95%;
+        .image-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
         }
 
-        .modal-content h2 {
-            font-size: 1.5em;
-        }
-
-        .modal-content h3 {
-            font-size: 1.2em;
-        }
-
-        .help-section {
+        .image-btn {
+            flex: 1;
+            min-width: 120px;
             padding: 10px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-    }
 
-    @keyframes celebrate {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-
-    .celebrating {
-        animation: celebrate 0.5s ease-in-out 3;
-    }
-
-    h1 {
-        text-align: center;
-        color: #667eea;
-        margin-bottom: 20px;
-        font-size: 2em;
-    }
-
-    .controls {
-        margin-bottom: 20px;
-    }
-
-    .control-group {
-        margin-bottom: 15px;
-    }
-
-    .button-group {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .button-group button {
-        flex: 1;
-        min-width: 150px;
-        margin-top: 0;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 5px;
-        color: #333;
-        font-weight: bold;
-    }
-
-    select, button, input[type="file"] {
-        width: 100%;
-        padding: 12px;
-        border-radius: 10px;
-        border: 2px solid #667eea;
-        font-size: 16px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    button {
-        background: #667eea;
-        color: white;
-        font-weight: bold;
-        margin-top: 10px;
-    }
-
-    button:hover {
-        background: #5568d3;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    #hint-btn {
-        background: #52c41a;
-        margin-left: 10px;
-    }
-
-    #hint-btn:hover {
-        background: #45a616;
-    }
-
-    .help-button {
-        background: #ff9800;
-    }
-
-    .help-button:hover {
-        background: #f57c00;
-    }
-
-    .next-move-button {
-        background: #9c27b0;
-    }
-
-    .next-move-button:hover {
-        background: #7b1fa2;
-    }
-
-    /* モーダルスタイル */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.6);
-    }
-
-    .modal-content {
-        background-color: #fefefe;
-        margin: 5% auto;
-        padding: 30px;
-        border: none;
-        border-radius: 20px;
-        width: 90%;
-        max-width: 600px;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    }
-
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 32px;
-        font-weight: bold;
-        cursor: pointer;
-        line-height: 20px;
-    }
-
-    .close:hover,
-    .close:focus {
-        color: #667eea;
-    }
-
-    .modal-content h2 {
-        color: #667eea;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-
-    .modal-content h3 {
-        color: #333;
-        margin-top: 15px;
-        margin-bottom: 10px;
-    }
-
-    .help-section {
-        margin-bottom: 20px;
-        padding: 15px;
-        background: #f5f5f5;
-        border-radius: 10px;
-    }
-
-    .help-section p {
-        margin: 8px 0;
-        line-height: 1.6;
-    }
-
-    .help-section strong {
-        color: #667eea;
-    }
-
-    .puzzle-piece.highlight {
-        box-shadow: 0 0 20px 5px #ffd700;
-        animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { 
-            box-shadow: 0 0 20px 5px #ffd700;
-            transform: scale(1);
+        .image-btn:hover, .image-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
         }
-        50% { 
-            box-shadow: 0 0 30px 8px #ffd700;
+
+        #puzzle-container {
+            display: grid;
+            gap: 2px;
+            background: #333;
+            padding: 2px;
+            border-radius: 10px;
+            margin: 20px auto;
+            width: 100%;
+            max-width: min(90vw, 500px);
+        }
+
+        .puzzle-piece {
+            width: 100%;
+            aspect-ratio: 1;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #fff;
+        }
+
+        .puzzle-piece:hover {
             transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
-    }
 
-    #countdown {
-        text-align: center;
-        font-size: 48px;
-        font-weight: bold;
-        color: #667eea;
-        margin: 20px 0;
-        height: 60px;
-    }
+        .puzzle-piece.empty {
+            background: #ddd;
+            cursor: default;
+        }
 
-    .image-options {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 15px;
-    }
+        .info {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
 
-    .image-btn {
-        flex: 1;
-        min-width: 120px;
-        padding: 10px;
-        background: #f0f0f0;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
+        .moves {
+            font-weight: bold;
+            color: #667eea;
+        }
 
-    .image-btn:hover, .image-btn.active {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
-    }
+        .success-message {
+            text-align: center;
+            color: #4caf50;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
 
-    #puzzle-container {
-        display: grid;
-        gap: 2px;
-        background: #333;
-        padding: 2px;
-        border-radius: 10px;
-        margin: 20px auto;
-        width: 100%;
-        max-width: min(90vw, 500px);
-    }
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
 
-    .puzzle-piece {
-        width: 100%;
-        aspect-ratio: 1;
-        background-size: cover;
-        background-position: center;
-        cursor: pointer;
-        transition: all 0.3s;
-        border: 2px solid #fff;
-    }
-
-    .puzzle-piece:hover {
-        transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .puzzle-piece.empty {
-        background: #ddd;
-        cursor: default;
-    }
-
-    .info {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 18px;
-        color: #333;
-    }
-
-    .moves {
-        font-weight: bold;
-        color: #667eea;
-    }
-
-    .success-message {
-        text-align: center;
-        color: #4caf50;
-        font-size: 24px;
-        font-weight: bold;
-        margin-top: 20px;
-        display: none;
-    }
-
-    @keyframes celebrate {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-
-    .celebrating {
-        animation: celebrate 0.5s ease-in-out 3;
-    }
-</style>
-```
-
+        .celebrating {
+            animation: celebrate 0.5s ease-in-out 3;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>🧩 こどもスライドパズル 🧩</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>パズルのおおきさ:</label>
+                <select id="size-select">
+                    <option value="3" selected>かんたん (3×3)</option>
+                    <option value="4">ふつう (4×4)</option>
+                    <option value="5">むずかしい (5×5)</option>
+                </select>
+            </div>
 
-```
-    <div class="controls">
-        <div class="control-group">
-            <label>パズルのおおきさ:</label>
-            <select id="size-select">
-                <option value="3" selected>かんたん (3×3)</option>
-                <option value="4">ふつう (4×4)</option>
-                <option value="5">むずかしい (5×5)</option>
-            </select>
+            <div class="control-group">
+                <label>がぞうをえらぶ:</label>
+                <div class="image-options">
+                    <button class="image-btn active" data-image="cat">🐱 ねこ</button>
+                    <button class="image-btn" data-image="dog">🐶 いぬ</button>
+                    <button class="image-btn" data-image="flower">🌸 はな</button>
+                    <button class="image-btn" data-image="nature">🌈 しぜん</button>
+                </div>
+                <input type="file" id="custom-image" accept="image/*">
+            </div>
+
+            <div class="button-group">
+                <button id="start-btn">あたらしくはじめる</button>
+                <button id="hint-btn" style="display: none;">おてほんをみる</button>
+            </div>
         </div>
 
-        <div class="control-group">
-            <label>がぞうをえらぶ:</label>
-            <div class="image-options">
-                <button class="image-btn active" data-image="cat">🐱 ねこ</button>
-                <button class="image-btn" data-image="dog">🐶 いぬ</button>
-                <button class="image-btn" data-image="flower">🌸 はな</button>
-                <button class="image-btn" data-image="nature">🌈 しぜん</button>
-            </div>
-            <input type="file" id="custom-image" accept="image/*">
+        <div id="countdown" style="display: none;"></div>
+        <div id="puzzle-container"></div>
+
+        <div class="info">
+            うごかしたかず: <span class="moves" id="moves">0</span>
         </div>
 
-        <div class="button-group">
-            <button id="start-btn">あたらしくはじめる</button>
-            <button id="hint-btn" style="display: none;">おてほんをみる</button>
-        </div>
-        <div class="button-group">
-            <button id="help-btn" class="help-button">❓ あそびかた</button>
-            <button id="next-move-btn" style="display: none;" class="next-move-button">💡 つぎの一手</button>
-        </div>
-    </div>
-
-    <!-- ヘルプモーダル -->
-    <div id="help-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>🎮 あそびかた</h2>
-            <div class="help-section">
-                <h3>🎯 もくひょう</h3>
-                <p>ばらばらになったピースを、ただしいじゅんばんにならべかえよう！</p>
-            </div>
-            <div class="help-section">
-                <h3>📝 ルール</h3>
-                <p>✅ くうはく（灰色のマス）のとなりのピースだけうごかせるよ</p>
-                <p>✅ うごかしたいピースをクリックしよう</p>
-            </div>
-            <div class="help-section">
-                <h3>💡 かんたんにとくコツ</h3>
-                <p><strong>ステップ1:</strong> まず、いちばんうえの1ぎょうをかんせいさせよう</p>
-                <p><strong>ステップ2:</strong> つぎに、2ぎょうめをかんせいさせよう</p>
-                <p><strong>ステップ3:</strong> のこりはかんたん！じゅんばんにそろえていこう</p>
-                <p><strong>ポイント:</strong> くうはくをうまくつかって、ピースをうごかそう</p>
-            </div>
-            <div class="help-section">
-                <h3>🎁 おたすけきのう</h3>
-                <p>🖼️ <strong>おてほんをみる:</strong> かんせいしたすがたをみられるよ（3びょうかん）</p>
-                <p>💡 <strong>つぎの一手:</strong> どのピースをうごかせばいいかおしえてくれるよ</p>
-            </div>
+        <div class="success-message" id="success-message">
+            🎉 おめでとう! 🎉<br>かんせいしました!
         </div>
     </div>
 
-    <div id="countdown" style="display: none;"></div>
-    <div id="puzzle-container"></div>
+    <script>
+        let gridSize = 3;
+        let tiles = [];
+        let emptyIndex;
+        let moves = 0;
+        let currentImage = '';
+        let customImageUrl = null;
+        let isPlaying = false;
+        let hintTimeout;
 
-    <div class="info">
-        うごかしたかず: <span class="moves" id="moves">0</span>
-    </div>
+        const imageThemes = {
+            cat: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
+            dog: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800',
+            flower: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800',
+            nature: 'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=800'
+        };
 
-    <div class="success-message" id="success-message">
-        🎉 おめでとう! 🎉<br>かんせいしました!
-    </div>
-</div>
-
-<script>
-    let gridSize = 3;
-    let tiles = [];
-    let emptyIndex;
-    let moves = 0;
-    let currentImage = '';
-    let customImageUrl = null;
-    let isPlaying = false;
-    let hintTimeout;
-    let highlightedTile = null;
-    let lastHintedTile = null;
-
-    const imageThemes = {
-        cat: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
-        dog: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800',
-        flower: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=800',
-        nature: 'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=800'
-    };
-
-    document.getElementById('size-select').addEventListener('change', (e) => {
-        gridSize = parseInt(e.target.value);
-    });
-
-    document.querySelectorAll('.image-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.image-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            currentImage = e.target.dataset.image;
-            customImageUrl = null;
+        document.getElementById('size-select').addEventListener('change', (e) => {
+            gridSize = parseInt(e.target.value);
         });
-    });
 
-    document.getElementById('custom-image').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                customImageUrl = event.target.result;
+        document.querySelectorAll('.image-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.image-btn').forEach(b => b.classList.remove('active'));
-                initPuzzle();
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+                e.target.classList.add('active');
+                currentImage = e.target.dataset.image;
+                customImageUrl = null;
+            });
+        });
 
-    document.getElementById('start-btn').addEventListener('click', initPuzzle);
-    document.getElementById('hint-btn').addEventListener('click', showHint);
-    document.getElementById('help-btn').addEventListener('click', () => {
-        document.getElementById('help-modal').style.display = 'block';
-    });
-    document.getElementById('next-move-btn').addEventListener('click', showNextMove);
-    
-    // モーダルを閉じる
-    document.querySelector('.close').addEventListener('click', () => {
-        document.getElementById('help-modal').style.display = 'none';
-    });
-    
-    window.addEventListener('click', (e) => {
-        const modal = document.getElementById('help-modal');
-        if (e.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
+        document.getElementById('custom-image').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    customImageUrl = event.target.result;
+                    document.querySelectorAll('.image-btn').forEach(b => b.classList.remove('active'));
+                    initPuzzle();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
-    function initPuzzle() {
-        moves = 0;
-        isPlaying = false;
-        highlightedTile = null;
-        lastHintedTile = null;
-        document.getElementById('moves').textContent = moves;
-        document.getElementById('success-message').style.display = 'none';
-        document.getElementById('hint-btn').style.display = 'none';
-        document.getElementById('next-move-btn').style.display = 'none';
+        document.getElementById('start-btn').addEventListener('click', initPuzzle);
+        document.getElementById('hint-btn').addEventListener('click', showHint);
 
-        const container = document.getElementById('puzzle-container');
-        container.innerHTML = '';
-        container.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+        function initPuzzle() {
+            moves = 0;
+            isPlaying = false;
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('hint-btn').style.display = 'none';
 
-        const totalTiles = gridSize * gridSize;
-        tiles = Array.from({length: totalTiles}, (_, i) => i);
-        emptyIndex = totalTiles - 1;
-        
-        // まず完成形を表示
-        renderPuzzle();
-        
-        // カウントダウン表示
-        const countdown = document.getElementById('countdown');
-        countdown.style.display = 'block';
-        countdown.textContent = 'おてほんをみて!';
-        
-        setTimeout(() => {
-            countdown.textContent = '3';
+            const container = document.getElementById('puzzle-container');
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+
+            const totalTiles = gridSize * gridSize;
+            tiles = Array.from({length: totalTiles}, (_, i) => i);
+            emptyIndex = totalTiles - 1;
+            
+            // まず完成形を表示
+            renderPuzzle();
+            
+            // カウントダウン表示
+            const countdown = document.getElementById('countdown');
+            countdown.style.display = 'block';
+            countdown.textContent = 'おてほんをみて!';
+            
             setTimeout(() => {
-                countdown.textContent = '2';
+                countdown.textContent = '3';
                 setTimeout(() => {
-                    countdown.textContent = '1';
+                    countdown.textContent = '2';
                     setTimeout(() => {
-                        countdown.textContent = 'スタート!';
-                        countdown.style.display = 'none';
-                        shuffleTiles();
-                        renderPuzzle();
-                        isPlaying = true;
-                        document.getElementById('hint-btn').style.display = 'inline-block';
-                        document.getElementById('next-move-btn').style.display = 'inline-block';
+                        countdown.textContent = '1';
+                        setTimeout(() => {
+                            countdown.textContent = 'スタート!';
+                            countdown.style.display = 'none';
+                            shuffleTiles();
+                            renderPuzzle();
+                            isPlaying = true;
+                            document.getElementById('hint-btn').style.display = 'inline-block';
+                        }, 1000);
                     }, 1000);
                 }, 1000);
             }, 1000);
-        }, 1000);
-    }
-
-    function shuffleTiles() {
-        for (let i = 0; i < 1000; i++) {
-            const validMoves = getValidMoves();
-            const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
-            [tiles[emptyIndex], tiles[randomMove]] = [tiles[randomMove], tiles[emptyIndex]];
-            emptyIndex = randomMove;
         }
-    }
 
-    function showNextMove() {
-        if (!isPlaying) return;
-        
-        const validMoves = getValidMoves();
-        if (validMoves.length === 0) return;
-        
-        let bestMove = null;
-        
-        // 戦略1: 上の行から順に揃える
-        // まず、一番上の行で正しくないピースを探す
-        for (let row = 0; row < gridSize; row++) {
-            for (let col = 0; col < gridSize; col++) {
-                const index = row * gridSize + col;
-                const correctTileNum = index;
-                const currentTileNum = tiles[index];
-                
-                // このマスが間違っている場合
-                if (currentTileNum !== correctTileNum && currentTileNum !== tiles.length - 1) {
-                    // このタイルが今動かせる位置にあるか
-                    if (validMoves.includes(index)) {
-                        // 前回と違うピースを優先
-                        if (index !== lastHintedTile) {
-                            bestMove = index;
-                            break;
-                        }
-                    }
-                    
-                    // 正しいタイルがどこにあるか探す
-                    const correctTileIndex = tiles.indexOf(correctTileNum);
-                    if (correctTileIndex !== -1 && validMoves.includes(correctTileIndex)) {
-                        if (correctTileIndex !== lastHintedTile) {
-                            bestMove = correctTileIndex;
-                            break;
-                        }
-                    }
-                }
+        function shuffleTiles() {
+            for (let i = 0; i < 1000; i++) {
+                const validMoves = getValidMoves();
+                const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                [tiles[emptyIndex], tiles[randomMove]] = [tiles[randomMove], tiles[emptyIndex]];
+                emptyIndex = randomMove;
             }
-            if (bestMove !== null) break;
         }
-        
-        // 戦略2: 動かせるピースの中で、正しい位置にないものを提案
-        if (!bestMove) {
-            const wrongPositionMoves = validMoves.filter(move => {
-                const tileNum = tiles[move];
-                return tileNum !== move && tileNum !== tiles.length - 1 && move !== lastHintedTile;
-            });
+
+        function showHint() {
+            if (!isPlaying) return;
             
-            if (wrongPositionMoves.length > 0) {
-                // ランダムに選択（前回と違うものを優先）
-                bestMove = wrongPositionMoves[Math.floor(Math.random() * wrongPositionMoves.length)];
-            }
-        }
-        
-        // 戦略3: それでも見つからない場合は、とりあえず動かせるピースを提案
-        if (!bestMove) {
-            const availableMoves = validMoves.filter(m => m !== lastHintedTile);
-            if (availableMoves.length > 0) {
-                bestMove = availableMoves[0];
-            } else if (validMoves.length > 0) {
-                bestMove = validMoves[0];
-            }
-        }
-        
-        if (bestMove !== null) {
-            lastHintedTile = bestMove;
-            highlightedTile = bestMove;
+            clearTimeout(hintTimeout);
+            
+            const currentTiles = [...tiles];
+            const currentEmpty = emptyIndex;
+            
+            // 完成形を表示
+            tiles = Array.from({length: tiles.length}, (_, i) => i);
+            emptyIndex = tiles.length - 1;
             renderPuzzle();
             
-            // 5秒後にハイライトを消す
-            setTimeout(() => {
-                highlightedTile = null;
+            const hintBtn = document.getElementById('hint-btn');
+            hintBtn.textContent = 'おてほんをみている...';
+            hintBtn.disabled = true;
+            
+            // 3秒後に元に戻す
+            hintTimeout = setTimeout(() => {
+                tiles = currentTiles;
+                emptyIndex = currentEmpty;
                 renderPuzzle();
-            }, 5000);
+                hintBtn.textContent = 'おてほんをみる';
+                hintBtn.disabled = false;
+            }, 3000);
         }
-    }
-    
-    function showHint() {
-        if (!isPlaying) return;
-        
-        clearTimeout(hintTimeout);
-        
-        const currentTiles = [...tiles];
-        const currentEmpty = emptyIndex;
-        
-        // 完成形を表示
-        tiles = Array.from({length: tiles.length}, (_, i) => i);
-        emptyIndex = tiles.length - 1;
-        renderPuzzle();
-        
-        const hintBtn = document.getElementById('hint-btn');
-        hintBtn.textContent = 'おてほんをみている...';
-        hintBtn.disabled = true;
-        
-        // 3秒後に元に戻す
-        hintTimeout = setTimeout(() => {
-            tiles = currentTiles;
-            emptyIndex = currentEmpty;
-            renderPuzzle();
-            hintBtn.textContent = 'おてほんをみる';
-            hintBtn.disabled = false;
-        }, 3000);
-    }
 
-    function getValidMoves() {
-        const moves = [];
-        const row = Math.floor(emptyIndex / gridSize);
-        const col = emptyIndex % gridSize;
+        function getValidMoves() {
+            const moves = [];
+            const row = Math.floor(emptyIndex / gridSize);
+            const col = emptyIndex % gridSize;
 
-        if (row > 0) moves.push(emptyIndex - gridSize);
-        if (row < gridSize - 1) moves.push(emptyIndex + gridSize);
-        if (col > 0) moves.push(emptyIndex - 1);
-        if (col < gridSize - 1) moves.push(emptyIndex + 1);
+            if (row > 0) moves.push(emptyIndex - gridSize);
+            if (row < gridSize - 1) moves.push(emptyIndex + gridSize);
+            if (col > 0) moves.push(emptyIndex - 1);
+            if (col < gridSize - 1) moves.push(emptyIndex + 1);
 
-        return moves;
-    }
+            return moves;
+        }
 
-    function renderPuzzle() {
-        const container = document.getElementById('puzzle-container');
-        container.innerHTML = '';
+        function renderPuzzle() {
+            const container = document.getElementById('puzzle-container');
+            container.innerHTML = '';
 
-        const imageUrl = customImageUrl || imageThemes[currentImage] || imageThemes['cat'];
+            const imageUrl = customImageUrl || imageThemes[currentImage] || imageThemes['cat'];
 
-        tiles.forEach((tileNum, index) => {
-            const tile = document.createElement('div');
-            tile.className = 'puzzle-piece';
-            
-            if (tileNum === tiles.length - 1) {
-                tile.classList.add('empty');
-                emptyIndex = index;
-            } else {
-                const row = Math.floor(tileNum / gridSize);
-                const col = tileNum % gridSize;
+            tiles.forEach((tileNum, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'puzzle-piece';
                 
-                // 画像を正しく分割するための計算
-                const percentX = gridSize > 1 ? (col / (gridSize - 1)) * 100 : 0;
-                const percentY = gridSize > 1 ? (row / (gridSize - 1)) * 100 : 0;
-                
-                tile.style.backgroundImage = `url(${imageUrl})`;
-                tile.style.backgroundSize = `${gridSize * 100}% ${gridSize * 100}%`;
-                tile.style.backgroundPosition = `${percentX}% ${percentY}%`;
-                
-                // 次の一手のハイライト
-                if (index === highlightedTile) {
-                    tile.classList.add('highlight');
+                if (tileNum === tiles.length - 1) {
+                    tile.classList.add('empty');
+                    emptyIndex = index;
+                } else {
+                    const row = Math.floor(tileNum / gridSize);
+                    const col = tileNum % gridSize;
+                    
+                    // 画像を正しく分割するための計算
+                    const percentX = gridSize > 1 ? (col / (gridSize - 1)) * 100 : 0;
+                    const percentY = gridSize > 1 ? (row / (gridSize - 1)) * 100 : 0;
+                    
+                    tile.style.backgroundImage = `url(${imageUrl})`;
+                    tile.style.backgroundSize = `${gridSize * 100}% ${gridSize * 100}%`;
+                    tile.style.backgroundPosition = `${percentX}% ${percentY}%`;
+                    
+                    tile.addEventListener('click', () => moveTile(index));
                 }
-                
-                tile.addEventListener('click', () => moveTile(index));
-            }
 
-            container.appendChild(tile);
-        });
-    }
-
-    function moveTile(index) {
-        if (!isPlaying || !getValidMoves().includes(index)) return;
-
-        [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
-        emptyIndex = index;
-        moves++;
-        highlightedTile = null; // ハイライトをクリア
-        lastHintedTile = null; // 前回のヒントをリセット
-        document.getElementById('moves').textContent = moves;
-        
-        renderPuzzle();
-        checkWin();
-    }
-
-    function checkWin() {
-        const isWin = tiles.every((tile, index) => tile === index);
-        if (isWin) {
-            isPlaying = false;
-            highlightedTile = null;
-            document.getElementById('hint-btn').style.display = 'none';
-            document.getElementById('next-move-btn').style.display = 'none';
-            document.getElementById('success-message').style.display = 'block';
-            document.getElementById('puzzle-container').classList.add('celebrating');
-            setTimeout(() => {
-                document.getElementById('puzzle-container').classList.remove('celebrating');
-            }, 1500);
+                container.appendChild(tile);
+            });
         }
-    }
 
-    // 初期化
-    currentImage = 'cat';
-    initPuzzle();
-</script>
+        function moveTile(index) {
+            if (!isPlaying || !getValidMoves().includes(index)) return;
 
+            [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
+            emptyIndex = index;
+            moves++;
+            document.getElementById('moves').textContent = moves;
+            
+            renderPuzzle();
+            checkWin();
+        }
+
+        function checkWin() {
+            const isWin = tiles.every((tile, index) => tile === index);
+            if (isWin) {
+                isPlaying = false;
+                document.getElementById('hint-btn').style.display = 'none';
+                document.getElementById('success-message').style.display = 'block';
+                document.getElementById('puzzle-container').classList.add('celebrating');
+                setTimeout(() => {
+                    document.getElementById('puzzle-container').classList.remove('celebrating');
+                }, 1500);
+            }
+        }
+
+        // 初期化
+        currentImage = 'cat';
+        initPuzzle();
+    </script>
 </body>
 </html>
