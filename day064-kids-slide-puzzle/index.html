@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>こどもスライドパズル</title>
 
-```
 <!-- Meta Tags -->
 <meta name="description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応。">
 <meta name="keywords" content="スライドパズル,子供向けゲーム,パズルゲーム,知育ゲーム,キッズパズル">
@@ -466,6 +465,7 @@
     let isPlaying = false;
     let hintTimeout;
     let highlightedTile = null;
+    let lastHintedTile = null;
 
     const imageThemes = {
         cat: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
@@ -523,6 +523,7 @@
         moves = 0;
         isPlaying = false;
         highlightedTile = null;
+        lastHintedTile = null;
         document.getElementById('moves').textContent = moves;
         document.getElementById('success-message').style.display = 'none';
         document.getElementById('hint-btn').style.display = 'none';
@@ -576,41 +577,68 @@
     function showNextMove() {
         if (!isPlaying) return;
         
-        // 現在位置が正しくないピースの中で、動かせるものを探す
         const validMoves = getValidMoves();
+        if (validMoves.length === 0) return;
+        
         let bestMove = null;
         
-        // 正しい位置にないピースで、空白の隣にあるものを優先
-        for (let move of validMoves) {
-            const tileNum = tiles[move];
-            if (tileNum !== move && tileNum !== tiles.length - 1) {
-                // このピースが正しい位置に近づくかチェック
-                const currentRow = Math.floor(move / gridSize);
-                const currentCol = move % gridSize;
-                const targetRow = Math.floor(tileNum / gridSize);
-                const targetCol = tileNum % gridSize;
+        // 戦略1: 上の行から順に揃える
+        // まず、一番上の行で正しくないピースを探す
+        for (let row = 0; row < gridSize; row++) {
+            for (let col = 0; col < gridSize; col++) {
+                const index = row * gridSize + col;
+                const correctTileNum = index;
+                const currentTileNum = tiles[index];
                 
-                // 空白の位置
-                const emptyRow = Math.floor(emptyIndex / gridSize);
-                const emptyCol = emptyIndex % gridSize;
-                
-                // 空白に移動することで目的地に近づくか
-                const currentDist = Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
-                const newDist = Math.abs(emptyRow - targetRow) + Math.abs(emptyCol - targetCol);
-                
-                if (newDist <= currentDist) {
-                    bestMove = move;
-                    break;
+                // このマスが間違っている場合
+                if (currentTileNum !== correctTileNum && currentTileNum !== tiles.length - 1) {
+                    // このタイルが今動かせる位置にあるか
+                    if (validMoves.includes(index)) {
+                        // 前回と違うピースを優先
+                        if (index !== lastHintedTile) {
+                            bestMove = index;
+                            break;
+                        }
+                    }
+                    
+                    // 正しいタイルがどこにあるか探す
+                    const correctTileIndex = tiles.indexOf(correctTileNum);
+                    if (correctTileIndex !== -1 && validMoves.includes(correctTileIndex)) {
+                        if (correctTileIndex !== lastHintedTile) {
+                            bestMove = correctTileIndex;
+                            break;
+                        }
+                    }
                 }
+            }
+            if (bestMove !== null) break;
+        }
+        
+        // 戦略2: 動かせるピースの中で、正しい位置にないものを提案
+        if (!bestMove) {
+            const wrongPositionMoves = validMoves.filter(move => {
+                const tileNum = tiles[move];
+                return tileNum !== move && tileNum !== tiles.length - 1 && move !== lastHintedTile;
+            });
+            
+            if (wrongPositionMoves.length > 0) {
+                // ランダムに選択（前回と違うものを優先）
+                bestMove = wrongPositionMoves[Math.floor(Math.random() * wrongPositionMoves.length)];
             }
         }
         
-        // 見つからなければ、とりあえず動かせるピースを提案
-        if (!bestMove && validMoves.length > 0) {
-            bestMove = validMoves[0];
+        // 戦略3: それでも見つからない場合は、とりあえず動かせるピースを提案
+        if (!bestMove) {
+            const availableMoves = validMoves.filter(m => m !== lastHintedTile);
+            if (availableMoves.length > 0) {
+                bestMove = availableMoves[0];
+            } else if (validMoves.length > 0) {
+                bestMove = validMoves[0];
+            }
         }
         
         if (bestMove !== null) {
+            lastHintedTile = bestMove;
             highlightedTile = bestMove;
             renderPuzzle();
             
@@ -706,6 +734,7 @@
         emptyIndex = index;
         moves++;
         highlightedTile = null; // ハイライトをクリア
+        lastHintedTile = null; // 前回のヒントをリセット
         document.getElementById('moves').textContent = moves;
         
         renderPuzzle();
@@ -731,7 +760,6 @@
     currentImage = 'cat';
     initPuzzle();
 </script>
-```
 
 </body>
 </html>
