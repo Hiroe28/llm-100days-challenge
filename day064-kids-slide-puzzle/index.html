@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>こどもスライドパズル</title>
 
-```
 <!-- Meta Tags -->
 <meta name="description" content="子供向けスライドパズルゲーム。かわいい動物や自然の写真で楽しく遊べる。3段階の難易度とカスタム画像対応。">
 <meta name="keywords" content="スライドパズル,子供向けゲーム,パズルゲーム,知育ゲーム,キッズパズル">
@@ -70,12 +69,21 @@
             font-size: 14px;
         }
 
+        .button-group button {
+            min-width: 120px;
+            padding: 10px;
+        }
+
         .info {
             font-size: 16px;
         }
 
         .success-message {
             font-size: 20px;
+        }
+
+        #countdown {
+            font-size: 36px;
         }
     }
 
@@ -101,6 +109,18 @@
 
     .control-group {
         margin-bottom: 15px;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .button-group button {
+        flex: 1;
+        min-width: 150px;
+        margin-top: 0;
     }
 
     label {
@@ -131,6 +151,24 @@
         background: #5568d3;
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    #hint-btn {
+        background: #52c41a;
+        margin-left: 10px;
+    }
+
+    #hint-btn:hover {
+        background: #45a616;
+    }
+
+    #countdown {
+        text-align: center;
+        font-size: 48px;
+        font-weight: bold;
+        color: #667eea;
+        margin: 20px 0;
+        height: 60px;
     }
 
     .image-options {
@@ -247,9 +285,13 @@
             <input type="file" id="custom-image" accept="image/*">
         </div>
 
-        <button id="start-btn">あたらしくはじめる</button>
+        <div class="button-group">
+            <button id="start-btn">あたらしくはじめる</button>
+            <button id="hint-btn" style="display: none;">おてほんをみる</button>
+        </div>
     </div>
 
+    <div id="countdown" style="display: none;"></div>
     <div id="puzzle-container"></div>
 
     <div class="info">
@@ -268,6 +310,8 @@
     let moves = 0;
     let currentImage = '';
     let customImageUrl = null;
+    let isPlaying = false;
+    let hintTimeout;
 
     const imageThemes = {
         cat: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
@@ -303,11 +347,14 @@
     });
 
     document.getElementById('start-btn').addEventListener('click', initPuzzle);
+    document.getElementById('hint-btn').addEventListener('click', showHint);
 
     function initPuzzle() {
         moves = 0;
+        isPlaying = false;
         document.getElementById('moves').textContent = moves;
         document.getElementById('success-message').style.display = 'none';
+        document.getElementById('hint-btn').style.display = 'none';
 
         const container = document.getElementById('puzzle-container');
         container.innerHTML = '';
@@ -315,9 +362,33 @@
 
         const totalTiles = gridSize * gridSize;
         tiles = Array.from({length: totalTiles}, (_, i) => i);
+        emptyIndex = totalTiles - 1;
         
-        shuffleTiles();
+        // まず完成形を表示
         renderPuzzle();
+        
+        // カウントダウン表示
+        const countdown = document.getElementById('countdown');
+        countdown.style.display = 'block';
+        countdown.textContent = 'おてほんをみて!';
+        
+        setTimeout(() => {
+            countdown.textContent = '3';
+            setTimeout(() => {
+                countdown.textContent = '2';
+                setTimeout(() => {
+                    countdown.textContent = '1';
+                    setTimeout(() => {
+                        countdown.textContent = 'スタート!';
+                        countdown.style.display = 'none';
+                        shuffleTiles();
+                        renderPuzzle();
+                        isPlaying = true;
+                        document.getElementById('hint-btn').style.display = 'inline-block';
+                    }, 1000);
+                }, 1000);
+            }, 1000);
+        }, 1000);
     }
 
     function shuffleTiles() {
@@ -327,6 +398,33 @@
             [tiles[emptyIndex], tiles[randomMove]] = [tiles[randomMove], tiles[emptyIndex]];
             emptyIndex = randomMove;
         }
+    }
+
+    function showHint() {
+        if (!isPlaying) return;
+        
+        clearTimeout(hintTimeout);
+        
+        const currentTiles = [...tiles];
+        const currentEmpty = emptyIndex;
+        
+        // 完成形を表示
+        tiles = Array.from({length: tiles.length}, (_, i) => i);
+        emptyIndex = tiles.length - 1;
+        renderPuzzle();
+        
+        const hintBtn = document.getElementById('hint-btn');
+        hintBtn.textContent = 'おてほんをみている...';
+        hintBtn.disabled = true;
+        
+        // 3秒後に元に戻す
+        hintTimeout = setTimeout(() => {
+            tiles = currentTiles;
+            emptyIndex = currentEmpty;
+            renderPuzzle();
+            hintBtn.textContent = 'おてほんをみる';
+            hintBtn.disabled = false;
+        }, 3000);
     }
 
     function getValidMoves() {
@@ -375,7 +473,7 @@
     }
 
     function moveTile(index) {
-        if (!getValidMoves().includes(index)) return;
+        if (!isPlaying || !getValidMoves().includes(index)) return;
 
         [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
         emptyIndex = index;
@@ -389,6 +487,8 @@
     function checkWin() {
         const isWin = tiles.every((tile, index) => tile === index);
         if (isWin) {
+            isPlaying = false;
+            document.getElementById('hint-btn').style.display = 'none';
             document.getElementById('success-message').style.display = 'block';
             document.getElementById('puzzle-container').classList.add('celebrating');
             setTimeout(() => {
@@ -401,7 +501,6 @@
     currentImage = 'cat';
     initPuzzle();
 </script>
-```
 
 </body>
 </html>
