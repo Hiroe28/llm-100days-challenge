@@ -10,7 +10,6 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
  
-
     <!-- OGP (Open Graph Protocol) -->
     <meta property="og:title" content="学習クイズアプリ - 四択問題で効率的に学習" />
     <meta property="og:description" content="Markdown・LaTeX対応の四択クイズアプリ。問題作成・管理、復習機能、データインポート/エクスポートに対応。PWAでオフラインでも使える学習支援ツール。" />
@@ -56,19 +55,15 @@
             <!-- クイズ開始画面 -->
             <div id="quiz-start" class="quiz-start">
                 <div class="study-dashboard">
-                    <h3>📊 今日の学習</h3>
+                    <h3>📊 今日学習できる数</h3>
                     <div class="study-stats">
                         <div class="stat-card">
                             <div class="stat-number" id="today-review-count">0</div>
-                            <div class="stat-label">復習</div>
+                            <div class="stat-label">復習対象</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number" id="today-new-count">0</div>
-                            <div class="stat-label">新規</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number" id="today-total-count">0</div>
-                            <div class="stat-label">合計</div>
+                            <div class="stat-number" id="today-unstudied-count">0</div>
+                            <div class="stat-label">未学習</div>
                         </div>
                     </div>
 
@@ -112,6 +107,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="form-group">
                     <label for="quiz-mode">出題モード</label>
                     <select id="quiz-mode" class="form-select">
@@ -136,7 +132,7 @@
                 </div>
 
                 <div class="form-group" id="quiz-tag-select-container" style="display: none;">
-                    <label>タグを選択（複数選択可）</label>
+                    <label>タグを選択(複数選択可)</label>
                     <div id="quiz-tag-checkboxes" class="tag-checkboxes">
                         <!-- タグのチェックボックスがここに動的に追加されます -->
                     </div>

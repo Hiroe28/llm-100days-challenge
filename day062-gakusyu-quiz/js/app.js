@@ -321,10 +321,15 @@ async function updateStudyDashboard() {
         // 今日の学習計画を取得
         const studyPlan = await SM2.getTodayStudyPlan();
         
-        // 今日の学習
+        // 未学習の問題数を取得
+        const allQuestions = await QuizDB.getAllQuestions();
+        const allStats = await QuizDB.getAllStats();
+        const statsMap = new Map(allStats.map(s => [s.question_id, s]));
+        const unstudiedCount = allQuestions.filter(q => !statsMap.has(q.id)).length;
+        
+        // 今日学習できる数を表示
         document.getElementById('today-review-count').textContent = studyPlan.review.length;
-        document.getElementById('today-new-count').textContent = studyPlan.new.length;
-        document.getElementById('today-total-count').textContent = studyPlan.total;
+        document.getElementById('today-unstudied-count').textContent = unstudiedCount;
         
         // 復習スケジュール統計を取得
         const scheduleStats = await SM2.getReviewScheduleStats();
