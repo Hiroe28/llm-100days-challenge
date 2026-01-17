@@ -258,6 +258,27 @@ body {
     cursor: pointer;
 }
 
+/* ★ ラジオボタン用スタイル */
+.question-count-options {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm);
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    cursor: pointer;
+    font-weight: 400;
+}
+
+.radio-label input[type="radio"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
 /* ==================== タグチェックボックス ==================== */
 
 .tag-checkboxes {
@@ -325,6 +346,18 @@ body {
     font-size: 0.9rem;
     color: var(--text-muted);
     font-weight: 500;
+}
+
+/* ★ 再出題バッジ */
+.retry-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .question-container {
@@ -479,6 +512,26 @@ body {
 .result-total {
     font-size: 1.2rem;
     margin-bottom: var(--spacing-xl);
+}
+
+/* ★ クイズ結果の統計 */
+.result-stats {
+    margin: var(--spacing-lg) 0;
+}
+
+.result-stats-detail {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.result-stats-detail p {
+    margin-bottom: var(--spacing-sm);
+    font-size: 1rem;
 }
 
 /* ==================== 管理画面 ==================== */

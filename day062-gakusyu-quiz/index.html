@@ -55,8 +55,6 @@
         <section id="quiz-screen" class="screen">
             <!-- クイズ開始画面 -->
             <div id="quiz-start" class="quiz-start">
-                <!-- <h2>クイズに挑戦</h2> -->
-
                 <div class="study-dashboard">
                     <h3>📊 今日の学習</h3>
                     <div class="study-stats">
@@ -124,6 +122,19 @@
                     </select>
                 </div>
 
+                <!-- 問題数選択（今日の学習モード用） -->
+                <div class="form-group" id="question-count-select" style="display: block;">
+                    <label>1日の問題数</label>
+                    <div class="question-count-options">
+                        <label class="radio-label">
+                            <input type="radio" name="question-count" value="10"> 10問
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="question-count" value="20" checked> 20問
+                        </label>
+                    </div>
+                </div>
+
                 <div class="form-group" id="quiz-tag-select-container" style="display: none;">
                     <label>タグを選択（複数選択可）</label>
                     <div id="quiz-tag-checkboxes" class="tag-checkboxes">
@@ -141,6 +152,11 @@
                 <div class="quiz-header">
                     <span id="quiz-progress" class="quiz-progress">1 / 10</span>
                     <button id="end-quiz-btn" class="btn btn-small btn-secondary">終了</button>
+                </div>
+
+                <!-- 再出題の表示 -->
+                <div id="retry-badge" class="retry-badge" style="display: none;">
+                    🔄 復習中（スケジュールには影響しません）
                 </div>
 
                 <div class="question-container">
@@ -194,6 +210,7 @@
             <div id="quiz-result" class="quiz-result" style="display: none;">
                 <h2>クイズ完了</h2>
                 <p id="result-total" class="result-total">全10問完了しました</p>
+                <div id="result-stats" class="result-stats"></div>
                 <button id="end-quiz-btn-result" class="btn btn-primary" onclick="endQuiz()">
                     最初に戻る
                 </button>
@@ -256,8 +273,6 @@
                 <div id="question-list" class="question-list">
                     <p class="empty-message">問題がありません</p>
                 </div>
-
-                <!-- ⭐ 元のインポート/エクスポート部分は削除（上に移動したため） -->
             </div>
 
             <!-- 問題エディタ -->

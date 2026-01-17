@@ -13,7 +13,11 @@ const AppState = {
         answered: false,        // 回答済みフラグ
         selectedChoice: null,   // 選択した回答
         mode: 'random',         // 出題モード: random, tag, review
-        selectedTags: []        // 選択されたタグ(複数)
+        selectedTags: [],       // 選択されたタグ(複数)
+        wrongQueue: [],         // 間違えた問題のキュー {question, originalIndex}
+        seenQuestions: new Set(), // このセッションで見た問題ID(初回)
+        retryQuestions: new Set(), // 再出題された問題ID
+        totalOriginalCount: 0   // 元の問題数
     },
     // 管理画面の状態
     manage: {
@@ -128,8 +132,15 @@ function setupQuizEventListeners() {
     document.getElementById('quiz-mode')?.addEventListener('change', (e) => {
         AppState.quiz.mode = e.target.value;
         const tagSelectContainer = document.getElementById('quiz-tag-select-container');
+        const questionCountSelect = document.getElementById('question-count-select');
+        
         if (tagSelectContainer) {
             tagSelectContainer.style.display = e.target.value === 'tag' ? 'block' : 'none';
+        }
+        
+        // 今日の学習モード時のみ問題数選択を表示
+        if (questionCountSelect) {
+            questionCountSelect.style.display = e.target.value === 'today' ? 'block' : 'none';
         }
     });
 
@@ -154,7 +165,7 @@ function setupQuizEventListeners() {
     // クイズ終了ボタン
     document.getElementById('end-quiz-btn')?.addEventListener('click', endQuiz);
 
-    // 習得済みボタン（クイズ画面）
+    // 習得済みボタン(クイズ画面)
     document.getElementById('mark-completed-btn')?.addEventListener('click', markCurrentAsCompleted);
 }
 
@@ -300,7 +311,6 @@ async function showQuizStart() {
 
     // ★ダッシュボードを更新
     await updateStudyDashboard();
-
 }
 
 /**
@@ -333,7 +343,7 @@ async function updateStudyDashboard() {
 }
 
 /**
- * 問題を習得済みにする（クイズ画面から）
+ * 問題を習得済みにする(クイズ画面から)
  */
 async function markCurrentAsCompleted() {
     try {
@@ -348,8 +358,9 @@ async function markCurrentAsCompleted() {
     }
 }
 
+
 /**
- * 問題を習得済みにする（管理画面から）
+ * 問題を習得済みにする(管理画面から)
  */
 async function markQuestionAsCompleted(questionId) {
     try {
@@ -442,6 +453,11 @@ async function startQuiz() {
         let questions = [];
 
         if (mode === 'today') {
+            // ★ 選択された問題数を取得
+            const selectedCount = parseInt(
+                document.querySelector('input[name="question-count"]:checked')?.value || '20'
+            );
+            
             // 今日の学習モード
             const studyPlan = await SM2.getTodayStudyPlan();
             
@@ -463,7 +479,10 @@ async function startQuiz() {
             const shuffledReview = QuizUI.shuffleArray(reviewQuestions);
             
             // ★ 新規問題を先頭に固定配置し、その後に復習問題を配置
-            questions = [...newQuestions, ...shuffledReview];
+            const allQuestions = [...newQuestions, ...shuffledReview];
+            
+            // ★ 選択された問題数に制限
+            questions = allQuestions.slice(0, selectedCount);
             
         } else if (mode === 'unanswered') {
             // 未解答問題のみ
@@ -497,9 +516,14 @@ async function startQuiz() {
             questions = QuizUI.shuffleArray(questions);
         }
         
+        // ★ 状態をリセット
         AppState.quiz.questions = questions;
         AppState.quiz.currentIndex = 0;
         AppState.quiz.mode = mode;
+        AppState.quiz.wrongQueue = [];
+        AppState.quiz.seenQuestions = new Set();
+        AppState.quiz.retryQuestions = new Set();
+        AppState.quiz.totalOriginalCount = questions.length;
 
         document.getElementById('quiz-start').style.display = 'none';
         document.getElementById('quiz-content').style.display = 'block';
@@ -539,11 +563,22 @@ async function showCurrentQuestion() {
 
     AppState.quiz.answered = false;
     AppState.quiz.selectedChoice = null;
-    AppState.quiz.questionStartTime = Date.now();  // ★開始時刻を記録
+    AppState.quiz.questionStartTime = Date.now();
+
+    // ★ 再出題バッジの表示制御
+    const retryBadge = document.getElementById('retry-badge');
+    if (retryBadge) {
+        if (AppState.quiz.retryQuestions.has(question.id)) {
+            retryBadge.style.display = 'block';
+        } else {
+            retryBadge.style.display = 'none';
+        }
+    }
 
     // 進捗表示
+    const totalProgress = AppState.quiz.totalOriginalCount + AppState.quiz.wrongQueue.length;
     document.getElementById('quiz-progress').textContent =
-        `${AppState.quiz.currentIndex + 1} / ${AppState.quiz.questions.length}`;
+        `${AppState.quiz.currentIndex + 1} / ${totalProgress}`;
 
     // タイトル
     document.getElementById('question-title').textContent = question.title || '問題';
@@ -598,13 +633,30 @@ async function selectChoice(choice) {
     const question = AppState.quiz.questions[AppState.quiz.currentIndex];
     const isCorrect = choice === question.answer;
 
+    // ★ 再出題かどうかを確認
+    const isRetry = AppState.quiz.retryQuestions.has(question.id);
+
     // 解答を記録
     await QuizDB.addAttempt(question.id, choice, isCorrect);
     
-    // ★SM-2対応のupdateStatsを呼ぶ（timeSpentは不要）
-    await QuizDB.updateStats(question.id, isCorrect);
+    // ★ 再出題でない場合のみ統計を更新
+    if (!isRetry) {
+        await QuizDB.updateStats(question.id, isCorrect);
+        AppState.quiz.seenQuestions.add(question.id);
+    } else {
+        console.log('📝 再出題のため統計には影響しません');
+    }
+    
+    // ★ 間違えた場合は常にキューに追加(初回でも再出題でも)
+    if (!isCorrect) {
+        AppState.quiz.wrongQueue.push({
+            question: question,
+            originalIndex: AppState.quiz.currentIndex
+        });
+        console.log('🔄 間違えた問題をキューに追加:', question.title || question.id.substring(0, 8));
+    }
 
-    // ボタンの色を変える（既存のコード）
+    // ボタンの色を変える
     const choices = ['A', 'B', 'C', 'D'];
     choices.forEach(c => {
         const btn = document.querySelector(`.choice-btn[data-choice="${c}"]`);
@@ -618,13 +670,13 @@ async function selectChoice(choice) {
         }
     });
 
-    // 解説を表示（既存のコード）
+    // 解説を表示
     const explanationContainer = document.getElementById('explanation-container');
     const explanationBody = document.getElementById('explanation-body');
     const resultText = document.getElementById('result-text');
 
     resultText.textContent = isCorrect ? '正解!' : '不正解...';
-    resultText.className = isCorrect ? 'correct' : 'incorrect';
+    resultText.className = isCorrect ? 'result-text correct' : 'result-text incorrect';
 
     QuizUI.renderContent(question.explanation_md || '解説はありません', explanationBody);
     explanationContainer.style.display = 'block';
@@ -652,6 +704,17 @@ function selectChoiceByKey(choice) {
  */
 function nextQuestion() {
     AppState.quiz.currentIndex++;
+    
+    // ★ 通常の問題リストが終わったら、間違えた問題のキューから取り出す
+    if (AppState.quiz.currentIndex >= AppState.quiz.totalOriginalCount) {
+        if (AppState.quiz.wrongQueue.length > 0) {
+            const wrongItem = AppState.quiz.wrongQueue.shift();
+            AppState.quiz.questions.push(wrongItem.question);
+            AppState.quiz.retryQuestions.add(wrongItem.question.id);
+            console.log('🔄 キューから問題を取り出しました:', wrongItem.question.title || wrongItem.question.id.substring(0, 8));
+        }
+    }
+    
     if (AppState.quiz.currentIndex >= AppState.quiz.questions.length) {
         showQuizResult();
     } else {
@@ -673,8 +736,25 @@ function showQuizResult() {
     document.getElementById('quiz-content').style.display = 'none';
     document.getElementById('quiz-result').style.display = 'block';
 
-    const total = AppState.quiz.questions.length;
-    document.getElementById('result-total').textContent = `全${total}問完了しました`;
+    const total = AppState.quiz.totalOriginalCount;
+    const retryCount = AppState.quiz.retryQuestions.size;
+    
+    let resultHtml = `全${total}問完了しました`;
+    if (retryCount > 0) {
+        resultHtml += `<br><small>（うち${retryCount}問を復習）</small>`;
+    }
+    
+    document.getElementById('result-total').innerHTML = resultHtml;
+    
+    // ★ 統計情報を表示
+    const statsHtml = `
+        <div class="result-stats-detail">
+            <p>📊 <strong>初回:</strong> ${total}問</p>
+            <p>🔄 <strong>復習:</strong> ${retryCount}問</p>
+            <p>✅ <strong>合計:</strong> ${total + retryCount}問解答</p>
+        </div>
+    `;
+    document.getElementById('result-stats').innerHTML = statsHtml;
 }
 
 /**
