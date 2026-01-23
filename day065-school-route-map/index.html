@@ -220,6 +220,16 @@
       border-color: #7c2d12;
     }
 
+    .tool-btn.btn-toggle-show {
+      background: #10b981;
+      color: white;
+      border-color: #10b981;
+    }
+
+    .tool-btn.btn-toggle-show:hover {
+      background: #059669;
+    }
+
     .color-buttons {
       display: flex;
       gap: 6px;
@@ -623,9 +633,13 @@
       height: 40px;
       z-index: 996;
       pointer-events: none;
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
+    }
+
+    .save-center-marker.show {
+      display: flex;
     }
 
     .save-center-crosshair {
@@ -668,6 +682,11 @@
       white-space: nowrap;
       pointer-events: none;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      display: none;
+    }
+
+    .save-center-label.show {
+      display: block;
     }
   </style>
 </head>
@@ -733,7 +752,10 @@
       <!-- 保存中心 -->
       <div class="tool-group">
         <div class="tool-group-label">保存中心</div>
-        <button id="centerToView" class="tool-btn" style="width: 100%;">➕ 表示中心に移動</button>
+        <div class="tool-buttons">
+          <button id="toggleSaveCenterBtn" class="tool-btn">👁️ 中心非表示</button>
+          <button id="centerToView" class="tool-btn">➕ 中心移動</button>
+        </div>
       </div>
 
       <!-- 画像サイズ -->
@@ -774,7 +796,8 @@
       <button id="toolMoveMobile" class="tool-btn">✋<br>ピン移動</button>
     </div>
     <div class="mobile-toolbar-actions">
-      <button id="centerToViewMobileBtn" class="tool-btn">➕<br>中心</button>
+      <button id="toggleSaveCenterMobileBtn" class="tool-btn">👁️<br>中心非表示</button>
+      <button id="centerToViewMobileBtn" class="tool-btn">➕<br>中心移動</button>
       <button id="toolPreviewMobileBtn" class="tool-btn btn-preview">🗺️<br>白黒地図</button>
       <button id="toolSaveMobile" class="tool-btn btn-success">💾<br>保存</button>
     </div>
@@ -810,7 +833,10 @@
         <!-- 保存中心 -->
         <div class="tool-group">
           <div class="tool-group-label">保存中心</div>
-          <button id="centerToViewMobile" class="tool-btn" style="width: 100%;">➕ 表示中心に移動</button>
+          <div class="tool-buttons">
+            <button id="toggleSaveCenterMobileModalBtn" class="tool-btn">👁️ 中心表示切替</button>
+            <button id="centerToViewMobile" class="tool-btn">➕ 中心移動</button>
+          </div>
         </div>
 
         <!-- 色選択 -->
@@ -905,6 +931,7 @@
     // 保存中心の管理
     let saveCenterLatLng = map.getCenter(); // 初期値は地図の中心
     let isDraggingSaveCenter = false;
+    let showSaveCenterPreview = true; // 初期は表示
 
     // 保存中心マーカーの位置更新
     function updateSaveCenterMarkerPosition() {
@@ -920,7 +947,9 @@
       label.style.transform = 'translateX(-50%)';
       
       // 保存範囲プレビュー枠も更新
-      updateSaveRangePreview();
+      if (showSaveCenterPreview) {
+        updateSaveRangePreview();
+      }
     }
 
     // 保存範囲プレビュー枠の更新
@@ -946,16 +975,47 @@
       preview.style.height = displayHeight + 'px';
       preview.style.left = (centerPoint.x - displayWidth / 2) + 'px';
       preview.style.top = (centerPoint.y - displayHeight / 2) + 'px';
-      preview.classList.add('show');
     }
 
-    // 保存範囲プレビュー枠の表示/非表示
-    function showSaveRangePreview() {
-      updateSaveRangePreview();
-    }
-
-    function hideSaveRangePreview() {
-      document.getElementById('saveRangePreview').classList.remove('show');
+    // 保存中心プレビューの表示/非表示切り替え
+    function toggleSaveCenterPreview() {
+      showSaveCenterPreview = !showSaveCenterPreview;
+      
+      const marker = document.getElementById('saveCenterMarker');
+      const label = document.getElementById('saveCenterLabel');
+      const preview = document.getElementById('saveRangePreview');
+      const toggleBtns = [
+        document.getElementById('toggleSaveCenterBtn'),
+        document.getElementById('toggleSaveCenterMobileBtn'),
+        document.getElementById('toggleSaveCenterMobileModalBtn')
+      ];
+      
+      if (showSaveCenterPreview) {
+        marker.classList.add('show');
+        label.classList.add('show');
+        preview.classList.add('show');
+        updateSaveCenterMarkerPosition();
+        toggleBtns.forEach(btn => btn.classList.add('btn-toggle-show'));
+        
+        // ボタンのテキストを変更
+        document.getElementById('toggleSaveCenterBtn').textContent = '👁️ 中心非表示';
+        document.getElementById('toggleSaveCenterMobileBtn').innerHTML = '👁️<br>中心非表示';
+        document.getElementById('toggleSaveCenterMobileModalBtn').textContent = '👁️ 中心非表示';
+        
+        showNotification('👁️ 保存中心を表示しました');
+      } else {
+        marker.classList.remove('show');
+        label.classList.remove('show');
+        preview.classList.remove('show');
+        toggleBtns.forEach(btn => btn.classList.remove('btn-toggle-show'));
+        
+        // ボタンのテキストを変更
+        document.getElementById('toggleSaveCenterBtn').textContent = '👁️ 中心表示';
+        document.getElementById('toggleSaveCenterMobileBtn').innerHTML = '👁️<br>中心表示';
+        document.getElementById('toggleSaveCenterMobileModalBtn').textContent = '👁️ 中心表示';
+        
+        showNotification('保存中心を非表示にしました');
+      }
     }
 
     // 地図移動時にマーカー位置を更新
@@ -970,6 +1030,7 @@
     let markerStartX, markerStartY;
 
     function startDrag(e) {
+      if (!showSaveCenterPreview) return;
       isDraggingSaveCenter = true;
       const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
       const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
@@ -1030,9 +1091,17 @@
     document.addEventListener('mouseup', endDrag);
     document.addEventListener('touchend', endDrag);
 
-    // 初期位置設定と範囲表示
+    // 初期位置設定（表示状態で）
     updateSaveCenterMarkerPosition();
-    showSaveRangePreview();
+
+    // デフォルトで表示
+    document.getElementById('saveCenterMarker').classList.add('show');
+    document.getElementById('saveCenterLabel').classList.add('show');
+    document.getElementById('saveRangePreview').classList.add('show');
+    document.getElementById('toggleSaveCenterBtn').classList.add('btn-toggle-show');
+    document.getElementById('toggleSaveCenterMobileBtn').classList.add('btn-toggle-show');
+    document.getElementById('toggleSaveCenterMobileModalBtn').classList.add('btn-toggle-show');
+
 
     // 白黒モード用の線の色を取得
     function getLineColor(baseColor) {
@@ -1304,6 +1373,11 @@
     document.getElementById('toolLineMobile').addEventListener('click', () => setTool(currentTool === 'line' ? null : 'line'));
     document.getElementById('toolMoveMobile').addEventListener('click', () => setTool(currentTool === 'move' ? null : 'move'));
 
+    // 保存中心表示切替ボタン
+    document.getElementById('toggleSaveCenterBtn').addEventListener('click', toggleSaveCenterPreview);
+    document.getElementById('toggleSaveCenterMobileBtn').addEventListener('click', toggleSaveCenterPreview);
+    document.getElementById('toggleSaveCenterMobileModalBtn').addEventListener('click', toggleSaveCenterPreview);
+
     // 線完了ボタン
     document.getElementById('lineCompleteBtn').addEventListener('click', completeLine);
 
@@ -1460,9 +1534,12 @@
         showNotification('⏳ 画像を生成中...', 10000);
         
         // 保存中心マーカーと範囲枠を一時的に非表示
-        document.getElementById('saveCenterMarker').style.display = 'none';
-        document.getElementById('saveCenterLabel').style.display = 'none';
-        document.getElementById('saveRangePreview').style.display = 'none';
+        const wasShowing = showSaveCenterPreview;
+        if (wasShowing) {
+          document.getElementById('saveCenterMarker').classList.remove('show');
+          document.getElementById('saveCenterLabel').classList.remove('show');
+          document.getElementById('saveRangePreview').classList.remove('show');
+        }
 
         const tempDiv = document.createElement('div');
         tempDiv.style.width = width + 'px';
@@ -1545,19 +1622,23 @@
         tempMap.remove();
         document.body.removeChild(tempDiv);
         
-        // 保存中心マーカーと範囲枠を再表示
-        document.getElementById('saveCenterMarker').style.display = 'flex';
-        document.getElementById('saveCenterLabel').style.display = 'block';
-        document.getElementById('saveRangePreview').style.display = 'block';
+        // 保存中心マーカーと範囲枠を再表示（元の状態に戻す）
+        if (wasShowing) {
+          document.getElementById('saveCenterMarker').classList.add('show');
+          document.getElementById('saveCenterLabel').classList.add('show');
+          document.getElementById('saveRangePreview').classList.add('show');
+        }
 
         // 成功メッセージ（ダウンロード完了後）
         // showNotification('✅ 地図を保存しました! (ズーム18・30m縮尺)', 3000);
 
       } catch (error) {
-        // エラー時もマーカーと範囲枠を再表示
-        document.getElementById('saveCenterMarker').style.display = 'flex';
-        document.getElementById('saveCenterLabel').style.display = 'block';
-        document.getElementById('saveRangePreview').style.display = 'block';
+        // エラー時もマーカーと範囲枠を元の状態に戻す
+        if (showSaveCenterPreview) {
+          document.getElementById('saveCenterMarker').classList.add('show');
+          document.getElementById('saveCenterLabel').classList.add('show');
+          document.getElementById('saveRangePreview').classList.add('show');
+        }
         
         showNotification('❌ 保存中にエラーが発生しました', 3000);
         console.error(error);
@@ -1759,12 +1840,16 @@
 
     document.getElementById('imageSize').addEventListener('change', function() {
       document.getElementById('imageSizeMobile').value = this.value;
-      updateSaveRangePreview();
+      if (showSaveCenterPreview) {
+        updateSaveRangePreview();
+      }
     });
 
     document.getElementById('imageSizeMobile').addEventListener('change', function() {
       document.getElementById('imageSize').value = this.value;
-      updateSaveRangePreview();
+      if (showSaveCenterPreview) {
+        updateSaveRangePreview();
+      }
     });
 
     document.getElementById('labelInput').addEventListener('input', function() {
