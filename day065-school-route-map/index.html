@@ -508,6 +508,7 @@
         map.removeLayer(currentTileLayer);
       }
 
+      const stadiaApiKey = 'bd319ee8-343b-42e5-b811-a449c58bef78';
       let tileUrl;
       let options = {
         maxZoom: 19,
@@ -524,8 +525,8 @@
         
         case 'toner':
           tileUrl = showLabels 
-            ? 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png'
-            : 'https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png';
+            ? `https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`
+            : `https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`;
           break;
         
         default:
@@ -763,6 +764,7 @@
         tempMap.setZoom(captureZoom);
 
         // タイル追加
+        const stadiaApiKey = 'bd319ee8-343b-42e5-b811-a449c58bef78';
         let tileUrl;
         switch(currentStyle) {
           case 'positron':
@@ -772,8 +774,8 @@
             break;
           case 'toner':
             tileUrl = showLabels 
-              ? 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png'
-              : 'https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png';
+              ? `https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`
+              : `https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`;
             break;
           default:
             tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
