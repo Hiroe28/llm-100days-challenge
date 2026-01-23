@@ -1036,16 +1036,7 @@
 
     // 白黒モード用の線の色を取得
     function getLineColor(baseColor) {
-      if (!isPreviewMode) {
-        return baseColor;
-      }
-      // 白黒モードでは明るい色に変換
-      const colorMap = {
-        '#ef4444': '#ff0000',  // 赤 → 明るい赤
-        '#3b82f6': '#0066ff',  // 青 → 明るい青
-        '#1f2937': '#ff00ff'   // 黒 → マゼンタ（目立つ色）
-      };
-      return colorMap[baseColor] || '#ff0000';
+      return baseColor;
     }
 
     // タイルレイヤー更新
