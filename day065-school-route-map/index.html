@@ -1,841 +1,291 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>通学路地図作成ツール - スマホで簡単！小学校提出用</title>
-  <meta name="description" content="小学校提出用の通学路地図を簡単作成。スマホ対応、APIキー不要、完全無料。2箇所以上にピンを配置するだけで自動的に範囲を計算し、道路が見やすい白黒地図を生成。">
-  
-  <!-- OGP (Open Graph Protocol) -->
-  <meta property="og:title" content="通学路地図作成ツール - スマホで簡単！小学校提出用" />
-  <meta property="og:description" content="2箇所にピンを打つだけで自動的に範囲を計算。スマホ対応、APIキー不要で完全無料。小学校提出用の通学路地図を簡単に作成できます。" />
-  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/screenshot.png" />
-  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/index.html" />
-  <meta property="og:type" content="website" />
-  
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="通学路地図作成ツール" />
-  <meta name="twitter:description" content="スマホで簡単！2箇所にピンを打つだけで自動的に範囲を計算し、小学校提出用の通学路地図を作成。APIキー不要、完全無料で使えます。" />
-  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/screenshot.png" />
-  
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      overflow: hidden;
-    }
-
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 12px 16px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .header p {
-      font-size: 12px;
-      opacity: 0.9;
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 70px);
-    }
-
-    #map {
-      flex: 1;
-      min-height: 300px;
-      background: #e5e7eb;
-    }
-
-    .controls {
-      background: white;
-      padding: 16px;
-      max-height: 50vh;
-      overflow-y: auto;
-      border-top: 2px solid #667eea;
-    }
-
-    .section {
-      margin-bottom: 20px;
-    }
-
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #667eea;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .input-group {
-      margin-bottom: 12px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 13px;
-      color: #555;
-      margin-bottom: 6px;
-      font-weight: 500;
-    }
-
-    .input-group input,
-    .input-group select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: all 0.2s;
-    }
-
-    .input-group input:focus,
-    .input-group select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 8px;
-      touch-action: manipulation;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .btn-primary:active {
-      transform: scale(0.98);
-    }
-
-    .btn-secondary {
-      background: white;
-      color: #667eea;
-      border: 2px solid #667eea;
-    }
-
-    .btn-secondary:active {
-      background: #f0f2ff;
-    }
-
-    .btn-success {
-      background: #10b981;
-      color: white;
-    }
-
-    .btn-success:active {
-      background: #059669;
-    }
-
-    .btn-danger {
-      background: #ef4444;
-      color: white;
-    }
-
-    .btn-danger:active {
-      background: #dc2626;
-    }
-
-    .btn:disabled {
-      background: #d1d5db;
-      color: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    .toggle-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .toggle-btn {
-      padding: 12px;
-      border: 2px solid #ddd;
-      background: white;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      touch-action: manipulation;
-    }
-
-    .toggle-btn.active {
-      background: #667eea;
-      color: white;
-      border-color: #667eea;
-    }
-
-    .hint {
-      background: #f0f9ff;
-      border-left: 3px solid #3b82f6;
-      padding: 12px;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #1e40af;
-      border-radius: 4px;
-      margin-top: 8px;
-    }
-
-    .warning {
-      background: #fef3c7;
-      border-left: 3px solid #f59e0b;
-      padding: 12px;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #92400e;
-      border-radius: 4px;
-      margin-top: 8px;
-    }
-
-    .success-box {
-      background: #d1fae5;
-      border-left: 3px solid #10b981;
-      padding: 12px;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #065f46;
-      border-radius: 4px;
-      margin-top: 8px;
-    }
-
-    .pin-count {
-      display: inline-block;
-      background: #667eea;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-left: 8px;
-    }
-
-    .divider {
-      height: 1px;
-      background: #e5e7eb;
-      margin: 16px 0;
-    }
-
-    .spinner {
-      display: none;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .btn.loading .spinner {
-      display: block;
-    }
-
-    .btn.loading .btn-text {
-      display: none;
-    }
-
-    .expand-btn {
-      display: block;
-      width: 100%;
-      padding: 8px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      color: #667eea;
-      cursor: pointer;
-      margin-bottom: 8px;
-    }
-
-    .expandable-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-
-    .expandable-content.expanded {
-      max-height: 500px;
-    }
-
-    /* PC表示時のレイアウト */
-    @media (min-width: 768px) {
-      .container {
-        flex-direction: row;
-        height: calc(100vh - 70px);
-      }
-
-      .controls {
-        width: 360px;
-        max-height: none;
-        border-top: none;
-        border-right: 1px solid #e0e0e0;
-      }
-
-      #map {
-        flex: 1;
-      }
-
-      .header h1 {
-        font-size: 24px;
-      }
-
-      .header p {
-        font-size: 14px;
-      }
-
-      .header {
-        padding: 20px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>🗺️ 通学路地図作成ツール</h1>
-    <p>スマホでも簡単！ピンを置いて保存するだけ</p>
-  </div>
-
-  <div class="container">
-    <div id="map"></div>
-    
-    <div class="controls">
-      <!-- 地図スタイル -->
-      <div class="section">
-        <div class="section-title">⚙️ 地図スタイル</div>
-        
-        <div class="input-group">
-          <label>地図タイプ（カラー地図でラベル表示だと建物がわかりやすい）</label>
-          <select id="mapStyle">
-            <option value="toner" selected>白黒（濃いめ）</option>
-            <option value="positron">白黒（明るめ）</option>
-            <option value="color">カラー地図</option>
-          </select>
-        </div>
-
-        <div class="toggle-group">
-          <button class="toggle-btn" data-labels="on">ラベル表示</button>
-          <button class="toggle-btn active" data-labels="off">ラベル非表示</button>
-        </div>
-
-        <button class="expand-btn" onclick="toggleExpand('advanced')">
-          詳細設定（明るさ・コントラスト） ▼
-        </button>
-        <div id="advanced" class="expandable-content">
-          <div class="input-group">
-            <label>明るさ <span id="brightnessValue">100%</span></label>
-            <input type="range" id="brightness" min="50" max="150" value="100" step="5">
-          </div>
-          <div class="input-group">
-            <label>コントラスト <span id="contrastValue">100%</span></label>
-            <input type="range" id="contrast" min="50" max="150" value="100" step="5">
-          </div>
-          <button class="btn btn-secondary" id="resetFilters" style="margin-top: 8px;">
-            🔄 リセット
-          </button>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- 場所検索 -->
-      <div class="section">
-        <div class="section-title">📍 場所を探す</div>
-        <div class="input-group">
-          <input type="text" id="addressInput" placeholder="住所を入力（例：札幌市中央区...）">
-        </div>
-        <button class="btn btn-primary" id="searchBtn">
-          <span class="btn-text">🔍 この住所へ移動</span>
-          <span class="spinner"></span>
-        </button>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- ピン配置 -->
-      <div class="section">
-        <div class="section-title">
-          📌 ピンを配置
-          <span class="pin-count" id="pinCount">0個</span>
-        </div>
-        
-        <div class="input-group">
-          <label>ピンの種類</label>
-          <select id="pinType">
-            <option value="home">🏠 自宅</option>
-            <option value="school">🏫 学校</option>
-            <option value="point">📍 その他</option>
-          </select>
-        </div>
-
-        <button class="btn btn-primary" id="addPinMode">
-          ➕ 地図タップでピン追加
-        </button>
-
-        <div class="hint">
-          💡 ボタンをタップ → 地図上をタップしてピンを配置
-        </div>
-
-        <div class="toggle-group" style="margin-top: 12px;">
-          <button class="toggle-btn active" id="showPins">ピン表示</button>
-          <button class="toggle-btn" id="hidePins">ピン非表示</button>
-        </div>
-
-        <button class="btn btn-danger" id="clearPins">
-          🗑️ ピンを全削除
-        </button>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- 保存 -->
-      <div class="section">
-        <div class="section-title">💾 地図を保存</div>
-        
-        <div class="input-group">
-          <label>画像サイズ</label>
-          <select id="imageSize">
-            <option value="800x600">800×600</option>
-            <option value="1200x900" selected>1200×900（推奨）</option>
-            <option value="1600x1200">1600×1200</option>
-            <option value="2000x1500">2000×1500</option>
-          </select>
-        </div>
-
-        <button class="btn btn-success" id="captureBtn" disabled>
-          💾 ピンの範囲を画像保存
-        </button>
-
-        <div id="saveStatus" style="display: none;"></div>
-
-        <div class="hint">
-          💡 ピンを印刷したくない場合は、保存前に「ピン非表示」ボタンを押してください
-        </div>
-
-        <div class="warning">
-          ⚠️ 2個以上のピンを配置してから保存してください。配置したピンを含む範囲が自動で画像化されます（ズーム18固定）。
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-
-  <script>
-    // 地図の初期化
-    const map = L.map('map', {
-      zoomControl: true,
-      attributionControl: true
-    }).setView([43.064171, 141.346939], 18);
-
-    // タイルレイヤー設定
-    let currentTileLayer;
-    let showLabels = false; // 初期は非表示
-    let currentStyle = 'toner';
-    let brightness = 100;
-    let contrast = 100;
-
-    // ピン管理
-    let markers = [];
-    let pinsVisible = true;
-    let addPinModeActive = false;
-
-    // アイコン定義
-    const homeIcon = L.divIcon({
-      html: '<div style="background: #ef4444; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">🏠</div>',
-      className: '',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    });
-
-    const schoolIcon = L.divIcon({
-      html: '<div style="background: #3b82f6; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">🏫</div>',
-      className: '',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    });
-
-    const pointIcon = L.divIcon({
-      html: '<div style="background: #10b981; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">📍</div>',
-      className: '',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    });
-
-    function updateTileLayer() {
-      if (currentTileLayer) {
-        map.removeLayer(currentTileLayer);
-      }
-
-      const stadiaApiKey = 'bd319ee8-343b-42e5-b811-a449c58bef78';
-      let tileUrl;
-      let options = {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      };
-
-      switch(currentStyle) {
-        case 'positron':
-          tileUrl = showLabels 
-            ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
-          options.attribution += ' &copy; <a href="https://carto.com/attributions">CARTO</a>';
-          break;
-        
-        case 'toner':
-          tileUrl = showLabels 
-            ? `https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`
-            : `https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`;
-          break;
-        
-        default:
-          tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-      }
-
-      currentTileLayer = L.tileLayer(tileUrl, options).addTo(map);
-      updateFilters();
-    }
-
-    function updateFilters() {
-      const mapPane = map.getPane('tilePane');
-      if (mapPane) {
-        mapPane.style.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
-      }
-    }
-
-    updateTileLayer();
-
-    // ピン数更新
-    function updatePinCount() {
-      document.getElementById('pinCount').textContent = markers.length + '個';
-      document.getElementById('captureBtn').disabled = markers.length < 2;
-    }
-
-    // 詳細設定の展開
-    function toggleExpand(id) {
-      const elem = document.getElementById(id);
-      elem.classList.toggle('expanded');
-    }
-
-    // 地図スタイル変更
-    document.getElementById('mapStyle').addEventListener('change', function() {
-      currentStyle = this.value;
-      updateTileLayer();
-    });
-
-    // ラベル切り替え
-    document.querySelectorAll('[data-labels]').forEach(btn => {
-      btn.addEventListener('click', function() {
-        document.querySelectorAll('[data-labels]').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        showLabels = this.dataset.labels === 'on';
-        updateTileLayer();
-      });
-    });
-
-    // フィルター調整
-    document.getElementById('brightness').addEventListener('input', function() {
-      brightness = this.value;
-      document.getElementById('brightnessValue').textContent = brightness + '%';
-      updateFilters();
-    });
-
-    document.getElementById('contrast').addEventListener('input', function() {
-      contrast = this.value;
-      document.getElementById('contrastValue').textContent = contrast + '%';
-      updateFilters();
-    });
-
-    document.getElementById('resetFilters').addEventListener('click', function() {
-      brightness = 100;
-      contrast = 100;
-      document.getElementById('brightness').value = 100;
-      document.getElementById('contrast').value = 100;
-      document.getElementById('brightnessValue').textContent = '100%';
-      document.getElementById('contrastValue').textContent = '100%';
-      updateFilters();
-    });
-
-    // 住所検索
-    document.getElementById('searchBtn').addEventListener('click', async function() {
-      const address = document.getElementById('addressInput').value.trim();
-      if (!address) {
-        alert('住所を入力してください');
-        return;
-      }
-
-      this.classList.add('loading');
-
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?` + 
-          `format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=jp`
-        );
-        
-        const data = await response.json();
-        
-        if (data.length > 0) {
-          const lat = parseFloat(data[0].lat);
-          const lon = parseFloat(data[0].lon);
-          map.setView([lat, lon], 18);
-          alert(`✅ ${data[0].display_name.slice(0, 50)}... に移動しました`);
-        } else {
-          alert('住所が見つかりませんでした');
-        }
-      } catch (error) {
-        alert('検索エラーが発生しました');
-      } finally {
-        this.classList.remove('loading');
-      }
-    });
-
-    // Enterキーで検索
-    document.getElementById('addressInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        document.getElementById('searchBtn').click();
-      }
-    });
-
-    // ピン追加モード
-    document.getElementById('addPinMode').addEventListener('click', function() {
-      addPinModeActive = !addPinModeActive;
-      if (addPinModeActive) {
-        this.classList.add('active');
-        this.style.background = '#10b981';
-        this.style.color = 'white';
-        this.innerHTML = '✓ ピン追加モードON';
-        map.getContainer().style.cursor = 'crosshair';
-      } else {
-        this.classList.remove('active');
-        this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        this.style.color = 'white';
-        this.innerHTML = '➕ 地図タップでピン追加';
-        map.getContainer().style.cursor = '';
-      }
-    });
-
-    // 地図クリックでピン追加
-    map.on('click', function(e) {
-      if (!addPinModeActive) return;
-
-      const pinType = document.getElementById('pinType').value;
-      let icon, label;
-
-      switch(pinType) {
-        case 'home':
-          icon = homeIcon;
-          label = '自宅';
-          break;
-        case 'school':
-          icon = schoolIcon;
-          label = '学校';
-          break;
-        default:
-          icon = pointIcon;
-          label = 'ポイント';
-      }
-
-      const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: icon })
-        .bindPopup(label)
-        .addTo(map);
-
-      markers.push(marker);
-      updatePinCount();
-    });
-
-    // ピン表示/非表示
-    document.getElementById('showPins').addEventListener('click', function() {
-      document.getElementById('showPins').classList.add('active');
-      document.getElementById('hidePins').classList.remove('active');
-      pinsVisible = true;
-      markers.forEach(marker => marker.addTo(map));
-    });
-
-    document.getElementById('hidePins').addEventListener('click', function() {
-      document.getElementById('hidePins').classList.add('active');
-      document.getElementById('showPins').classList.remove('active');
-      pinsVisible = false;
-      markers.forEach(marker => map.removeLayer(marker));
-    });
-
-    // ピン全削除
-    document.getElementById('clearPins').addEventListener('click', function() {
-      if (markers.length === 0) {
-        alert('削除するピンがありません');
-        return;
-      }
-      
-      if (confirm(`${markers.length}個のピンをすべて削除しますか？`)) {
-        markers.forEach(marker => map.removeLayer(marker));
-        markers = [];
-        updatePinCount();
-        alert('すべてのピンを削除しました');
-      }
-    });
-
-    // 画像保存機能
-    document.getElementById('captureBtn').addEventListener('click', async function() {
-      if (markers.length < 2) {
-        alert('2個以上のピンを配置してください');
-        return;
-      }
-
-      const captureZoom = 18; // ズーム18固定
-      const imageSizeStr = document.getElementById('imageSize').value;
-      const [width, height] = imageSizeStr.split('x').map(Number);
-
-      // ピンの範囲を計算
-      const latLngs = markers.map(m => m.getLatLng());
-      const bounds = L.latLngBounds(latLngs);
-      
-      // 余白を追加（10%）
-      const padding = 0.1;
-      const latPadding = (bounds.getNorth() - bounds.getSouth()) * padding;
-      const lngPadding = (bounds.getEast() - bounds.getWest()) * padding;
-      
-      const paddedBounds = L.latLngBounds(
-        [bounds.getSouth() - latPadding, bounds.getWest() - lngPadding],
-        [bounds.getNorth() + latPadding, bounds.getEast() + lngPadding]
-      );
-
-      try {
-        // 保存状態を表示
-        const statusDiv = document.getElementById('saveStatus');
-        statusDiv.className = 'hint';
-        statusDiv.style.display = 'block';
-        statusDiv.textContent = '⏳ 画像を生成中...';
-
-        // 一時的な地図を作成
-        const tempDiv = document.createElement('div');
-        tempDiv.style.width = width + 'px';
-        tempDiv.style.height = height + 'px';
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
-        tempDiv.style.top = '0';
-        tempDiv.id = 'tempMap';
-        document.body.appendChild(tempDiv);
-
-        const tempMap = L.map('tempMap', {
-          zoomControl: false,
-          attributionControl: false
-        }).fitBounds(paddedBounds);
-
-        tempMap.setZoom(captureZoom);
-
-        // タイル追加
-        const stadiaApiKey = 'bd319ee8-343b-42e5-b811-a449c58bef78';
-        let tileUrl;
-        switch(currentStyle) {
-          case 'positron':
-            tileUrl = showLabels 
-              ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-              : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
-            break;
-          case 'toner':
-            tileUrl = showLabels 
-              ? `https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`
-              : `https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png?api_key=${stadiaApiKey}`;
-            break;
-          default:
-            tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        }
-
-        L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(tempMap);
-
-        // フィルター適用
-        const tempMapPane = tempMap.getPane('tilePane');
-        if (tempMapPane) {
-          tempMapPane.style.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
-        }
-
-        // ピンを追加
-        if (pinsVisible) {
-          markers.forEach(marker => {
-            L.marker(marker.getLatLng(), { icon: marker.options.icon }).addTo(tempMap);
-          });
-        }
-
-        // タイル読み込み待機
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // 画像化
-        const canvas = await html2canvas(tempDiv, {
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff'
-        });
-
-        // ダウンロード
-        const link = document.createElement('a');
-        const timestamp = new Date().toISOString().slice(0, 10);
-        link.download = `通学路地図_${timestamp}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-
-        // 後片付け
-        tempMap.remove();
-        document.body.removeChild(tempDiv);
-
-        statusDiv.className = 'success-box';
-        statusDiv.textContent = '✅ 地図を保存しました！';
-        setTimeout(() => {
-          statusDiv.style.display = 'none';
-        }, 3000);
-
-      } catch (error) {
-        const statusDiv = document.getElementById('saveStatus');
-        statusDiv.className = 'warning';
-        statusDiv.textContent = '❌ 保存中にエラーが発生しました';
-        console.error(error);
-      }
-    });
-
-    // スケールコントロール
-    L.control.scale({
-      imperial: false,
-      metric: true
-    }).addTo(map);
-  </script>
-</body>
-</html>
+# 📍 通学路地図作成ツール
+
+小学校提出用の通学路地図を簡単に作成できるWebアプリケーション。お絵かき感覚で通学路を描いて、白黒の詳細地図として保存できます。
+
+## ✨ 主な機能
+
+### 🎯 保存中心マーカー方式
+- **赤い十字マーカー**: 保存される地図の中心位置を視覚的に表示
+- **ドラッグで移動**: マーカーを自由に動かして保存位置を調整
+- **範囲の可視化**: 点線の枠で実際に保存される範囲を常時表示
+- **固定縮尺**: ズームレベル18（30m縮尺）で道路が白く見える状態で保存
+
+### 📏 線とピンで通学路を描画
+- **線の描画**: タップで点を追加、通学路のルートを描画
+- **自動完了**: 他のボタンを押すと自動的に線が完了
+- **ピン配置**: 🏠自宅、🏫学校など8種類のアイコンを配置可能
+- **ラベル付け**: 「家」「学校」「交差点」などテキストを追加可能
+- **色の選択**: 赤・青・黒の3色から選択可能
+
+### 📱 スマホ最適化
+- **フローティングツールバー**: PC版は左上に半透明パネル
+- **ボトムツールバー**: スマホ版は画面下部に操作ボタン
+- **タッチ操作対応**: 画面の小さいスマホでも快適に操作
+- **レスポンシブデザイン**: 自動でPC/スマホレイアウトに切り替え
+
+### 🗺️ 地図モード
+- **カラーモード**: 通常のOpenStreetMap表示（デフォルト）
+- **白黒モード**: Stamen Tonerの白黒地図、印刷に最適
+- **ワンタップ切り替え**: 🎨ボタンでカラー⇔白黒を瞬時に切り替え
+
+### 🎨 カスタマイズ機能
+- **8種類のアイコン**: 🏠家、🏫学校、📍目印、⭐重要、🚸横断歩道、⚠️注意、🚩旗、🛑停止
+- **3色のカラー**: 赤・青・黒から選択
+- **ラベル追加**: 各ピンにテキストラベルを付けられる
+- **移動モード**: 配置済みのピンをドラッグで移動可能
+
+### 💾 保存機能
+- **4つの画像サイズ**: 1200×900、900×1200、1500×1500、2000×1500
+- **ズーム18固定**: 常に30m縮尺の詳細地図で保存
+- **PNG形式**: 高品質な画像として保存
+- **日付・モード付きファイル名**: `通学路地図_白黒_zoom18_2026-01-23.png`
+
+## 🚀 使い方
+
+### 基本的な手順（推奨）
+
+1. **場所を検索**
+   ```
+   検索バーに「札幌市立○○小学校」と入力
+   ↓
+   🔍移動ボタンをタップ
+   ↓
+   保存中心（赤い十字）が自動的にその場所に設定される
+   ```
+
+2. **地図を調整**
+   ```
+   地図をピンチ・パンで自由に表示
+   ↓
+   ちょうど良い位置にしたら「🎯中心」をタップ
+   ↓
+   保存中心が現在の表示中心に移動
+   ```
+   または
+   ```
+   赤い十字マーカーを直接ドラッグして位置調整
+   ```
+
+3. **ピンと線を配置**
+   ```
+   📍ピンを選択 → 地図をタップ
+   ↓
+   アイコンとラベルを設定（例：🏠「家」）
+   ↓
+   📏線を選択 → 地図を連続タップで通学路を描画
+   ↓
+   他のボタンを押すと自動的に線が完了
+   ```
+
+4. **白黒モードに切り替え**
+   ```
+   🎨白黒ボタンをタップ
+   ↓
+   ズーム18の白黒地図に切り替わる
+   ↓
+   線の色が見やすく自動調整される
+   ```
+
+5. **保存**
+   ```
+   画像サイズを選択（推奨：1200×900）
+   ↓
+   💾保存ボタンをタップ
+   ↓
+   赤い十字の位置を中心に、ズーム18で保存される
+   ```
+
+### 💡 便利なTips
+
+#### 保存範囲の確認
+- **点線の枠**: 常に表示される赤い点線が実際の保存範囲
+- **地図のズーム**: 拡大縮小しても保存時は常にズーム18
+- **範囲の調整**: 画像サイズを変更すると点線枠のサイズも変わる
+
+#### 線の描画
+- **完了方法**: 「✅ 線を完了」または他のボタンを押す
+- **右クリック**: PCでは右クリックで線を完了（スマホは不要）
+- **Escキー**: PCではEscキーで線を完了またはキャンセル
+
+#### ピンの配置
+- **移動モード**: ✋移動を選択してピンをドラッグ
+- **戻す**: ↩️戻すボタンで1つずつ取り消し
+- **全削除**: 🗑️削除ボタンですべてクリア
+
+#### 白黒モードでの線の色
+- 赤 → 明るい赤（#ff0000）
+- 青 → 明るい青（#0066ff）
+- 黒 → マゼンタ（#ff00ff）
+
+自動的に白黒地図でも見やすい色に調整されます。
+
+## 🛠️ 技術仕様
+
+### 使用技術
+- **Leaflet.js 1.9.4**: オープンソースの地図ライブラリ
+- **OpenStreetMap**: 無料のカラー地図データ
+- **Stamen Toner (Stadia Maps提供)**: 白黒地図タイル
+- **html2canvas 1.4.1**: 地図の画像化
+- **Nominatim API**: 住所検索（無料、OpenStreetMap提供）
+
+### 対応ブラウザ
+- Chrome / Edge（推奨）
+- Safari
+- Firefox
+- モバイルブラウザ（iOS Safari, Android Chrome）
+
+### ネットワーク要件
+- インターネット接続が必要（地図タイルの読み込みのため）
+- APIキー不要（Stadia Maps APIキーは埋め込み済み）
+- 完全無料
+
+## 📐 仕様詳細
+
+### ズームレベル
+- **初期表示**: ズーム15（札幌市中心）
+- **住所検索後**: ズーム18（保存中心も自動設定）
+- **保存時**: ズーム18固定（30m縮尺）
+
+### 保存中心マーカー
+- **赤い十字（＋）**: 画面上で常に表示
+- **ドラッグ可能**: マウス・タッチで自由に移動
+- **保存時非表示**: 画像にはマーカーは含まれない
+
+### 保存範囲プレビュー
+- **赤い点線枠**: 実際に保存される範囲を表示
+- **4隅にコーナーマーク**: 範囲を明確に
+- **ズーム連動**: 地図のズームに応じて枠サイズが変化
+- **保存時非表示**: 画像には枠は含まれない
+
+### 線の描画
+- **太さ**: 4px
+- **不透明度**: 80%
+- **色**: 赤・青・黒（白黒モード時は自動調整）
+- **元の色を保持**: モード切り替え時も色情報は保持
+
+### 画像サイズ
+- 1200×900px（横長・推奨）
+- 900×1200px（縦長）
+- 1500×1500px（正方形）
+- 2000×1500px（横長・高解像度）
+
+## 🎓 活用シーン
+
+- **小学校入学**: 通学路地図の提出用（主要用途）
+- **転校時**: 新しい通学路の確認・提出
+- **学童保育**: お迎えルートの説明
+- **保護者会**: 通学路の共有・議論
+- **防災マップ**: 避難経路の作成
+- **地域安全マップ**: 危険箇所の記録
+
+## 📱 操作ガイド
+
+### PC版（左上フローティングツールバー）
+```
+┌─────────────────┐
+│ 📍 通学路ツール │ ← 折りたたみ可能
+├─────────────────┤
+│ 基本ツール      │
+│ [📍ピン] [📏線] [✋移動] │
+├─────────────────┤
+│ 点/線の色       │
+│ [赤] [青] [黒]  │
+├─────────────────┤
+│ アイコン・ラベル│
+│ [選択] [入力]   │
+├─────────────────┤
+│ 保存中心        │
+│ [🎯表示中心に移動] │
+├─────────────────┤
+│ [↩️戻す] [🗑️削除] │
+│ [🎨白黒]         │
+│ [💾保存]         │
+└─────────────────┘
+```
+
+### スマホ版（画面下部ボトムツールバー）
+```
+┌──────────────────┐
+│ 📍  📏  ↩️  ✋ │
+│ピン 線 戻す 移動  │
+├──────────────────┤
+│ 🎯  🎨  💾      │
+│中心 白黒 保存     │
+├──────────────────┤
+│ ⚙️ 詳細設定      │ ← タップでモーダル
+└──────────────────┘
+```
+
+詳細設定モーダルで以下を調整：
+- 点/線の色
+- アイコン種類
+- ラベル
+- 画像サイズ
+- 統計表示
+
+## 🔧 トラブルシューティング
+
+### 線が見えない
+- 白黒モードで線を描画していませんか？
+- 線の色が自動調整されているか確認してください
+- 2点以上タップして線を描画してください
+
+### 保存範囲がわからない
+- 赤い点線の枠が保存範囲です
+- 画像サイズを変更すると枠のサイズも変わります
+- 赤い十字が保存の中心点です
+
+### 保存した画像が想定と違う
+- 保存時は常にズーム18固定です
+- 画面のズームレベルは保存に影響しません
+- 赤い十字の位置が保存の中心になります
+
+### 線の完了ボタンが見つからない
+- スマホの場合、画面下部ツールバーの上に緑色のボタンが表示されます
+- 他のボタン（保存、白黒など）を押しても自動的に線が完了します
+
+## 📝 ライセンス
+
+このツールはオープンソースで提供されています。
+
+### 地図データ・サービス
+- © OpenStreetMap contributors - カラー地図データ
+- © Stamen Design - Toner地図デザイン
+- © Stadia Maps - 地図タイル配信サービス
+
+### ライブラリ
+- Leaflet.js (BSD 2-Clause License)
+- html2canvas (MIT License)
+
+## 🙏 謝辞
+
+- [Leaflet.js](https://leafletjs.com/) - 地図ライブラリ
+- [OpenStreetMap](https://www.openstreetmap.org/) - 地図データ
+- [Stamen Design](http://maps.stamen.com/) - 白黒地図デザイン
+- [Stadia Maps](https://stadiamaps.com/) - 地図タイル配信
+- [html2canvas](https://html2canvas.hertzen.com/) - スクリーンショット機能
+- [Nominatim](https://nominatim.org/) - 住所検索API
+
+## 📮 フィードバック
+
+改善提案やバグ報告は、GitHubのIssuesまでお願いします。
+
+## 🎯 開発の経緯
+
+通学路地図は小学校入学時に必須の提出物ですが、既存のツールでは：
+- スマホ画面より広い範囲を保存したい
+- 印刷に適した白黒・詳細地図がほしい
+- 保存される範囲が事前にわかりにくい
+
+という課題がありました。
+
+本ツールでは：
+- **保存中心マーカー**で保存位置を明確化
+- **保存範囲プレビュー**で範囲を常時表示
+- **ズーム18固定**で確実に詳細地図を保存
+
+を実現し、スマホでも簡単に通学路地図が作成できるようになりました。
+
+---
+
+**LLM 100 Days Challenge - Day 65+**  
