@@ -702,9 +702,9 @@
       <div class="tool-group">
         <div class="tool-group-label">点/線の色</div>
         <div class="color-buttons">
-          <div class="color-btn red active" data-color="#ef4444"></div>
+          <div class="color-btn red" data-color="#ef4444"></div>
           <div class="color-btn blue" data-color="#3b82f6"></div>
-          <div class="color-btn black" data-color="#1f2937"></div>
+          <div class="color-btn black active" data-color="#1f2937"></div>
         </div>
       </div>
 
@@ -759,7 +759,7 @@
           <button id="toolUndo" class="tool-btn" disabled>↩️ 戻す</button>
           <button id="toolClear" class="tool-btn">🗑️ 削除</button>
         </div>
-        <button id="toolPreview" class="tool-btn btn-preview" style="width: 100%;">🎨 白黒</button>
+        <button id="toolPreview" class="tool-btn btn-preview" style="width: 100%;">🗺️ 白黒地図</button>
         <button id="toolSave" class="tool-btn btn-success" style="width: 100%;">💾 保存</button>
       </div>
     </div>
@@ -775,7 +775,7 @@
     </div>
     <div class="mobile-toolbar-actions">
       <button id="centerToViewMobileBtn" class="tool-btn">➕<br>中心</button>
-      <button id="toolPreviewMobileBtn" class="tool-btn btn-preview">🎨<br>白黒</button>
+      <button id="toolPreviewMobileBtn" class="tool-btn btn-preview">🗺️<br>白黒地図</button>
       <button id="toolSaveMobile" class="tool-btn btn-success">💾<br>保存</button>
     </div>
     <button id="settingsBtnMobile" class="settings-btn">⚙️ 詳細設定</button>
@@ -1389,15 +1389,22 @@
       const previewBtnMobile = document.getElementById('toolPreviewMobileBtn');
       
       if (isPreviewMode) {
-        previewBtn.textContent = '🎨 カラー';
-        previewBtnMobile.textContent = '🎨カラー';
+        // PC（改行いらないなら textContent のままでOK）
+        previewBtn.textContent = '🗺️カラー地図';
+
+        // ✅ モバイル（<br> を効かせる）
+        previewBtnMobile.innerHTML = '🗺️<br>カラー地図';
+
         previewBtn.classList.add('active');
         previewBtnMobile.classList.add('active');
         map.setZoom(18);
         showNotification('白黒プレビューモード', 3000);
       } else {
-        previewBtn.textContent = '🎨 白黒';
-        previewBtnMobile.textContent = '🎨白黒';
+        previewBtn.textContent = '🗺️白黒地図';
+
+        // ✅ モバイル（<br> を効かせる）
+        previewBtnMobile.innerHTML = '🗺️<br>白黒地図';
+
         previewBtn.classList.remove('active');
         previewBtnMobile.classList.remove('active');
         showNotification('カラーモードに戻しました');
@@ -1538,7 +1545,7 @@
         // ダウンロード
         const link = document.createElement('a');
         const timestamp = new Date().toISOString().slice(0, 10);
-        const mode = isPreviewMode ? '白黒' : 'カラー';
+        const mode = isPreviewMode ? '白黒地図' : 'カラー地図';
         link.download = `通学路地図_${mode}_zoom${saveZoom}_${timestamp}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
