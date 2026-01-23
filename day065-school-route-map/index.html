@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>通学路地図作成ツール</title>
   
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content="通学路地図作成ツール - 小学校提出用の地図を簡単作成" />
+  <meta property="og:description" content="お絵かき感覚で通学路を描いて白黒地図として保存。保存中心マーカーで範囲を可視化、ピンと線で詳細な通学路マップを作成できる小学校入学準備に最適なツール。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/index.html" />
+  <meta property="og:type" content="website" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="通学路地図作成ツール" />
+  <meta name="twitter:description" content="お絵かき感覚で通学路を描いて白黒地図として保存。保存中心マーカーで範囲を可視化し、ピンと線で詳細な通学路マップを作成。小学校入学準備に最適。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/screenshot.png" />
+
+    
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -325,108 +338,53 @@
       right: 0;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
-      padding: 12px 16px 20px;
+      padding: 10px 16px 20px;
       box-shadow: 0 -2px 12px rgba(0,0,0,0.15);
       z-index: 998;
     }
 
-    .mobile-toolbar-main {
+    .mobile-toolbar-row {
       display: flex;
       gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
-    .mobile-toolbar-main .tool-btn {
+    .mobile-toolbar-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .mobile-toolbar-row .tool-btn {
       flex: 1;
-      padding: 14px 8px;
-      font-size: 13px;
-    }
-
-    .mobile-toolbar-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .mobile-toolbar-actions .tool-btn {
-      flex: 1;
-      padding: 12px 8px;
+      padding: 6px 8px;
       font-size: 12px;
+      line-height: 1.3;
     }
 
-    .settings-btn {
-      width: 100%;
-      padding: 12px;
-      background: #374151;
-      color: white;
-      border: none;
-      border-radius: 8px;
+    .mobile-toolbar-row .tool-input,
+    .mobile-toolbar-row .tool-select {
+      flex: 1;
+      padding: 8px;
       font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
     }
 
-    /* モーダル */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal-overlay.show {
+    /* モバイル用色ボタン */
+    .mobile-color-buttons {
       display: flex;
-    }
-
-    .modal {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 400px;
+      gap: 8px;
       width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
 
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1f2937;
-    }
-
-    .modal-close {
-      width: 32px;
+    .mobile-color-buttons .color-btn {
+      flex: 1;
       height: 32px;
-      background: #f3f4f6;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      min-width: 0; /* 追加 */
     }
 
-    .modal-body {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    /* モバイル用保存ボタン（大きめ） */
+    .mobile-save-btn {
+      padding: 14px 8px !important;
+      font-size: 14px !important;
+      font-weight: 700 !important;
     }
 
     /* 通知 */
@@ -605,7 +563,7 @@
       }
 
       .line-complete-btn {
-        bottom: 230px;
+        bottom: 250px;
         font-size: 16px;
         padding: 14px 28px;
       }
@@ -613,7 +571,10 @@
       .leaflet-top .leaflet-control-zoom {
         margin-top: 90px;
       }
-
+      /* 追加: 縮尺バーを上に移動 */
+      .leaflet-bottom .leaflet-control-scale {
+        margin-bottom: 320px; /* ツールバーの高さ分上げる */
+      }
     }
 
     /* 線の始点マーカー */
@@ -731,7 +692,7 @@
       <div class="tool-group">
         <div class="tool-group-label">アイコン</div>
         <select id="iconType" class="tool-select">
-          <option value="none">なし（点のみ）</option>
+          <option value="none">ピンのアイコンなし（点のみ）</option>
           <option value="home">🏠 家</option>
           <option value="school">🏫 学校</option>
           <option value="pin">📍 目印</option>
@@ -745,15 +706,15 @@
 
       <!-- ラベル -->
       <div class="tool-group">
-        <div class="tool-group-label">ラベル</div>
-        <input type="text" id="labelInput" class="tool-input" placeholder="例: 家、学校">
+        <div class="tool-group-label">ピンの文字</div>
+        <input type="text" id="labelInput" class="tool-input" placeholder="ピンの文字 例: 家、学校">
       </div>
 
       <!-- 保存中心 -->
       <div class="tool-group">
         <div class="tool-group-label">保存中心</div>
         <div class="tool-buttons">
-          <button id="toggleSaveCenterBtn" class="tool-btn">👁️ 中心非表示</button>
+          <button id="toggleSaveCenterBtn" class="tool-btn">▢ 範囲非表示</button>
           <button id="centerToView" class="tool-btn">➕ 中心移動</button>
         </div>
       </div>
@@ -789,19 +750,55 @@
 
   <!-- モバイル用ボトムツールバー -->
   <div class="mobile-toolbar">
-    <div class="mobile-toolbar-main">
+    <!-- 1段目: 基本ツール -->
+    <div class="mobile-toolbar-row">
       <button id="toolPinMobile" class="tool-btn">📍<br>ピン</button>
       <button id="toolLineMobile" class="tool-btn">📏<br>線</button>
-      <button id="toolUndoMobileBtn" class="tool-btn" disabled>↩️<br>描画を戻す</button>
+      <button id="toolUndoMobile" class="tool-btn" disabled>↩️<br>戻す</button>
       <button id="toolMoveMobile" class="tool-btn">✋<br>ピン移動</button>
     </div>
-    <div class="mobile-toolbar-actions">
-      <button id="toggleSaveCenterMobileBtn" class="tool-btn">👁️<br>中心非表示</button>
-      <button id="centerToViewMobileBtn" class="tool-btn">➕<br>中心移動</button>
-      <button id="toolPreviewMobileBtn" class="tool-btn btn-preview">🗺️<br>白黒地図</button>
-      <button id="toolSaveMobile" class="tool-btn btn-success">💾<br>保存</button>
+
+    <!-- 2段目: 色選択 -->
+    <div class="mobile-toolbar-row">
+      <div class="mobile-color-buttons">
+        <div class="color-btn red" data-color="#ef4444"></div>
+        <div class="color-btn blue" data-color="#3b82f6"></div>
+        <div class="color-btn black active" data-color="#1f2937"></div>
+      </div>
     </div>
-    <button id="settingsBtnMobile" class="settings-btn">⚙️ 詳細設定</button>
+
+    <!-- 3段目: アイコン -->
+    <div class="mobile-toolbar-row">
+      <select id="iconTypeMobile" class="tool-select">
+        <option value="none">ピンのアイコンなし（点のみ）</option>
+        <option value="home">🏠 家</option>
+        <option value="school">🏫 学校</option>
+        <option value="pin">📍 目印</option>
+        <option value="star">⭐ 重要</option>
+        <option value="crossing">🚸 横断歩道</option>
+        <option value="warning">⚠️ 注意</option>
+        <option value="flag">🚩 旗</option>
+        <option value="stop">🛑 停止</option>
+      </select>
+    </div>
+
+    <!-- 4段目: ラベル -->
+    <div class="mobile-toolbar-row">
+      <input type="text" id="labelInputMobile" class="tool-input" placeholder="ピンの文字 例: 家、学校">
+    </div>
+
+    <!-- 5段目: その他 -->
+    <div class="mobile-toolbar-row">
+      <button id="toggleSaveCenterMobile" class="tool-btn">▢<br>範囲非表示</button>
+      <button id="centerToViewMobile" class="tool-btn">➕<br>中心移動</button>
+      <button id="toolClearMobile" class="tool-btn">🗑️<br>削除</button>
+    </div>
+
+    <!-- 6段目: 保存 -->
+    <div class="mobile-toolbar-row">
+      <button id="toolPreviewMobile" class="tool-btn btn-preview">🗺️ 白黒地図</button>
+      <button id="toolSaveMobile" class="tool-btn btn-success mobile-save-btn">💾 保存</button>
+    </div>
   </div>
 
   <!-- 地図 -->
@@ -821,83 +818,6 @@
     <div class="save-center-crosshair"></div>
   </div>
   <div id="saveCenterLabel" class="save-center-label">保存の中心（ドラッグで移動）</div>
-
-  <!-- モーダル（モバイル用） -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">⚙️ 詳細設定</div>
-        <button class="modal-close" id="modalClose">✕</button>
-      </div>
-      <div class="modal-body">
-        <!-- 保存中心 -->
-        <div class="tool-group">
-          <div class="tool-group-label">保存中心</div>
-          <div class="tool-buttons">
-            <button id="toggleSaveCenterMobileModalBtn" class="tool-btn">👁️ 中心表示切替</button>
-            <button id="centerToViewMobile" class="tool-btn">➕ 中心移動</button>
-          </div>
-        </div>
-
-        <!-- 色選択 -->
-        <div class="tool-group">
-          <div class="tool-group-label">点/線の色</div>
-          <div class="color-buttons">
-            <div class="color-btn red modal-color active" data-color="#ef4444"></div>
-            <div class="color-btn blue modal-color" data-color="#3b82f6"></div>
-            <div class="color-btn black modal-color" data-color="#1f2937"></div>
-          </div>
-        </div>
-
-        <!-- アイコン -->
-        <div class="tool-group">
-          <div class="tool-group-label">アイコン</div>
-          <select id="iconTypeMobile" class="tool-select">
-            <option value="none">なし（点のみ）</option>
-            <option value="home">🏠 家</option>
-            <option value="school">🏫 学校</option>
-            <option value="pin">📍 目印</option>
-            <option value="star">⭐ 重要</option>
-            <option value="crossing">🚸 横断歩道</option>
-            <option value="warning">⚠️ 注意</option>
-            <option value="flag">🚩 旗</option>
-            <option value="stop">🛑 停止</option>
-          </select>
-        </div>
-
-        <!-- ラベル -->
-        <div class="tool-group">
-          <div class="tool-group-label">ラベル</div>
-          <input type="text" id="labelInputMobile" class="tool-input" placeholder="例: 家、学校">
-        </div>
-
-        <!-- 画像サイズ -->
-        <div class="tool-group">
-          <div class="tool-group-label">画像サイズ</div>
-          <select id="imageSizeMobile" class="tool-select">
-            <option value="1200x900">1200x900</option>
-            <option value="900x1200">900x1200</option>
-            <option value="1500x1500">1500x1500</option>
-            <option value="2000x1500">2000x1500</option>
-          </select>
-        </div>
-
-        <!-- 統計 -->
-        <div class="stat-badges">
-          <div class="stat-badge" id="pinCountMobile">📍 0</div>
-          <div class="stat-badge green" id="lineCountMobile">📏 0</div>
-        </div>
-
-        <!-- アクション -->
-        <div class="tool-group">
-          <div class="tool-buttons">
-            <button id="toolUndoMobile" class="tool-btn" disabled>↩️ 描画を戻す</button>
-            <button id="toolClearMobile" class="tool-btn">🗑️ 削除</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- 通知 -->
   <div id="notification" class="notification"></div>
@@ -986,8 +906,7 @@
       const preview = document.getElementById('saveRangePreview');
       const toggleBtns = [
         document.getElementById('toggleSaveCenterBtn'),
-        document.getElementById('toggleSaveCenterMobileBtn'),
-        document.getElementById('toggleSaveCenterMobileModalBtn')
+        document.getElementById('toggleSaveCenterMobile')
       ];
       
       if (showSaveCenterPreview) {
@@ -998,11 +917,10 @@
         toggleBtns.forEach(btn => btn.classList.add('btn-toggle-show'));
         
         // ボタンのテキストを変更
-        document.getElementById('toggleSaveCenterBtn').textContent = '👁️ 中心非表示';
-        document.getElementById('toggleSaveCenterMobileBtn').innerHTML = '👁️<br>中心非表示';
-        document.getElementById('toggleSaveCenterMobileModalBtn').textContent = '👁️ 中心非表示';
+        document.getElementById('toggleSaveCenterBtn').textContent = '▢ 範囲非表示';
+        document.getElementById('toggleSaveCenterMobile').innerHTML = '▢<br>範囲非表示';
         
-        showNotification('👁️ 保存中心を表示しました');
+        showNotification('▢ 保存範囲を表示しました');
       } else {
         marker.classList.remove('show');
         label.classList.remove('show');
@@ -1010,11 +928,10 @@
         toggleBtns.forEach(btn => btn.classList.remove('btn-toggle-show'));
         
         // ボタンのテキストを変更
-        document.getElementById('toggleSaveCenterBtn').textContent = '👁️ 中心表示';
-        document.getElementById('toggleSaveCenterMobileBtn').innerHTML = '👁️<br>中心表示';
-        document.getElementById('toggleSaveCenterMobileModalBtn').textContent = '👁️ 中心表示';
+        document.getElementById('toggleSaveCenterBtn').textContent = '▢範囲表示';
+        document.getElementById('toggleSaveCenterMobile').innerHTML = '▢<br>範囲表示';
         
-        showNotification('保存中心を非表示にしました');
+        showNotification('保存範囲を非表示にしました');
       }
     }
 
@@ -1090,18 +1007,6 @@
     
     document.addEventListener('mouseup', endDrag);
     document.addEventListener('touchend', endDrag);
-
-    // 初期位置設定（表示状態で）
-    updateSaveCenterMarkerPosition();
-
-    // デフォルトで表示
-    document.getElementById('saveCenterMarker').classList.add('show');
-    document.getElementById('saveCenterLabel').classList.add('show');
-    document.getElementById('saveRangePreview').classList.add('show');
-    document.getElementById('toggleSaveCenterBtn').classList.add('btn-toggle-show');
-    document.getElementById('toggleSaveCenterMobileBtn').classList.add('btn-toggle-show');
-    document.getElementById('toggleSaveCenterMobileModalBtn').classList.add('btn-toggle-show');
-
 
     // 白黒モード用の線の色を取得
     function getLineColor(baseColor) {
@@ -1197,25 +1102,25 @@
       if (isDot) {
         return L.divIcon({
           html: `
-            <div style="text-align:center; position:relative;">
+            <div style="text-align:center; position:relative; display:inline-block;">
               <div style="width:10px; height:10px; background:${currentColor}; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.5); margin:0 auto;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#333; background:white; padding:2px 6px; border-radius:4px; margin-top:2px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.3);">${label}</div>
+              <div style="position:absolute; top:100%; left:50%; transform:translateX(-50%); font-size:12px; font-weight:bold; color:#1f2937; padding:4px 10px; border-radius:6px; margin-top:3px; white-space:nowrap; text-shadow:1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;">${label}</div>
             </div>
           `,
           className: 'custom-marker-with-label',
-          iconSize: [14, 35],
+          iconSize: [14, 14],
           iconAnchor: [7, 7]
         });
       } else {
         return L.divIcon({
           html: `
-            <div style="text-align:center; position:relative;">
+            <div style="text-align:center; position:relative; display:inline-block;">
               <div style="font-size:${size}px; line-height:1;">${emoji}</div>
-              <div style="font-size:11px; font-weight:bold; color:#333; background:white; padding:2px 6px; border-radius:4px; margin-top:2px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.3);">${label}</div>
+              <div style="position:absolute; top:100%; left:50%; transform:translateX(-50%); font-size:12px; font-weight:bold; color:#1f2937; padding:4px 10px; border-radius:6px; margin-top:3px; white-space:nowrap; text-shadow:1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;">${label}</div>
             </div>
           `,
           className: 'custom-marker-with-label',
-          iconSize: [size, size + 25],
+          iconSize: [size, size],
           iconAnchor: [size/2, size/2]
         });
       }
@@ -1234,8 +1139,6 @@
     function updateStats() {
       document.getElementById('pinCount').textContent = `📍 ${markers.length}`;
       document.getElementById('lineCount').textContent = `📏 ${polylines.length}`;
-      document.getElementById('pinCountMobile').textContent = `📍 ${markers.length}`;
-      document.getElementById('lineCountMobile').textContent = `📏 ${polylines.length}`;
     }
 
     // Undo機能の更新
@@ -1243,7 +1146,6 @@
       const disabled = history.length === 0;
       document.getElementById('toolUndo').disabled = disabled;
       document.getElementById('toolUndoMobile').disabled = disabled;
-      document.getElementById('toolUndoMobileBtn').disabled = disabled;
     }
 
     // 履歴に追加
@@ -1375,8 +1277,7 @@
 
     // 保存中心表示切替ボタン
     document.getElementById('toggleSaveCenterBtn').addEventListener('click', toggleSaveCenterPreview);
-    document.getElementById('toggleSaveCenterMobileBtn').addEventListener('click', toggleSaveCenterPreview);
-    document.getElementById('toggleSaveCenterMobileModalBtn').addEventListener('click', toggleSaveCenterPreview);
+    document.getElementById('toggleSaveCenterMobile').addEventListener('click', toggleSaveCenterPreview);
 
     // 線完了ボタン
     document.getElementById('lineCompleteBtn').addEventListener('click', completeLine);
@@ -1412,7 +1313,6 @@
 
     document.getElementById('toolUndo').addEventListener('click', handleUndo);
     document.getElementById('toolUndoMobile').addEventListener('click', handleUndo);
-    document.getElementById('toolUndoMobileBtn').addEventListener('click', handleUndo);
 
     // 全削除ボタン
     function handleClear() {
@@ -1451,25 +1351,18 @@
       isPreviewMode = !isPreviewMode;
       
       const previewBtn = document.getElementById('toolPreview');
-      const previewBtnMobile = document.getElementById('toolPreviewMobileBtn');
+      const previewBtnMobile = document.getElementById('toolPreviewMobile');
       
       if (isPreviewMode) {
-        // PC（改行いらないなら textContent のままでOK）
         previewBtn.textContent = '🗺️カラー地図';
-
-        // ✅ モバイル（<br> を効かせる）
-        previewBtnMobile.innerHTML = '🗺️<br>カラー地図';
-
+        previewBtnMobile.textContent = '🗺️ カラー地図';
         previewBtn.classList.add('active');
         previewBtnMobile.classList.add('active');
         map.setZoom(18);
         showNotification('白黒プレビューモード', 3000);
       } else {
         previewBtn.textContent = '🗺️白黒地図';
-
-        // ✅ モバイル（<br> を効かせる）
-        previewBtnMobile.innerHTML = '🗺️<br>白黒地図';
-
+        previewBtnMobile.textContent = '🗺️ 白黒地図';
         previewBtn.classList.remove('active');
         previewBtnMobile.classList.remove('active');
         showNotification('カラーモードに戻しました');
@@ -1490,33 +1383,14 @@
     }
 
     document.getElementById('toolPreview').addEventListener('click', handlePreview);
-    document.getElementById('toolPreviewMobileBtn').addEventListener('click', handlePreview);
+    document.getElementById('toolPreviewMobile').addEventListener('click', handlePreview);
 
     // 色選択
     document.querySelectorAll('.color-btn').forEach(btn => {
       btn.addEventListener('click', function() {
-        const isModal = this.classList.contains('modal-color');
-        const selector = isModal ? '.modal-color' : '.color-btn:not(.modal-color)';
-        document.querySelectorAll(selector).forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         currentColor = this.dataset.color;
-        
-        // PC/モバイルを同期
-        if (!isModal) {
-          document.querySelectorAll('.modal-color').forEach(b => {
-            b.classList.remove('active');
-            if (b.dataset.color === currentColor) {
-              b.classList.add('active');
-            }
-          });
-        } else {
-          document.querySelectorAll('.color-btn:not(.modal-color)').forEach(b => {
-            b.classList.remove('active');
-            if (b.dataset.color === currentColor) {
-              b.classList.add('active');
-            }
-          });
-        }
       });
     });
 
@@ -1629,9 +1503,6 @@
           document.getElementById('saveRangePreview').classList.add('show');
         }
 
-        // 成功メッセージ（ダウンロード完了後）
-        // showNotification('✅ 地図を保存しました! (ズーム18・30m縮尺)', 3000);
-
       } catch (error) {
         // エラー時もマーカーと範囲枠を元の状態に戻す
         if (showSaveCenterPreview) {
@@ -1658,11 +1529,7 @@
     }
 
     document.getElementById('centerToView').addEventListener('click', moveSaveCenterToViewCenter);
-    document.getElementById('centerToViewMobile').addEventListener('click', function() {
-      moveSaveCenterToViewCenter();
-      document.getElementById('modalOverlay').classList.remove('show');
-    });
-    document.getElementById('centerToViewMobileBtn').addEventListener('click', moveSaveCenterToViewCenter);
+    document.getElementById('centerToViewMobile').addEventListener('click', moveSaveCenterToViewCenter);
 
     // 場所検索
     async function handleSearch() {
@@ -1740,8 +1607,8 @@
         addToHistory('marker', marker);
         updateStats();
         
-        document.getElementById('labelInput').value = '';
-        document.getElementById('labelInputMobile').value = '';
+        // document.getElementById('labelInput').value = '';
+        // document.getElementById('labelInputMobile').value = '';
         
         showNotification('📍 ピンを追加しました');
       } 
@@ -1814,21 +1681,6 @@
       this.textContent = content.classList.contains('collapsed') ? '+' : '−';
     });
 
-    // モーダル
-    document.getElementById('settingsBtnMobile').addEventListener('click', function() {
-      document.getElementById('modalOverlay').classList.add('show');
-    });
-
-    document.getElementById('modalClose').addEventListener('click', function() {
-      document.getElementById('modalOverlay').classList.remove('show');
-    });
-
-    document.getElementById('modalOverlay').addEventListener('click', function(e) {
-      if (e.target === this) {
-        this.classList.remove('show');
-      }
-    });
-
     // セレクト・入力の同期
     document.getElementById('iconType').addEventListener('change', function() {
       document.getElementById('iconTypeMobile').value = this.value;
@@ -1839,14 +1691,6 @@
     });
 
     document.getElementById('imageSize').addEventListener('change', function() {
-      document.getElementById('imageSizeMobile').value = this.value;
-      if (showSaveCenterPreview) {
-        updateSaveRangePreview();
-      }
-    });
-
-    document.getElementById('imageSizeMobile').addEventListener('change', function() {
-      document.getElementById('imageSize').value = this.value;
       if (showSaveCenterPreview) {
         updateSaveRangePreview();
       }
@@ -1874,6 +1718,16 @@
     // 初期状態
     updateUndoButton();
     updateStats();
+
+    // 初期位置設定（表示状態で）
+    updateSaveCenterMarkerPosition();
+
+    // デフォルトで表示
+    document.getElementById('saveCenterMarker').classList.add('show');
+    document.getElementById('saveCenterLabel').classList.add('show');
+    document.getElementById('saveRangePreview').classList.add('show');
+    document.getElementById('toggleSaveCenterBtn').classList.add('btn-toggle-show');
+    document.getElementById('toggleSaveCenterMobile').classList.add('btn-toggle-show');
   </script>
 </body>
 </html>
