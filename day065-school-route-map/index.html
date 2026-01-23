@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>通学路地図作成ツール - スマホで簡単！小学校提出用</title>
+  <meta name="description" content="小学校提出用の通学路地図を簡単作成。スマホ対応、APIキー不要、完全無料。2箇所以上にピンを配置するだけで自動的に範囲を計算し、道路が見やすい白黒地図を生成。">
+  
+  <!-- OGP (Open Graph Protocol) -->
+  <meta property="og:title" content="通学路地図作成ツール - スマホで簡単！小学校提出用" />
+  <meta property="og:description" content="2箇所にピンを打つだけで自動的に範囲を計算。スマホ対応、APIキー不要で完全無料。小学校提出用の通学路地図を簡単に作成できます。" />
+  <meta property="og:image" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/screenshot.png" />
+  <meta property="og:url" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/index.html" />
+  <meta property="og:type" content="website" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="通学路地図作成ツール" />
+  <meta name="twitter:description" content="スマホで簡単！2箇所にピンを打つだけで自動的に範囲を計算し、小学校提出用の通学路地図を作成。APIキー不要、完全無料で使えます。" />
+  <meta name="twitter:image" content="https://hiroe28.github.io/llm-100days-challenge/day065-school-route-map/screenshot.png" />
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 70px);
+    }
+
+    #map {
+      flex: 1;
+      min-height: 300px;
+      background: #e5e7eb;
+    }
+
+    .controls {
+      background: white;
+      padding: 16px;
+      max-height: 50vh;
+      overflow-y: auto;
+      border-top: 2px solid #667eea;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      touch-action: manipulation;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+
+    .btn-secondary:active {
+      background: #f0f2ff;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:active {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:active {
+      background: #dc2626;
+    }
+
+    .btn:disabled {
+      background: #d1d5db;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .toggle-btn {
+      padding: 12px;
+      border: 2px solid #ddd;
+      background: white;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      touch-action: manipulation;
+    }
+
+    .toggle-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .hint {
+      background: #f0f9ff;
+      border-left: 3px solid #3b82f6;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #1e40af;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+
+    .warning {
+      background: #fef3c7;
+      border-left: 3px solid #f59e0b;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #92400e;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+
+    .success-box {
+      background: #d1fae5;
+      border-left: 3px solid #10b981;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #065f46;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+
+    .pin-count {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 16px 0;
+    }
+
+    .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn.loading .spinner {
+      display: block;
+    }
+
+    .btn.loading .btn-text {
+      display: none;
+    }
+
+    .expand-btn {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #667eea;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .expandable-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .expandable-content.expanded {
+      max-height: 500px;
+    }
+
+    /* PC表示時のレイアウト */
+    @media (min-width: 768px) {
+      .container {
+        flex-direction: row;
+        height: calc(100vh - 70px);
+      }
+
+      .controls {
+        width: 360px;
+        max-height: none;
+        border-top: none;
+        border-right: 1px solid #e0e0e0;
+      }
+
+      #map {
+        flex: 1;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .header p {
+        font-size: 14px;
+      }
+
+      .header {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🗺️ 通学路地図作成ツール</h1>
+    <p>スマホでも簡単！ピンを置いて保存するだけ</p>
+  </div>
+
+  <div class="container">
+    <div id="map"></div>
+    
+    <div class="controls">
+      <!-- 地図スタイル -->
+      <div class="section">
+        <div class="section-title">⚙️ 地図スタイル</div>
+        
+        <div class="input-group">
+          <label>地図タイプ（カラー地図でラベル表示だと建物がわかりやすい）</label>
+          <select id="mapStyle">
+            <option value="toner" selected>白黒（濃いめ）</option>
+            <option value="positron">白黒（明るめ）</option>
+            <option value="color">カラー地図</option>
+          </select>
+        </div>
+
+        <div class="toggle-group">
+          <button class="toggle-btn" data-labels="on">ラベル表示</button>
+          <button class="toggle-btn active" data-labels="off">ラベル非表示</button>
+        </div>
+
+        <button class="expand-btn" onclick="toggleExpand('advanced')">
+          詳細設定（明るさ・コントラスト） ▼
+        </button>
+        <div id="advanced" class="expandable-content">
+          <div class="input-group">
+            <label>明るさ <span id="brightnessValue">100%</span></label>
+            <input type="range" id="brightness" min="50" max="150" value="100" step="5">
+          </div>
+          <div class="input-group">
+            <label>コントラスト <span id="contrastValue">100%</span></label>
+            <input type="range" id="contrast" min="50" max="150" value="100" step="5">
+          </div>
+          <button class="btn btn-secondary" id="resetFilters" style="margin-top: 8px;">
+            🔄 リセット
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 場所検索 -->
+      <div class="section">
+        <div class="section-title">📍 場所を探す</div>
+        <div class="input-group">
+          <input type="text" id="addressInput" placeholder="住所を入力（例：札幌市中央区...）">
+        </div>
+        <button class="btn btn-primary" id="searchBtn">
+          <span class="btn-text">🔍 この住所へ移動</span>
+          <span class="spinner"></span>
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- ピン配置 -->
+      <div class="section">
+        <div class="section-title">
+          📌 ピンを配置
+          <span class="pin-count" id="pinCount">0個</span>
+        </div>
+        
+        <div class="input-group">
+          <label>ピンの種類</label>
+          <select id="pinType">
+            <option value="home">🏠 自宅</option>
+            <option value="school">🏫 学校</option>
+            <option value="point">📍 その他</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary" id="addPinMode">
+          ➕ 地図タップでピン追加
+        </button>
+
+        <div class="hint">
+          💡 ボタンをタップ → 地図上をタップしてピンを配置
+        </div>
+
+        <div class="toggle-group" style="margin-top: 12px;">
+          <button class="toggle-btn active" id="showPins">ピン表示</button>
+          <button class="toggle-btn" id="hidePins">ピン非表示</button>
+        </div>
+
+        <button class="btn btn-danger" id="clearPins">
+          🗑️ ピンを全削除
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 保存 -->
+      <div class="section">
+        <div class="section-title">💾 地図を保存</div>
+        
+        <div class="input-group">
+          <label>画像サイズ</label>
+          <select id="imageSize">
+            <option value="800x600">800×600</option>
+            <option value="1200x900" selected>1200×900（推奨）</option>
+            <option value="1600x1200">1600×1200</option>
+            <option value="2000x1500">2000×1500</option>
+          </select>
+        </div>
+
+        <button class="btn btn-success" id="captureBtn" disabled>
+          💾 ピンの範囲を画像保存
+        </button>
+
+        <div id="saveStatus" style="display: none;"></div>
+
+        <div class="hint">
+          💡 ピンを印刷したくない場合は、保存前に「ピン非表示」ボタンを押してください
+        </div>
+
+        <div class="warning">
+          ⚠️ 2個以上のピンを配置してから保存してください。配置したピンを含む範囲が自動で画像化されます（ズーム18固定）。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+  <script>
+    // 地図の初期化
+    const map = L.map('map', {
+      zoomControl: true,
+      attributionControl: true
+    }).setView([43.064171, 141.346939], 18);
+
+    // タイルレイヤー設定
+    let currentTileLayer;
+    let showLabels = false; // 初期は非表示
+    let currentStyle = 'toner';
+    let brightness = 100;
+    let contrast = 100;
+
+    // ピン管理
+    let markers = [];
+    let pinsVisible = true;
+    let addPinModeActive = false;
+
+    // アイコン定義
+    const homeIcon = L.divIcon({
+      html: '<div style="background: #ef4444; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">🏠</div>',
+      className: '',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    const schoolIcon = L.divIcon({
+      html: '<div style="background: #3b82f6; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">🏫</div>',
+      className: '',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    const pointIcon = L.divIcon({
+      html: '<div style="background: #10b981; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px;">📍</div>',
+      className: '',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    function updateTileLayer() {
+      if (currentTileLayer) {
+        map.removeLayer(currentTileLayer);
+      }
+
+      let tileUrl;
+      let options = {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      };
+
+      switch(currentStyle) {
+        case 'positron':
+          tileUrl = showLabels 
+            ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
+          options.attribution += ' &copy; <a href="https://carto.com/attributions">CARTO</a>';
+          break;
+        
+        case 'toner':
+          tileUrl = showLabels 
+            ? 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png'
+            : 'https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png';
+          break;
+        
+        default:
+          tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      }
+
+      currentTileLayer = L.tileLayer(tileUrl, options).addTo(map);
+      updateFilters();
+    }
+
+    function updateFilters() {
+      const mapPane = map.getPane('tilePane');
+      if (mapPane) {
+        mapPane.style.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+      }
+    }
+
+    updateTileLayer();
+
+    // ピン数更新
+    function updatePinCount() {
+      document.getElementById('pinCount').textContent = markers.length + '個';
+      document.getElementById('captureBtn').disabled = markers.length < 2;
+    }
+
+    // 詳細設定の展開
+    function toggleExpand(id) {
+      const elem = document.getElementById(id);
+      elem.classList.toggle('expanded');
+    }
+
+    // 地図スタイル変更
+    document.getElementById('mapStyle').addEventListener('change', function() {
+      currentStyle = this.value;
+      updateTileLayer();
+    });
+
+    // ラベル切り替え
+    document.querySelectorAll('[data-labels]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('[data-labels]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        showLabels = this.dataset.labels === 'on';
+        updateTileLayer();
+      });
+    });
+
+    // フィルター調整
+    document.getElementById('brightness').addEventListener('input', function() {
+      brightness = this.value;
+      document.getElementById('brightnessValue').textContent = brightness + '%';
+      updateFilters();
+    });
+
+    document.getElementById('contrast').addEventListener('input', function() {
+      contrast = this.value;
+      document.getElementById('contrastValue').textContent = contrast + '%';
+      updateFilters();
+    });
+
+    document.getElementById('resetFilters').addEventListener('click', function() {
+      brightness = 100;
+      contrast = 100;
+      document.getElementById('brightness').value = 100;
+      document.getElementById('contrast').value = 100;
+      document.getElementById('brightnessValue').textContent = '100%';
+      document.getElementById('contrastValue').textContent = '100%';
+      updateFilters();
+    });
+
+    // 住所検索
+    document.getElementById('searchBtn').addEventListener('click', async function() {
+      const address = document.getElementById('addressInput').value.trim();
+      if (!address) {
+        alert('住所を入力してください');
+        return;
+      }
+
+      this.classList.add('loading');
+
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?` + 
+          `format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=jp`
+        );
+        
+        const data = await response.json();
+        
+        if (data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          map.setView([lat, lon], 18);
+          alert(`✅ ${data[0].display_name.slice(0, 50)}... に移動しました`);
+        } else {
+          alert('住所が見つかりませんでした');
+        }
+      } catch (error) {
+        alert('検索エラーが発生しました');
+      } finally {
+        this.classList.remove('loading');
+      }
+    });
+
+    // Enterキーで検索
+    document.getElementById('addressInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        document.getElementById('searchBtn').click();
+      }
+    });
+
+    // ピン追加モード
+    document.getElementById('addPinMode').addEventListener('click', function() {
+      addPinModeActive = !addPinModeActive;
+      if (addPinModeActive) {
+        this.classList.add('active');
+        this.style.background = '#10b981';
+        this.style.color = 'white';
+        this.innerHTML = '✓ ピン追加モードON';
+        map.getContainer().style.cursor = 'crosshair';
+      } else {
+        this.classList.remove('active');
+        this.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        this.style.color = 'white';
+        this.innerHTML = '➕ 地図タップでピン追加';
+        map.getContainer().style.cursor = '';
+      }
+    });
+
+    // 地図クリックでピン追加
+    map.on('click', function(e) {
+      if (!addPinModeActive) return;
+
+      const pinType = document.getElementById('pinType').value;
+      let icon, label;
+
+      switch(pinType) {
+        case 'home':
+          icon = homeIcon;
+          label = '自宅';
+          break;
+        case 'school':
+          icon = schoolIcon;
+          label = '学校';
+          break;
+        default:
+          icon = pointIcon;
+          label = 'ポイント';
+      }
+
+      const marker = L.marker([e.latlng.lat, e.latlng.lng], { icon: icon })
+        .bindPopup(label)
+        .addTo(map);
+
+      markers.push(marker);
+      updatePinCount();
+    });
+
+    // ピン表示/非表示
+    document.getElementById('showPins').addEventListener('click', function() {
+      document.getElementById('showPins').classList.add('active');
+      document.getElementById('hidePins').classList.remove('active');
+      pinsVisible = true;
+      markers.forEach(marker => marker.addTo(map));
+    });
+
+    document.getElementById('hidePins').addEventListener('click', function() {
+      document.getElementById('hidePins').classList.add('active');
+      document.getElementById('showPins').classList.remove('active');
+      pinsVisible = false;
+      markers.forEach(marker => map.removeLayer(marker));
+    });
+
+    // ピン全削除
+    document.getElementById('clearPins').addEventListener('click', function() {
+      if (markers.length === 0) {
+        alert('削除するピンがありません');
+        return;
+      }
+      
+      if (confirm(`${markers.length}個のピンをすべて削除しますか？`)) {
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
+        updatePinCount();
+        alert('すべてのピンを削除しました');
+      }
+    });
+
+    // 画像保存機能
+    document.getElementById('captureBtn').addEventListener('click', async function() {
+      if (markers.length < 2) {
+        alert('2個以上のピンを配置してください');
+        return;
+      }
+
+      const captureZoom = 18; // ズーム18固定
+      const imageSizeStr = document.getElementById('imageSize').value;
+      const [width, height] = imageSizeStr.split('x').map(Number);
+
+      // ピンの範囲を計算
+      const latLngs = markers.map(m => m.getLatLng());
+      const bounds = L.latLngBounds(latLngs);
+      
+      // 余白を追加（10%）
+      const padding = 0.1;
+      const latPadding = (bounds.getNorth() - bounds.getSouth()) * padding;
+      const lngPadding = (bounds.getEast() - bounds.getWest()) * padding;
+      
+      const paddedBounds = L.latLngBounds(
+        [bounds.getSouth() - latPadding, bounds.getWest() - lngPadding],
+        [bounds.getNorth() + latPadding, bounds.getEast() + lngPadding]
+      );
+
+      try {
+        // 保存状態を表示
+        const statusDiv = document.getElementById('saveStatus');
+        statusDiv.className = 'hint';
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = '⏳ 画像を生成中...';
+
+        // 一時的な地図を作成
+        const tempDiv = document.createElement('div');
+        tempDiv.style.width = width + 'px';
+        tempDiv.style.height = height + 'px';
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '0';
+        tempDiv.id = 'tempMap';
+        document.body.appendChild(tempDiv);
+
+        const tempMap = L.map('tempMap', {
+          zoomControl: false,
+          attributionControl: false
+        }).fitBounds(paddedBounds);
+
+        tempMap.setZoom(captureZoom);
+
+        // タイル追加
+        let tileUrl;
+        switch(currentStyle) {
+          case 'positron':
+            tileUrl = showLabels 
+              ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+              : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
+            break;
+          case 'toner':
+            tileUrl = showLabels 
+              ? 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png'
+              : 'https://tiles.stadiamaps.com/tiles/stamen_toner_background/{z}/{x}/{y}{r}.png';
+            break;
+          default:
+            tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        }
+
+        L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(tempMap);
+
+        // フィルター適用
+        const tempMapPane = tempMap.getPane('tilePane');
+        if (tempMapPane) {
+          tempMapPane.style.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+        }
+
+        // ピンを追加
+        if (pinsVisible) {
+          markers.forEach(marker => {
+            L.marker(marker.getLatLng(), { icon: marker.options.icon }).addTo(tempMap);
+          });
+        }
+
+        // タイル読み込み待機
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // 画像化
+        const canvas = await html2canvas(tempDiv, {
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff'
+        });
+
+        // ダウンロード
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().slice(0, 10);
+        link.download = `通学路地図_${timestamp}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        // 後片付け
+        tempMap.remove();
+        document.body.removeChild(tempDiv);
+
+        statusDiv.className = 'success-box';
+        statusDiv.textContent = '✅ 地図を保存しました！';
+        setTimeout(() => {
+          statusDiv.style.display = 'none';
+        }, 3000);
+
+      } catch (error) {
+        const statusDiv = document.getElementById('saveStatus');
+        statusDiv.className = 'warning';
+        statusDiv.textContent = '❌ 保存中にエラーが発生しました';
+        console.error(error);
+      }
+    });
+
+    // スケールコントロール
+    L.control.scale({
+      imperial: false,
+      metric: true
+    }).addTo(map);
+  </script>
+</body>
+</html>
